@@ -1,0 +1,4 @@
+aiosqlite3
+discord.py>=1.3.0 [voice]
+ksoftapi>=0.1.5
+git+https://github.com/Devoxin/Lavalink.py@dev

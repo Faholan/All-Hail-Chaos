@@ -6,7 +6,6 @@ import ksoftapi
 
 import aiohttp
 import aiosqlite3
-import coronatracker
 
 bot=commands.Bot(command_prefix=('€','¤'),description="A bot for fun",help_command=None,fetch_offline_members=True)
 
