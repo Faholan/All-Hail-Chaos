@@ -90,61 +90,19 @@ class funny(commands.Cog):
         self.bot=bot
         self.diktat={'suggestion':'','s_kill':'de mort','s_paillard':'de chanson paillarde','s_excuse':"d'excuse",'s_fight':'de baston'}
 
-    @commands.command(hidden=True,aliases=['s_kill','s_paillard','s_excuse','s_fight'])
-    async def suggestion(self,ctx,idea,*ideas):
-        '''Hidden command to make suggestions'''
-        print(f'Idée {self.diktat[ctx.invoked_with]} soumise par {str(ctx.message.author)}'+' '.join([idea]+list(ideas)),file=open('ideas.log',mode='a'))
-        await ctx.send('Thanks for your idea.')
-
-    @commands.command()
-    async def kill(self,ctx,kill,*kills):
-        '''Just in case you wanna kill your neighbour.
-        If you have an idea for an horrible death, use $s_kill [idea]'''
-        await ctx.send('\n'.join([choice(mort).format(auteur=ctx.message.author.display_name,victime=dead) for dead in [kill]+kills]))
-
-    @commands.command(ignore_extra=True)
-    async def paillard(self,ctx):
-        '''A utiliser en cas, hmmm... d'envie de rigoler, dirons-nous. (french only)
-        If you got any idea, use $s_paillard [idea]'''
-        await ctx.send(choice(chanson_paillarde).replace('|','\n'))
-
+    async def adventure(self,ctx,*,aventure=None):
+        try:
+            from bin.story import adder
+            self.aventures=adder(ctx)
+        except:
+            await ctx.send('Cette commande est en cours de développement.')
+            
     @commands.command(ignore_extra=True)
     async def excuse(self,ctx):
         '''On fait tous des conneries, et on a tous besoin d'une bonne excuse. (french only)
         If you got any idea, use $s_excuse [idea]'''
         r='\n'
         await ctx.send(f"Je suis désolé, maître... c'est parce que {choice(excuses[0].split('|')).strip(r)} {choice(excuses[1].split('|')).strip(r)} dans {choice(excuses[2].split('|')).strip(r)} et tout ça à cause {choice(excuses[3].split('|')).strip(r)} {choice(excuses[4].split('|')).strip(r)} qui {choice(excuses[5].split('|')).strip(r)} donc c'est pas ma faute !")
-
-    @commands.command(aliases=['dice'])
-    async def roll(self,ctx,*,dice):
-        '''To roll dices'''
-        def de(n,m):
-            return n*randint(1,m)
-        def roller(owo):
-            if not owo[0].isdigit():
-                raise ValueError("'"+owo[0]+"' is not a number")
-            c=0
-            while owo[c].isdigit():
-                c+=1
-                if c==len(owo):
-                    return owo
-            if owo[c] in ['+','-','*']:
-                if c+1==len(owo):
-                    raise ValueError()
-                return owo[:c]+owo[c]+roller(owo[:c+1])
-            elif owo[c]=='d':
-                d=c+1
-                if not owo[d].isdigit():
-                    raise ValueError()
-                while owo[d].isdigit():
-                    d+=1
-                    if d==len(owo):
-                        return 'de('+owo[:c]+','+owo[c+1:]+')'
-                if owo[d] in ['+','-','*']:
-                    if d+1==len(owo):
-                        raise ValueError("Please specify the value you wanna roll")
-                    return 'de('+owo[:c]+','+owo[c+1:d]+')'+owo[d]+roller(owo[d+1:])
-        await ctx.send(str(eval(roller(dice))))
 
     @commands.command(aliases=['baston'],ignore_extra=False)
     @commands.guild_only()
@@ -196,12 +154,54 @@ class funny(commands.Cog):
                     combat=False
                     await ctx.send(next.display_name+' annihilated '+fight[0].display_name+'. What a show !')
 
-    async def adventure(self,ctx,*,aventure=None):
-        try:
-            from bin.story import adder
-            self.aventures=adder(ctx)
-        except:
-            await ctx.send('Cette commande est en cours de développement.')
+    @commands.command()
+    async def kill(self,ctx,kill,*kills):
+        '''Just in case you wanna kill your neighbour.
+        If you have an idea for an horrible death, use $s_kill [idea]'''
+        await ctx.send('\n'.join([choice(mort).format(auteur=ctx.message.author.display_name,victime=dead) for dead in [kill]+kills]))
+
+    @commands.command(ignore_extra=True)
+    async def paillard(self,ctx):
+        '''A utiliser en cas, hmmm... d'envie de rigoler, dirons-nous. (french only)
+        If you got any idea, use $s_paillard [idea]'''
+        await ctx.send(choice(chanson_paillarde).replace('|','\n'))
+
+    @commands.command(aliases=['dice'])
+    async def roll(self,ctx,*,dice):
+        '''To roll dices'''
+        def de(n,m):
+            return n*randint(1,m)
+        def roller(owo):
+            if not owo[0].isdigit():
+                raise ValueError("'"+owo[0]+"' is not a number")
+            c=0
+            while owo[c].isdigit():
+                c+=1
+                if c==len(owo):
+                    return owo
+            if owo[c] in ['+','-','*']:
+                if c+1==len(owo):
+                    raise ValueError()
+                return owo[:c]+owo[c]+roller(owo[:c+1])
+            elif owo[c]=='d':
+                d=c+1
+                if not owo[d].isdigit():
+                    raise ValueError()
+                while owo[d].isdigit():
+                    d+=1
+                    if d==len(owo):
+                        return 'de('+owo[:c]+','+owo[c+1:]+')'
+                if owo[d] in ['+','-','*']:
+                    if d+1==len(owo):
+                        raise ValueError("Please specify the value you wanna roll")
+                    return 'de('+owo[:c]+','+owo[c+1:d]+')'+owo[d]+roller(owo[d+1:])
+        await ctx.send(str(eval(roller(dice))))
+
+    @commands.command(hidden=True,aliases=['s_kill','s_paillard','s_excuse','s_fight'])
+    async def suggestion(self,ctx,idea,*ideas):
+        '''Hidden command to make suggestions'''
+        print(f'Idée {self.diktat[ctx.invoked_with]} soumise par {str(ctx.message.author)}'+' '.join([idea]+list(ideas)),file=open('ideas.log',mode='a'))
+        await ctx.send('Thanks for your idea.')
 
 def setup(bot):
     bot.add_cog(funny(bot))
