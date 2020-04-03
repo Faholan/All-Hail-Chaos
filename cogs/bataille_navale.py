@@ -325,6 +325,7 @@ class Bataille_navale(commands.Cog, name="Bataille navale"):
             await ctx.send('$1-'+';'.join([':'.join([str(self.enemy_boats[i][j][0])+'|'+str(self.enemy_boats[i][j][1]) for j in range(len(self.enemy_boats[i]))]) for i in range(len(self.enemy_boats))]))
         else:
             await ctx.send("Je suis en partie. Attends que j'ai finit.")
+            
     @commands.Cog.listener()
     async def on_message(self,message):
         if self.is_playing==1:

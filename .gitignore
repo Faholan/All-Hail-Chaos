@@ -127,8 +127,12 @@ dmypy.json
 # My exclusions
 data/*.DAT
 data/data.py
+
 DevPlan.txt
+
 logs/*
+
+cogs/coronavirus.py
 
 bin/story.py
 bin/story_beta.py

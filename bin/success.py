@@ -100,9 +100,9 @@ def commandes_cachees(ctx,commands):
     if ctx.command.name in commands or not ctx.command.hidden:
         return False,commands
     commands.append(ctx.command.name)
-    return len(commands)==data.hidden,commands
+    return len(commands)==hidden,commands
 def n_commandes_cachees(commands):
-    return f' ({len(commands)}/{data.hidden})'
+    return f' ({len(commands)}/{hidden})'
 def prefix(ctx,nothing):
     return ctx.prefix!='€',None
 
@@ -133,3 +133,8 @@ async def check_successes(ctx):
 
 def setup(bot):
     bot.add_check(check_successes)
+    global hidden
+    hidden=0
+    for command in bot.commands:
+        if command.hidden:
+            hidden+=1
