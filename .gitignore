@@ -123,3 +123,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# My exclusions
+data/*.DAT
+data/data.py
+DevPlan.txt
+logs/*
+
+bin/story.py
+bin/story_beta.py
