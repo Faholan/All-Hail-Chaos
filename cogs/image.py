@@ -72,7 +72,7 @@ class Images(commands.Cog):
     async def image_nsfw(self,ctx,nsfw:bool=False):
         """Retrieve the list of all available NSFW tags"""
         tag_list=await self.bot.client.tags()
-        embed=discord.Embed(timestamp=datetime.now(),color=self.bot.get_color())
+        embed=discord.Embed(timestamp=datetime.utcnow(),color=self.bot.get_color())
         embed.add_field(name="NSFW tags",value='\n'.join(tag_list.nsfw_tags))
         embed.set_author(name=ctx.author.display_name,icon_url=str(ctx.author.avatar_url))
         await ctx.send(embed=embed)
@@ -132,7 +132,7 @@ class Images(commands.Cog):
             return await ctx.send(image.message)
         if not image.url:
             return await ctx.send("Sorry, I didn't find anything")
-        embed=discord.Embed(title=image.tag,timestamp=datetime.now())
+        embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
