@@ -72,7 +72,7 @@ async def help(ctx,*command_help):
 async def cog_reloader(self):
     print("Reloading extensions...")
     for ext in data.extensions:
-        if not "success" in ext:
+        if not "success" in ext or "currency" in ext: #The combination of pickle with reload_extension will cause an error
             self.reload_extension(ext)
 
 

@@ -72,14 +72,6 @@ class business(commands.Cog):
             self.guys=[]
 
     @commands.command(ignore_extra=True)
-    async def money(self,ctx):
-        '''How much money do I have ?'''
-        if not ctx.author in self.guys:
-            self.guys.append(Business_guy(ctx.author))
-        business=self.guys[self.guys.index(ctx.author)]
-        await ctx.send(embed=business.money_out())
-
-    @commands.command(ignore_extra=True)
     @commands.cooldown(1,86400,commands.BucketType.user)
     async def daily(self,ctx):
         '''Get your daily GP (100*streak, max : 500)'''
@@ -87,6 +79,15 @@ class business(commands.Cog):
             self.guys.append(Business_guy(ctx.author))
         business=self.guys[self.guys.index(ctx.author)]
         await ctx.send(business.daily())
+        pickle.dump(self.guys,open('data\\business.DAT',mode='wb'))
+
+    @commands.command(ignore_extra=False)
+    async def deposit(self,ctx,money:int):
+        '''Deposit your money in a safe at the bank'''
+        if not ctx.author in self.guys:
+            self.guys.append(Business_guy(ctx.author))
+        business=self.guys[self.guys.index(ctx.author)]
+        await ctx.send(business.deposit(money))
         pickle.dump(self.guys,open('data\\business.DAT',mode='wb'))
 
     @commands.command(ignore_extra=True)
@@ -99,14 +100,13 @@ class business(commands.Cog):
         await ctx.send(business.gift(ctx.guild.name))
         pickle.dump(self.guys,open('data\\business.DAT',mode='wb'))
 
-    @commands.command(ignore_extra=False)
-    async def deposit(self,ctx,money:int):
-        '''Deposit your money in a safe at the bank'''
+    @commands.command(ignore_extra=True)
+    async def money(self,ctx):
+        '''How much money do I have ?'''
         if not ctx.author in self.guys:
             self.guys.append(Business_guy(ctx.author))
         business=self.guys[self.guys.index(ctx.author)]
-        await ctx.send(business.deposit(money))
-        pickle.dump(self.guys,open('data\\business.DAT',mode='wb'))
+        await ctx.send(embed=business.money_out())
 
     @commands.command(aliases=['voler'],ignore_extra=False)
     @commands.cooldown(1,600,commands.BucketType.user)
@@ -117,13 +117,11 @@ class business(commands.Cog):
         voleur=self.guys[self.guys.index(ctx.author)]
         if not victime in self.guys:
             self.steal.reset_cooldown(ctx)
-            await ctx.send("`"+victime.display_name+"` doesn't have money on him. What a shame.")
-            return
+            return await ctx.send("`"+victime.display_name+"` doesn't have money on him. What a shame.")
         vole=self.guys[self.guys.index(victime)]
         if vole.money==0:
             self.steal.reset_cooldown(ctx)
-            await ctx.send("`"+victime.display_name+"` doesn't have money on him. What a shame.")
-            return
+            return await ctx.send("`"+victime.display_name+"` doesn't have money on him. What a shame.")
         m+=p_vol(voleur.steal_streak)
         if victime.state==discord.State.offline:
             m+=10
