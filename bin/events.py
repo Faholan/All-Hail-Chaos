@@ -124,6 +124,7 @@ def setup(bot):
     #bot.add_listener(di,'on_message')
     #bot.add_listener(modif,'on_message_edit')
     #bot.add_listener(deletor,'on_message_delete')
+    #These three lines cane make the bot even more "chaotic"
     bot.add_listener(error_manager,'on_command_error')
     bot.add_listener(guild_joiner,'on_guild_join')
     bot.add_listener(guild_leaver,'on_guild_remove')

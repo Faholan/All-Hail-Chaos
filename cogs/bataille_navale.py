@@ -23,7 +23,7 @@ SOFTWARE."""
 from discord.ext import commands
 
 def j2_boats(size):
-    """Permet de placer de manière aléatoire les bateaux sur la grille"""
+    """Places all the boats randomly across the board"""
     j2,boats,cases=[],[],[]
     for i in range(10):
         j2.append([0]*10)
@@ -118,7 +118,7 @@ def j2_boats(size):
                     cases=cases+boat
     return(boats,cases)
 def ma_fonc(d,f):
-    """Pas touche !(joe, candice)"""
+    """A func"""
     e=[]
     for i in range(10):
         for j in range(round(10/d)):
@@ -128,7 +128,7 @@ def ma_fonc(d,f):
             e.remove(i)
     return e
 
-class Bataille_navale(commands.Cog, name="Bataille navale"):
+class Battleship(commands.Cog):
     def __init__(self,bot):
         self.bot=bot
         self.size=[5,4,3,3,2]
@@ -171,7 +171,7 @@ class Bataille_navale(commands.Cog, name="Bataille navale"):
         return coups
 
     def ia(self):
-        """Le nom est assez explicite, à priori..."""
+        """Well I guess it's quite explicit"""
         if self.must_fire==[]: #Bon je sais c'est du random mais bon...
             fire=self.enemy_fire[randint(0,len(self.enemy_fire)-1)]
             if fire in self.check_player:
@@ -338,15 +338,15 @@ class Bataille_navale(commands.Cog, name="Bataille navale"):
                 elif fire[1]>self.must_fire[1][1]:
                     self.must_fire.append((fire[0],fire[1]+1))
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def game(self,ctx):
-        """Lance une partie"""
+        """Start a game."""
         if self.is_playing==0:
             self.is_playing=1
             self.init()
             await ctx.send('$1-'+';'.join([':'.join([str(self.enemy_boats[i][j][0])+'|'+str(self.enemy_boats[i][j][1]) for j in range(len(self.enemy_boats[i]))]) for i in range(len(self.enemy_boats))]))
         else:
-            await ctx.send("Je suis en partie. Attends que j'ai finit.")
+            await ctx.send("I'm still playing, please wait for me to finish")
 
     @commands.Cog.listener()
     async def on_message(self,message):
@@ -383,4 +383,4 @@ class Bataille_navale(commands.Cog, name="Bataille navale"):
                     await message.channel.send('$K1')
 
 def setup(bot):
-    bot.add_cog(Bataille_navale(bot))
+    bot.add_cog(Battleship(bot))

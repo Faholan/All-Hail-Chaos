@@ -126,7 +126,7 @@ def commandes_cachees(ctx,commands):
 def n_commandes_cachees(commands):
     return f' ({len(commands)}/{hidden})'
 def prefix(ctx,nothing):
-    return ctx.prefix!='€',None
+    return ctx.prefix=='¤',None
 
 success_list=[
 Success(name='First command',description="Begin using the bot",condition=nombre_de_commandes,extra_data=[0,1],avancement=avancement_n_commandes),

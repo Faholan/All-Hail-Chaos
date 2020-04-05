@@ -193,7 +193,7 @@ class utility(commands.Cog):
         account_list=pickle.load(open('data\\accounts.DAT',mode='rb'))
         account=account_list[account_list.index(str(ctx.author))]
         gotten,locked,total=account.get_successes()
-        embed=discord.Embed(title=f'Liste des succès ({len(gotten)}/{total})',colour=data.get_color())
+        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=data.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
         for succ in gotten:
@@ -247,7 +247,7 @@ class utility(commands.Cog):
         deco=Button(self.fenetre,text='SELF-DESTRUCTION',command=deconnection,bg='red3',fg='white')
         def update():
             self.users.delete(0,END)
-            self.users.insert(END,'Le bot est connecté aux guilds suivantes :')
+            self.users.insert(END,'Guilds the bot is connected to :')
             for guild in self.bot.guilds:
                 self.users.insert(END,f'Guild {guild.name}')
                 online,idle,dnd,offline=[],[],[],[]
@@ -290,7 +290,7 @@ class utility(commands.Cog):
                 if offline!=[]:
                     insertor(f'Offline ({len(offline)}/{guild.member_count}) :',offline)
 
-        self.commandante.insert(END,'Liste des commandes du bot :')
+        self.commandante.insert(END,"Bot's commands :")
         for cog in self.bot.cogs:
             self.commandante.insert(END,self.bot.get_cog(cog).qualified_name)
             for command in self.bot.get_cog(cog).get_commands():
@@ -300,7 +300,7 @@ class utility(commands.Cog):
             if command.cog==None:
                 c.append(command)
         if c!=[]:
-            self.commandante.insert(END,'Commandes non classées :')
+            self.commandante.insert(END,'Unclassified commands :')
             for command in c:
                 self.commandante.insert(END,f'   └{command.name}')
         update()
