@@ -80,7 +80,7 @@ def bottle(attacking,victim,weapons):
     return (("{attacking} tried drinking from the hornet-filled bottle. He logically cannot very well aim for {defending}",'','Hornet bottle',attacking.avatar_url),(victim.hit(choice(weapons).split('|'),-10)))
 
 
-chaos=[pink,tp,combustion,election,mishap,double,intervention,failure,armor,steal,depression,bottle]
+chaos=[pink,tp,combustion,election,mishap,double,intervention,fumble,armor,steal,depression,bottle]
 
 class fighter():
     def __init__(self,user):
