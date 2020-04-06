@@ -338,7 +338,7 @@ class Battleship(commands.Cog):
                 elif fire[1]>self.must_fire[1][1]:
                     self.must_fire.append((fire[0],fire[1]+1))
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def game(self,ctx):
         """Start a game."""
         if self.is_playing==0:
