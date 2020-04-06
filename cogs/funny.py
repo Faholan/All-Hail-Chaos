@@ -110,7 +110,7 @@ class funny(commands.Cog):
     '''Some funny commands'''
     def __init__(self,bot):
         self.bot=bot
-        self.diktat={'suggestion':'','s_kill':'of death','s_paillard':'of lewd','s_excuse':"d'excuse",'s_fight':'of fight'}
+        self.diktat={'suggestion':'','s_kill':'of death','s_paillard':'of lewd','s_excuse':"of excuse",'s_fight':'of fight'}
 
     async def adventure(self,ctx,*,aventure=None):
         try:
@@ -121,10 +121,10 @@ class funny(commands.Cog):
 
     @commands.command(ignore_extra=True)
     async def excuse(self,ctx):
-        '''On fait tous des conneries, et on a tous besoin d'une bonne excuse. (french only)
+        '''We all do mishaps, and we all need a good excuse once in a while.
         If you got any idea, use €s_excuse [idea]'''
         r='\n'
-        await ctx.send(f"Je suis désolé, maître... c'est parce que {choice(excuses[0].split('|')).strip(r)} {choice(excuses[1].split('|')).strip(r)} dans {choice(excuses[2].split('|')).strip(r)} et tout ça à cause {choice(excuses[3].split('|')).strip(r)} {choice(excuses[4].split('|')).strip(r)} qui {choice(excuses[5].split('|')).strip(r)} donc c'est pas ma faute !")
+        await ctx.send(f"I'm sorry master... it's because {choice(excuses[0].split('|')).strip(r)} {choice(excuses[1].split('|')).strip(r)} in {choice(excuses[2].split('|')).strip(r)} and all of that because of {choice(excuses[3].split('|')).strip(r)} {choice(excuses[4].split('|')).strip(r)} which {choice(excuses[5].split('|')).strip(r)} so it's not my fault !")
 
     @commands.command(aliases=['baston'],ignore_extra=False)
     @commands.guild_only()
