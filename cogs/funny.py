@@ -22,10 +22,10 @@ SOFTWARE."""
 
 from discord.ext import commands
 from random import randint,choice
-import pickle
 import asyncio
 import discord
 
+#All the data files necessary for the commands
 file=open('data\\deaths.txt','r',encoding='utf-8')
 death=file.readlines()
 file.close()
@@ -39,6 +39,7 @@ file=open('data\\weapons.txt','r',encoding='utf-8')
 weapons=file.readlines()
 file.close()
 
+#Special effects for the fight command
 def pink(attacking,victim,weapons):
     return (('Chaotic energies swirl around you, making you pink for 3 turns','','Life in pink',attacking.avatar_url),(victim.hit(choice(weapons).split('|'))))
 def tp(attacking,victim,weapons):
@@ -82,7 +83,7 @@ def bottle(attacking,victim,weapons):
 
 chaos=[pink,tp,combustion,election,mishap,double,intervention,fumble,armor,steal,depression,bottle]
 
-class fighter():
+class fighter(): #Class for the fight command
     def __init__(self,user):
         self.display_name=user.display_name
         self.id=user.id
@@ -106,24 +107,24 @@ class fighter():
             self.pv-=d
             return touche,str(d),name,url
 
-class funny(commands.Cog):
+class Funny(commands.Cog):
     '''Some funny commands'''
     def __init__(self,bot):
         self.bot=bot
         self.diktat={'suggestion':'','s_kill':'of death','s_paillard':'of lewd','s_excuse':"of excuse",'s_fight':'of fight'}
 
-    async def adventure(self,ctx,*,aventure=None):
+    async def adventure(self,ctx,*,aventure=None): #Let me finish story.py first
         try:
             from bin.story import adder
-            self.aventures=adder(ctx)
+            self.adventures=adder(ctx)
         except:
-            await ctx.send('Cette commande est en cours de développement.')
+            await ctx.send('This command is still in development.')
 
     @commands.command(ignore_extra=True)
     async def excuse(self,ctx):
         '''We all do mishaps, and we all need a good excuse once in a while.
         If you got any idea, use €s_excuse [idea]'''
-        r='\n'
+        r='\n' #One cannot use backslash in a f-string
         await ctx.send(f"I'm sorry master... it's because {choice(excuses[0].split('|')).strip(r)} {choice(excuses[1].split('|')).strip(r)} in {choice(excuses[2].split('|')).strip(r)} and all of that because of {choice(excuses[3].split('|')).strip(r)} {choice(excuses[4].split('|')).strip(r)} which {choice(excuses[5].split('|')).strip(r)} so it's not my fault !")
 
     @commands.command(aliases=['baston'],ignore_extra=False)
@@ -144,7 +145,7 @@ class funny(commands.Cog):
                 next=fight[0]
                 fight.reverse()
                 if randint(1,100)>=85:
-                    data=choice(chaos)(fight[0],next,weapons)
+                    data=choice(chaos)(fight[0],next,weapons) #15% chance of provoking a random effect
                 else:
                     data=([next.hit(choice(weapons).split('|'))])
                 for m,d,attack,url in data:
@@ -193,7 +194,7 @@ class funny(commands.Cog):
         '''To roll dices'''
         def de(n,m):
             return n*randint(1,m)
-        def roller(owo):
+        def roller(owo): #Do you have a problem with this name ?
             if not owo[0].isdigit():
                 raise ValueError("'"+owo[0]+"' is not a number")
             c=0
@@ -226,4 +227,4 @@ class funny(commands.Cog):
         await ctx.send('Thanks for your idea.')
 
 def setup(bot):
-    bot.add_cog(funny(bot))
+    bot.add_cog(Funny(bot))

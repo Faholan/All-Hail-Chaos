@@ -29,7 +29,8 @@ def check_channel(channel):
         return channel.is_nsfw()
     return True
 
-class Images(commands.Cog):
+class Images(commands.Cog): #Thanks KSoft.si
+    '''Commands to get random images'''
     def __init__(self,bot):
         self.bot=bot
 
@@ -169,8 +170,6 @@ class Images(commands.Cog):
         embed.set_footer(text=f"👍 {image.upvotes} | 👎 {image.downvotes} | 💬 {image.comments}")
         embed.set_author(name=f"Posted by {image.author} in {image.subreddit}",icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",url=f"https://reddit.com"+image.author)
         await ctx.send(embed=embed)
-
-
 
 def setup(bot):
     bot.add_cog(Images(bot))

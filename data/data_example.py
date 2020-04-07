@@ -2,7 +2,7 @@
 from random import choice
 token="THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
 admins="ALL THE DISCORD ACCOUNTS WHICH HAVE ADMIN RIGHTS FOR THE BOT"
-extensions=["cogs.utility","cogs.funny","cogs.currency","cogs.bataille_navale","bin.events","cogs.music","bin.logging","cogs.image","bin.success"]
+extensions=["cogs.utility","cogs.funny","cogs.currency","cogs.battleship","bin.events","cogs.music","bin.logging","cogs.image","bin.success","cogs.coronavirus"]
 user_agent="chaotic_bot"
 
 lavalink_host = "localhost"

@@ -132,7 +132,7 @@ DevPlan.txt
 
 logs/*
 
-cogs/coronavirus.py
-
 bin/story.py
 bin/story_beta.py
+
+data/database.db*

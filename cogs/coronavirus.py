@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands,tasks
 from discord import Embed
 from random import choice
 import coronatracker
@@ -345,37 +345,37 @@ def noner(n):
     if n==None:
         return 0
     return n
-def timer(d):
-    s=f"{d.day}/{d.month}/{d.year}"
-    if d.hour==None or d.minute==None:
-        return s
-    s+=f" {d.hour}:{d.minute}"
-    if d.second!=None:
-        s+=f":{d.second}"
-    return s
 
 class Coronavirus(commands.Cog):
     def __init__(self,bot):
         self.bot=bot
+        self.corona=coronatracker.CoronaTracker()
+        self.fetching=False
+        self.corona_update.start()
 
     @commands.command(aliases=["cv", "corona", "coronavirus"])
     async def covid(self,ctx,*,country):
         """Displays information regarding COVID-19."""
+        if self.fetching:
+            return await ctx.send("I'm currently updating my database. Please try again in a few seconds")
         country_name=country_dict.get(''.join([before_dict.get(i,i) for i in country.lower()]).replace(' ','').replace("'","").replace("-",""))
         if country_name==None:
             return await ctx.send("I don't know this country. Please try again.")
-        corona=coronatracker.CoronaTracker()
-        corona.fetch_results()
-        corona_country=corona.get_country(country_name)
+        corona_country=self.corona.get_country(country_name)
         if corona_country==None:
             return await ctx.send("I didn't find this country.")
-        embed=Embed(title=f"Coronavirus stats for {country}",description=f"Confirmed cases : {noner(corona_country.total_stats.confirmed)}\nDeaths : {noner(corona_country.total_stats.deaths)}\nRecovered : {noner(corona_country.total_stats.recovered)}",colour=data.get_color())
+        embed=Embed(title=f"Coronavirus stats for {country}",description=f"Confirmed cases : {noner(corona_country.total_stats.confirmed)}\nDeaths : {noner(corona_country.total_stats.deaths)}\nRecovered : {noner(corona_country.total_stats.recovered)}",colour=data.get_color(),timestamp=corona_country.last_updated)
         for area in corona_country.areas:
             embed.add_field(name=area.name,value=f"Confirmed cases : {noner(area.total_stats.confirmed)}\nDeaths : {noner(area.total_stats.deaths)}\nRecovered : {noner(area.total_stats.recovered)}")
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-        embed.set_footer(text=f"Last updated : {timer(corona_country.last_updated)}")
         embed.set_thumbnail(url="https://d3i6fh83elv35t.cloudfront.net/static/2020/01/RTS301GM-1024x576.jpg")
         await ctx.send(embed=embed)
+
+    @tasks.loop(hours=2)
+    async def corona_update(self):
+        self.fetching=True
+        self.corona.fetch_results()
+        self.fetching=False
 
 def setup(bot):
     bot.add_cog(Coronavirus(bot))

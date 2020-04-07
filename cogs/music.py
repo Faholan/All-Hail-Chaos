@@ -73,6 +73,7 @@ def get_bar(current, total):
     return "▬" * num + "▭" + "―" * (n - num)
 
 class Music(commands.Cog):
+    '''Cog including music commands'''
     def __init__(self, bot):
         self.bot = bot
         self.paginator_queue = dict()

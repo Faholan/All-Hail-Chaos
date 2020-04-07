@@ -52,7 +52,7 @@ class guild_converter(commands.Converter):
             raise commands.BadArgument()
         return guild
 
-class utility(commands.Cog):
+class Utility(commands.Cog):
     '''Some functions to manage the bot.'''
     def __init__(self,bot):
         self.bot=bot
@@ -213,11 +213,6 @@ class utility(commands.Cog):
 
     @interface.before_loop
     async def before_interface(self):
-        def get_first_prefix(obj):
-            if type(obj)==str:
-                return obj
-            else:
-                return obj[0]
         self.fenetre=Tk()
         self.users=Listbox(self.fenetre,width=90,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
         self.commandante=Listbox(self.fenetre,width=50,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
@@ -239,7 +234,7 @@ class utility(commands.Cog):
             asyncio.create_task(self.bot.logout())
 
         def reload():
-            asyncio.create_task(self.bot.cog_reloader(self.bot))
+            asyncio.create_task(self.bot.cog_reloader())
 
         reloader=Button(self.fenetre,text="RELOAD",command=reload,bg="green3",fg="white")
         reloader.grid(column=3,row=0,sticky=E)
@@ -316,4 +311,4 @@ class utility(commands.Cog):
             self.fenetre.destroy()
 
 def setup(bot):
-    bot.add_cog(utility(bot))
+    bot.add_cog(Utility(bot))

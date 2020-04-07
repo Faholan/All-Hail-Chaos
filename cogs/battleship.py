@@ -129,6 +129,7 @@ def ma_fonc(d,f):
     return e
 
 class Battleship(commands.Cog):
+    """Battleship cog. Contact my owner to learn how to code a bot able to interact with me."""
     def __init__(self,bot):
         self.bot=bot
         self.size=[5,4,3,3,2]

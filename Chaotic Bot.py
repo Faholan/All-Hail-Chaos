@@ -26,18 +26,60 @@ from data import data
 import asyncio
 import ksoftapi
 
-import aiohttp
-import aiosqlite3
+import sqlite3
 
-bot=commands.Bot(command_prefix=('€','¤'),description="A bot for fun",help_command=None,fetch_offline_members=True)
+class chaotic_bot(commands.Bot):
+    """The subclassed bot class"""
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.lavalink_host=data.lavalink_host
+        self.lavalink_port=data.lavalink_port
+        self.lavalink_pw=data.lavalink_pw
+        self.lavalink_region=data.lavalink_region
 
-bot.http.user_agent=data.user_agent
+        self.http.user_agent=data.user_agent
 
-def get_first_prefix(obj):
-        if type(obj)==str:
-            return obj
+        self.ksoft_token=data.ksoft_token
+
+        self.db=sqlite3.connect("data/database.db")
+
+        self.first_on_ready=True
+
+    async def on_ready(self):
+        if self.first_on_ready:
+            self.log_channel=self.get_channel(data.log_channel)
+            await bot.change_presence(activity=Game(self.get_first_prefix(bot.command_prefix)+'help'))
+            report=[]
+            for ext in data.extensions:
+                    if not ext in bot.extensions:
+                        try:
+                            bot.load_extension(ext)
+                            report.append("Extension loaded : "+ext)
+                        except:
+                            report.append("Extension not loaded : "+ext)
+            await self.log_channel.send('\n'.join(report))
         else:
-            return obj[0]
+            await self.log_channel.send("on_ready called again")
+
+    def get_first_prefix(self,obj):
+            if type(obj)==str:
+                return obj
+            else:
+                return obj[0]
+
+    async def cog_reloader(self):
+        report=[]
+        for ext in data.extensions:
+            if not "success" in ext:
+                try:
+                    self.reload_extension(ext)
+                    report.append("Extension reloaded : "+ext)
+                except:
+                    report.append("Extension not reloaded : "+ext)
+        await self.log_channel.send('\n'.join(report))
+
+
+bot=chaotic_bot(command_prefix=('€','¤'),description="A bot for fun",help_command=None,fetch_offline_members=True)
 
 @bot.command(hidden=True,ignore_extra=True)
 async def help(ctx,*command_help):
@@ -91,27 +133,5 @@ async def help(ctx,*command_help):
                 else:
                     await ctx.send(f"I couldn't find {helper}")
 
-async def cog_reloader(self):
-    print("Reloading extensions...")
-    for ext in data.extensions:
-        if not "success" in ext or "currency" in ext: #The combination of pickle with reload_extension will cause an error
-            self.reload_extension(ext)
-
-
-@bot.event
-async def on_ready():
-    bot.lavalink_host = data.lavalink_host
-    bot.lavalink_port = data.lavalink_port
-    bot.lavalink_pw = data.lavalink_pw
-    bot.lavalink_region = data.lavalink_region
-    bot.log_channel = bot.get_channel(data.log_channel)
-    bot.session = aiohttp.ClientSession()
-    bot.ksoft_token=data.ksoft_token
-    bot.client=ksoftapi.Client(bot.ksoft_token,bot,bot.loop)
-    bot.cog_reloader=cog_reloader
-    await bot.change_presence(activity=Game(get_first_prefix(bot.command_prefix)+'help'))
-    for ext in data.extensions:
-            if not ext in bot.extensions:
-                bot.load_extension(ext)
-
+bot.client=ksoftapi.Client(bot.ksoft_token,bot,bot.loop)
 bot.run(data.token)
