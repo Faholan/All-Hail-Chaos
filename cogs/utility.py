@@ -32,25 +32,10 @@ import requests
 from datetime import datetime
 import aiohttp
 
-def check_admin():
+def check_admin(): #Checks if the user has admin rights on the bot
     def predictate(ctx):
         return str(ctx.author) in data.admins or ctx.bot.is_owner(ctx.author)
     return commands.check(predictate)
-
-class guild_converter(commands.Converter):
-    async def converter(self,ctx,argument):
-        if argument=="general":
-            return 0
-        try:
-            guild=ctx.bot.get_guild(int(argument))
-        except ValueError:
-            guild=None
-            for Guild in bot.guilds:
-                if Guild.name==argument:
-                    guild=Guild
-        if guild==None:
-            raise commands.BadArgument()
-        return guild
 
 class Utility(commands.Cog):
     '''Some functions to manage the bot.'''
@@ -61,7 +46,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
         '''Returns a link to add the bot to a new server'''
-        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=None)}")
+        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=data.invite_permissions)}")
 
     @commands.command(ignore_extra=True)
     async def code(self,ctx):
@@ -108,7 +93,7 @@ class Utility(commands.Cog):
     async def info(self,ctx):
         """Some info about me"""
         app=await self.bot.application_info()
-        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=None)} "Please stay at home and use bots")',colour=data.get_color())
+        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=data.invite_permissions)} "Please stay at home and use bots")',colour=data.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_footer(text=f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
