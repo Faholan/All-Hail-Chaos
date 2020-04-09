@@ -42,7 +42,7 @@ class chaotic_bot(commands.Bot):
 
         self.ksoft_token=data.ksoft_token
 
-        self.db=sqlite3.connect("data/database.db")
+        #self.db=sqlite3.connect("data/database.db") #Sqlite database
 
         self.first_on_ready=True
 
@@ -71,12 +71,11 @@ class chaotic_bot(commands.Bot):
     async def cog_reloader(self):
         report=[]
         for ext in data.extensions:
-            if not "success" in ext: #There's a bug with pickle so we cannot reload this extension
-                try:
-                    self.reload_extension(ext)
-                    report.append("Extension reloaded : "+ext)
-                except:
-                    report.append("Extension not reloaded : "+ext)
+            try:
+                self.reload_extension(ext)
+                report.append("Extension reloaded : "+ext)
+            except:
+                report.append("Extension not reloaded : "+ext)
         await self.log_channel.send('\n'.join(report))
 
 
@@ -88,7 +87,7 @@ async def help(ctx,*command_help):
     Trust me, there's nothing to see here. Absolutely nothing."""
     if len(command_help)==0:
         #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(self.bot.user.id),permissions=data.invite_permissions)} "Invite link")',colour=data.get_color())
+        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=data.invite_permissions)} "Invite link")',colour=data.get_color())
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
         embed.set_footer(text=f"To get more information, use {bot.get_first_prefix()}help [subject].",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')

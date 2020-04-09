@@ -374,7 +374,10 @@ class Coronavirus(commands.Cog):
     @tasks.loop(hours=2)
     async def corona_update(self):
         self.fetching=True
-        self.corona.fetch_results()
+        try:
+            self.corona.fetch_results()
+        except:
+            print("Error in corona.fetch_results()")
         self.fetching=False
 
 def setup(bot):
