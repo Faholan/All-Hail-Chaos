@@ -229,7 +229,7 @@ class Utility(commands.Cog):
             self.users.delete(0,END)
             self.users.insert(END,'Guilds the bot is connected to :')
             for guild in self.bot.guilds:
-                self.users.insert(END,f'Guild {guild.name}')
+                self.users.insert(END,f'Guild {guild.name} ({len(guild.members)})')
                 online,idle,dnd,offline=[],[],[],[]
                 i=0
                 if not guild.large:

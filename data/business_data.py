@@ -29,7 +29,7 @@ class Business_guy():
 
     def gift(self,guild):
         self.money+=500
-        return 'You took '+guild+"'s 500 daily GP.'"
+        return 'You took '+guild+"'s 500 daily GP."
 
     def money_out(self):
         embed=Embed(title='Banque de '+self.name,colour=data.get_color())
