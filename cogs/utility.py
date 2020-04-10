@@ -120,13 +120,13 @@ class Utility(commands.Cog):
         await ctx.send("See you soon !")
         await ctx.guild.leave()
 
-    @commands.command(aliases=['quit'],ignore_extra=True)
+    @commands.command(aliases=['quit','close'],ignore_extra=True)
     @check_admin()
     async def logout(self,ctx):
         '''Does just what the name implies.
         You need to be a bot administrator to use this.'''
         await ctx.send('Logging out...')
-        await self.bot.logout()
+        await self.bot.close()
 
     @commands.command()
     @check_administrator()
@@ -238,7 +238,7 @@ class Utility(commands.Cog):
         t_owner.grid(column=2,row=0,sticky=W)
 
         def deconnection():
-            asyncio.create_task(self.bot.logout())
+            asyncio.create_task(self.bot.close())
 
         def reload():
             asyncio.create_task(self.bot.cog_reloader())

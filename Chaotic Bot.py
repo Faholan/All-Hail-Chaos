@@ -28,6 +28,7 @@ from data import data
 import ksoftapi
 
 import pickle
+from asyncio import all_tasks
 
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
@@ -65,6 +66,12 @@ class chaotic_bot(commands.Bot):
         else:
             await self.log_channel.send("on_ready called again")
 
+    async def close(self):
+        self.db.close()
+        super().close()
+        for task in all_tasks(loop=self.loop):
+            task.cancel()
+
     async def cog_reloader(self):
         report=[]
         for ext in data.extensions:
@@ -91,7 +98,6 @@ class chaotic_bot(commands.Bot):
         if ctx.guild:
             return ctx.guild.id
         return ctx.channel.id
-
 
 def command_prefix(bot,message):
     return bot.get_m_prefix(message)
