@@ -48,6 +48,7 @@ class chaotic_bot(commands.Bot):
 
     async def on_ready(self):
         if self.first_on_ready:
+            self.first_on_ready=False
             self.log_channel=self.get_channel(data.log_channel)
             await bot.change_presence(activity=Game(self.get_first_prefix()+'help'))
             report=[]
