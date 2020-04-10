@@ -68,7 +68,7 @@ class chaotic_bot(commands.Bot):
 
     async def close(self):
         self.db.close()
-        super().close()
+        await super().close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
 
