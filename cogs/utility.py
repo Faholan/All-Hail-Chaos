@@ -37,11 +37,19 @@ def check_admin(): #Checks if the user has admin rights on the bot
         return str(ctx.author) in data.admins or ctx.bot.is_owner(ctx.author)
     return commands.check(predictate)
 
+def check_administrator():
+    def predictate(ctx):
+        if isinstance(ctx.channel,discord.TextChannel):
+            return ctx.channel.permissions_for(ctx.author).administrator
+        return True
+    return commands.check(predictate)
+
 class Utility(commands.Cog):
     '''Some functions to manage the bot.'''
     def __init__(self,bot):
         self.bot=bot
-        self.interface.start()
+        if data.graphic_interface:
+            self.interface.start()
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
@@ -119,6 +127,20 @@ class Utility(commands.Cog):
         You need to be a bot administrator to use this.'''
         await ctx.send('Logging out...')
         await self.bot.logout()
+
+    @commands.command()
+    @check_administrator()
+    async def prefix(self,ctx,*,p=None):
+        """Changes the bot's prefix for this guild or private channel"""
+        if p:
+            try:
+                prefixes=pickle.load(open("data\\prefixes.DAT",mode="rb"))
+            except:
+                prefixes={}
+            prefixes[self.bot.get_id(ctx)]=p
+            pickle.dump(prefixes,open("data\\prefixes.DAT",mode="wb"))
+            return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
+        await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(self.bot.get_m_prefix(ctx.message,False))}`")
 
     @commands.command()
     async def reputation(self,ctx,*,other:typing.Union[discord.Member,int]):

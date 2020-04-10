@@ -27,7 +27,7 @@ import discord.utils
 from data import data
 import ksoftapi
 
-import sqlite3
+import pickle
 
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
@@ -38,11 +38,13 @@ class chaotic_bot(commands.Bot):
         self.lavalink_pw=data.lavalink_pw
         self.lavalink_region=data.lavalink_region
 
+        self.default_prefix=data.default_prefix
+
         self.http.user_agent=data.user_agent
 
         self.ksoft_token=data.ksoft_token
 
-        #self.db=sqlite3.connect("data/database.db") #Sqlite database
+        #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
 
@@ -50,7 +52,7 @@ class chaotic_bot(commands.Bot):
         if self.first_on_ready:
             self.first_on_ready=False
             self.log_channel=self.get_channel(data.log_channel)
-            await bot.change_presence(activity=Game(self.get_first_prefix()+'help'))
+            await bot.change_presence(activity=Game(self.default_prefix+'help'))
             report=[]
             for ext in data.extensions:
                     if not ext in bot.extensions:
@@ -63,12 +65,6 @@ class chaotic_bot(commands.Bot):
         else:
             await self.log_channel.send("on_ready called again")
 
-    def get_first_prefix(self): #Returns the bot's first prefix
-            if type(self.command_prefix)==str:
-                return self.command_prefix
-            else:
-                return self.command_prefix[0]
-
     async def cog_reloader(self):
         report=[]
         for ext in data.extensions:
@@ -79,8 +75,28 @@ class chaotic_bot(commands.Bot):
                 report.append("Extension not reloaded : "+ext)
         await self.log_channel.send('\n'.join(report))
 
+    def get_m_prefix(self,message,not_print=True):
+        if message.content.startswith("¤") and not_print:
+            return '¤'
+        elif message.content.startswith(self.default_prefix+"help") and not_print:
+            return self.default_prefix
+        try:
+            prefixes=pickle.load(open("data\\prefixes.DAT",mode='rb'))
+        except:
+            prefixes={}
+        return prefixes.get(self.get_id(message),self.default_prefix)
 
-bot=chaotic_bot(command_prefix=('€','¤'),description="A bot for fun",help_command=None,fetch_offline_members=True)
+    @staticmethod
+    def get_id(ctx):
+        if ctx.guild:
+            return ctx.guild.id
+        return ctx.channel.id
+
+
+def command_prefix(bot,message):
+    return bot.get_m_prefix(message)
+
+bot=chaotic_bot(command_prefix=command_prefix,description="A bot for fun",help_command=None,fetch_offline_members=True)
 
 @bot.command(hidden=True,ignore_extra=True)
 async def help(ctx,*command_help):
@@ -88,15 +104,15 @@ async def help(ctx,*command_help):
     Trust me, there's nothing to see here. Absolutely nothing."""
     if len(command_help)==0:
         #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=data.invite_permissions)} "Invite link")',colour=data.get_color())
+        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=data.invite_permissions)} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.get_color())
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
-        embed.set_footer(text=f"To get more information, use {bot.get_first_prefix()}help [subject].",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
         for cog in bot.cogs:
             if bot.get_cog(cog).get_commands():
-                command_list=[bot.get_first_prefix()+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
+                command_list=[discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
                 embed.add_field(name=bot.get_cog(cog).qualified_name,value='\n'.join(command_list),inline=False)
-        command_list=[bot.get_first_prefix()+command.name+' : '+command.short_doc for command in bot.commands if not command.cog and not command.hidden]
+        command_list=[discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.commands if not command.cog and not command.hidden]
         if command_list:
             embed.add_field(name='Other commands',value='\n'.join(command_list))
         await ctx.send(embed=embed)
@@ -121,7 +137,7 @@ async def help(ctx,*command_help):
                 cog=bot.get_command(helper)
                 if cog:
                     #Aide d'une commande spécifique
-                    embed=Embed(title=bot.get_first_prefix()+helper,description=cog.help,colour=data.get_color())
+                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.get_color())
                     if cog.aliases!=[]:
                         embed.add_field(name="Aliases :",value="\n".join(cog.aliases))
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
