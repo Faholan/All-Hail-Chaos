@@ -26,6 +26,7 @@ from time import time
 from data import data
 from data.business_data import *
 import pickle
+from os import path
 
 p_vol=lambda n:75-(25*0.8**n)
 
@@ -34,7 +35,7 @@ class Business(commands.Cog):
     def __init__(self,bot):
         self.bot=bot
         try:
-            self.guys=pickle.load(open("data\\business.DAT",mode='rb'))
+            self.guys=pickle.load(open("data"+path.sep+"business.DAT",mode='rb'))
         except:
             self.guys=[]
 
@@ -46,7 +47,7 @@ class Business(commands.Cog):
             self.guys.append(Business_guy(ctx.author))
         business=self.guys[self.guys.index(ctx.author)]
         await ctx.send(business.daily())
-        pickle.dump(self.guys,open("data\\business.DAT",mode='wb'))
+        pickle.dump(self.guys,open("data"+path.sep+"business.DAT",mode='wb'))
 
     @commands.command(ignore_extra=False)
     async def deposit(self,ctx,money:int):
@@ -55,7 +56,7 @@ class Business(commands.Cog):
             self.guys.append(Business_guy(ctx.author))
         business=self.guys[self.guys.index(ctx.author)]
         await ctx.send(business.deposit(money))
-        pickle.dump(self.guys,open("data\\business.DAT",mode='wb'))
+        pickle.dump(self.guys,open("data"+path.sep+"business.DAT",mode='wb'))
 
     @commands.command(ignore_extra=True)
     @commands.cooldown(1,86400,commands.BucketType.guild)
@@ -65,7 +66,7 @@ class Business(commands.Cog):
             self.guys.append(Business_guy(ctx.author))
         business=self.guys[self.guys.index(ctx.author)]
         await ctx.send(business.gift(ctx.guild.name))
-        pickle.dump(self.guys,open("data\\business.DAT",mode='wb'))
+        pickle.dump(self.guys,open("data"+path.sep+"business.DAT",mode='wb'))
 
     @commands.command(ignore_extra=True)
     async def money(self,ctx):
@@ -99,7 +100,7 @@ class Business(commands.Cog):
             self.steal.reset_cooldown(ctx)
             pickpocket.steal_streak+=1
             await ctx.send(f"You robbed `{pickpocket.steal(stolen)}` GP from {victim.display_name}")
-            pickle.dump(self.guys,open("data\\business.DAT",mode='wb'))
+            pickle.dump(self.guys,open("data"+path.sep+"business.DAT",mode='wb'))
 
     @steal.error
     async def steal_error(self,ctx,error):

@@ -24,13 +24,14 @@ from discord.ext import commands,tasks
 import pickle
 import discord
 import typing
-from tkinter import *
 import asyncio
 from sys import version
 from data import data
 import requests
 from datetime import datetime
 import aiohttp
+
+from os import path
 
 def check_admin(): #Checks if the user has admin rights on the bot
     def predictate(ctx):
@@ -49,6 +50,7 @@ class Utility(commands.Cog):
     def __init__(self,bot):
         self.bot=bot
         if data.graphic_interface:
+            import tkinter
             self.interface.start()
 
     @commands.command(ignore_extra=True)
@@ -66,20 +68,20 @@ class Utility(commands.Cog):
         import codecs
         import os
         import pathlib
-        for path, subdirs, files in os.walk('.'):
+        for p, subdirs, files in os.walk('.'):
             for name in files:
                     if name.endswith('.py'):
                         file_lines=0
                         file_amount += 1
-                        with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+                        with codecs.open('./' + str(pathlib.PurePath(p, name)), 'r', 'utf-8') as f:
                             for i, l in enumerate(f):
                                 if l.strip().startswith('#') or len(l.strip())==0:  # skip commented lines.
                                     pass
                                 else:
                                     total += 1
                                     file_lines+=1
-                        final_path=path+"\\"+name
-                        list_of_files.append(final_path.split('.\\')[-1]+f" : {file_lines} lines")
+                        final_path=p+path.sep+name
+                        list_of_files.append(final_path.split('.'+path.sep)[-1]+f" : {file_lines} lines")
         embed=discord.Embed(colour=data.get_color())
         embed.add_field(name=f"{self.bot.user.name}'s structure",value="\n".join(list_of_files))
         embed.set_footer(text=f'I am made of {total} lines of Python, spread across {file_amount} files !')
@@ -134,11 +136,11 @@ class Utility(commands.Cog):
         """Changes the bot's prefix for this guild or private channel"""
         if p:
             try:
-                prefixes=pickle.load(open("data\\prefixes.DAT",mode="rb"))
+                prefixes=pickle.load(open("data"+path.sep+"prefixes.DAT",mode="rb"))
             except:
                 prefixes={}
             prefixes[self.bot.get_id(ctx)]=p
-            pickle.dump(prefixes,open("data\\prefixes.DAT",mode="wb"))
+            pickle.dump(prefixes,open("data"+path.sep+"prefixes.DAT",mode="wb"))
             return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
         await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(self.bot.get_m_prefix(ctx.message,False))}`")
 
@@ -197,7 +199,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True,aliases=['succes'])
     async def success(self,ctx):
         '''Sends back your successes'''
-        account_list=pickle.load(open('data\\accounts.DAT',mode='rb'))
+        account_list=pickle.load(open('data"+path.sep+"accounts.DAT',mode='rb'))
         account=account_list[account_list.index(str(ctx.author))]
         gotten,locked,total=account.get_successes()
         embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=data.get_color())
@@ -220,12 +222,12 @@ class Utility(commands.Cog):
 
     @interface.before_loop
     async def before_interface(self):
-        self.fenetre=Tk()
-        self.users=Listbox(self.fenetre,width=90,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
-        self.commandante=Listbox(self.fenetre,width=50,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
+        self.fenetre=tkinter.Tk()
+        self.users=tkinter.Listbox(self.fenetre,width=90,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
+        self.commandante=tkinter.Listbox(self.fenetre,width=50,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
         self.fenetre.title(f"{self.bot.user}'s control panel")
-        t_bot=Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
-        t_owner=Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
+        t_bot=tkinter.Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
+        t_owner=tkinter.Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
 
         app=await self.bot.application_info()
 
@@ -243,10 +245,10 @@ class Utility(commands.Cog):
         def reload():
             asyncio.create_task(self.bot.cog_reloader())
 
-        reloader=Button(self.fenetre,text="RELOAD",command=reload,bg="green3",fg="white")
+        reloader=tkinter.Button(self.fenetre,text="RELOAD",command=reload,bg="green3",fg="white")
         reloader.grid(column=3,row=0,sticky=E)
 
-        deco=Button(self.fenetre,text='SELF-DESTRUCTION',command=deconnection,bg='red3',fg='white')
+        deco=tkinter.Button(self.fenetre,text='SELF-DESTRUCTION',command=deconnection,bg='red3',fg='white')
         def update():
             self.users.delete(0,END)
             self.users.insert(END,'Guilds the bot is connected to :')

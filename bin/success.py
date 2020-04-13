@@ -23,6 +23,7 @@ SOFTWARE."""
 import pickle
 from discord.ext import commands
 from data.success_data import *
+from os import path
 
 success_list=[
 Success(name='First command',description="Begin using the bot",condition=nombre_de_commandes,extra_data=[0,1],avancement=avancement_n_commandes),
@@ -33,7 +34,7 @@ Success(name='The dark side of the chaos',description='Find the hidden prefix',c
 ]
 
 try:
-    account_list=pickle.load(open('data\\accounts.DAT',mode='rb'))
+    account_list=pickle.load(open('data'+path.sep+'accounts.DAT',mode='rb'))
 except:
     account_list=[]
 
@@ -44,7 +45,7 @@ async def check_successes(ctx):
     account=account_list[account_list.index(str(ctx.message.author))]
     account.add_success(success_list)#Compatibilité avec les anciens comptes
     embeds=account(ctx)
-    pickle.dump(account_list,file=open('data\\accounts.DAT',mode='wb'))
+    pickle.dump(account_list,file=open('data'+path.sep+'accounts.DAT',mode='wb'))
     for embed in embeds:
         await ctx.send(embed=embed)
     return True

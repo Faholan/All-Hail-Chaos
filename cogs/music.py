@@ -27,7 +27,7 @@ import copy
 
 import discord
 import lavalink
-from discord.ext import commands, menus, tasks
+from discord.ext import commands, tasks
 
 from data import data
 

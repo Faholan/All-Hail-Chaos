@@ -2,3 +2,4 @@ aiosqlite3
 git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice]
 ksoftapi
 git+https://github.com/Devoxin/Lavalink.py@dev
+coronatracker

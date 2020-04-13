@@ -24,18 +24,19 @@ from discord.ext import commands
 from random import randint,choice
 import asyncio
 import discord
+from os import path
 
 #All the data files necessary for the commands
-file=open('data\\deaths.txt','r',encoding='utf-8')
+file=open('data'+path.sep+'deaths.txt','r',encoding='utf-8')
 death=file.readlines()
 file.close()
-file=open('data\\paillard.txt','r',encoding='utf-8')
+file=open('data'+path.sep+'paillard.txt','r',encoding='utf-8')
 chanson_paillarde=file.readlines()
 file.close()
-file=open('data\\Excuses.txt','r',encoding='utf-8')
+file=open('data'+path.sep+'Excuses.txt','r',encoding='utf-8')
 excuses=file.readlines()
 file.close()
-file=open('data\\weapons.txt','r',encoding='utf-8')
+file=open('data'+path.sep+'weapons.txt','r',encoding='utf-8')
 weapons=file.readlines()
 file.close()
 

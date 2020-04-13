@@ -24,6 +24,8 @@ import pickle
 from traceback import print_tb
 from discord.ext.commands import CheckFailure,CheckAnyFailure,MissingRequiredArgument,PrivateMessageOnly,NoPrivateMessage,CommandNotFound,DisabledCommand,TooManyArguments,CommandOnCooldown,MissingPermissions,BotMissingPermissions,MissingRole,BotMissingRole,NSFWChannelRequired,CommandInvokeError,UnexpectedQuoteError,InvalidEndOfQuotedStringError,ExpectedClosingQuoteError,BadArgument,BadUnionArgument,ConversionError,MemberConverter,UserConverter,MessageConverter,TextChannelConverter,VoiceChannelConverter
 
+from os import path
+
 def secondes(s):
     r=[]
     if s>=86400:
@@ -41,11 +43,11 @@ def secondes(s):
 
 def checker(message):
     try:
-        locked_channels=pickle.load(open('data\\locked_channels.DAT',mode='rb'))
+        locked_channels=pickle.load(open('data'+path.sep+'locked_channels.DAT',mode='rb'))
     except:
         locked_channels=[]
     try:
-        whitelist=pickle.load(open('data\\whitelist.DAT',mode='rb'))
+        whitelist=pickle.load(open('data'+path.sep+'whitelist.DAT',mode='rb'))
     except:
         whitelist=[]
     if message.channel.id in whitelist:

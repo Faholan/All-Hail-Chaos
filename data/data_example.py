@@ -10,10 +10,6 @@ graphic_interface=True
 
 invite_permissions=None #Permissions to require when someone invites the bot in a server
 
-lavalink_host = "localhost"
-lavalink_port = 2333
-lavalink_region = "eu"
-lavalink_pw = "youshallnotpass"
 ksoft_token = "MY KSOFT.SI TOKEN"
 log_channel = 694804739270901801 #Change this by the channel in which you want the logs
 discord_rep = "MY DISCORDREP TOKEN"

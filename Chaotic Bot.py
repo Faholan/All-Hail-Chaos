@@ -30,14 +30,12 @@ import ksoftapi
 import pickle
 from asyncio import all_tasks
 
+from os import path
+
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
-        self.lavalink_host=data.lavalink_host
-        self.lavalink_port=data.lavalink_port
-        self.lavalink_pw=data.lavalink_pw
-        self.lavalink_region=data.lavalink_region
 
         self.default_prefix=data.default_prefix
 
@@ -60,6 +58,8 @@ class chaotic_bot(commands.Bot):
                         try:
                             bot.load_extension(ext)
                             report.append("Extension loaded : "+ext)
+                        except commands.ExtensionFailed as e:
+                            report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
                         except:
                             report.append("Extension not loaded : "+ext)
             await self.log_channel.send('\n'.join(report))
@@ -88,7 +88,7 @@ class chaotic_bot(commands.Bot):
         elif message.content.startswith(self.default_prefix+"help") and not_print:
             return self.default_prefix
         try:
-            prefixes=pickle.load(open("data\\prefixes.DAT",mode='rb'))
+            prefixes=pickle.load(open("data"+path.sep+"prefixes.DAT",mode='rb'))
         except:
             prefixes={}
         return prefixes.get(self.get_id(message),self.default_prefix)
