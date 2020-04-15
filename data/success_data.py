@@ -84,28 +84,26 @@ class Success():
             return self
         else:
             return None
-    def advance(self):
+    def advance(self,bot):
         if self.avancement == None:
             return ''
         else:
-            return self.avancement(self.extra_data)
+            return self.avancement(bot,self.extra_data)
 
 def hidden(bot):
-    global h
-    h = len([command for command in bot.commands if command.hidden])
-    return h
+    return len([command for command in bot.commands if command.hidden])
 
 #Les conditions des succès
 def nombre_de_commandes(ctx,n):
     return n[0]+1 == n[1], [n[0]+1,n[1]]
-def avancement_n_commandes(n):
+def avancement_n_commandes(bot,n):
     return f' ({n[0]}/{n[1]})'
 def commandes_cachees(ctx,commands):
     if ctx.command.name in commands or not ctx.command.hidden:
         return False, commands
     commands.append(ctx.command.name)
     return len(commands) == hidden(ctx.bot), commands
-def n_commandes_cachees(commands):
-    return f' ({len(commands)}/{h})'
+def n_commandes_cachees(bot,commands):
+    return f' ({len(commands)}/{hidden(bot)})'
 def prefix(ctx,nothing):
     return ctx.prefix == '¤',None

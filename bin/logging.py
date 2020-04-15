@@ -51,10 +51,12 @@ class Logging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandNotFound):
+        if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
             return
+        if isinstance(error,CommandInvokeError):
+            error=error.original
         embed = discord.Embed(color=0xFF0000)
-        embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command}"
+        embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command} ({type(error.__name__)})"
         if ctx.guild:
             embed.description = f"in {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} ({ctx.channel.id})"
         elif isinstance(ctx.channel,discord.DMChannel):

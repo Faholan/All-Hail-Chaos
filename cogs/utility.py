@@ -116,13 +116,13 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     @commands.guild_only()
     @commands.check_any(check_admin(),commands.has_permissions(administrator=True))
-    async def kick(self,ctx):
+    async def quit(self,ctx):
         '''Makes the bot quit the server
         Only a server admin can use this'''
         await ctx.send("See you soon !")
         await ctx.guild.leave()
 
-    @commands.command(aliases=['quit','close'],ignore_extra=True)
+    @commands.command(aliases=['close'],ignore_extra=True)
     @check_admin()
     async def logout(self,ctx):
         '''Does just what the name implies.
@@ -196,10 +196,18 @@ class Utility(commands.Cog):
         embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command(ignore_extra=True)
+    @check_admin()
+    async def reload(self,ctx):
+        """Reloads the bot.
+        You need to be one of the bot's admins to use this command"""
+        await ctx.send("Reloading...")
+        await self.bot.cog_reloader()
+
     @commands.command(ignore_extra=True,aliases=['succes'])
     async def success(self,ctx):
         '''Sends back your successes'''
-        account_list=pickle.load(open('data"+path.sep+"accounts.DAT',mode='rb'))
+        account_list=pickle.load(open("data"+path.sep+"accounts.DAT",mode='rb'))
         account=account_list[account_list.index(str(ctx.author))]
         gotten,locked,total=account.get_successes()
         embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=data.get_color())
@@ -208,7 +216,7 @@ class Utility(commands.Cog):
         for succ in gotten:
             embed.add_field(name=succ.name+' - Unlocked',value=succ.description,inline=False)
         for succ in locked:
-            embed.add_field(name=succ.name+succ.advance(),value=succ.locked,inline=False)
+            embed.add_field(name=succ.name+succ.advance(self.bot),value=succ.locked,inline=False)
         await ctx.send(embed=embed)
 
     def cog_unload(self):

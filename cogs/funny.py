@@ -121,6 +121,13 @@ class Funny(commands.Cog):
         except:
             await ctx.send('This command is still in development.')
 
+    @commands.command()
+    async def dong(self,ctx,dick:discord.Member=None):
+        """How long is this person's dong ?"""
+        if not dick:
+            dick=ctx.author
+        await ctx.send(f"{dick.mention}'s magnum dong is this long : 8{'='*randint(0,10)}>")
+
     @commands.command(ignore_extra=True)
     async def excuse(self,ctx):
         '''We all do mishaps, and we all need a good excuse once in a while.

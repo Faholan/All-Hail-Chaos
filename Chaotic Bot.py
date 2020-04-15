@@ -67,19 +67,31 @@ class chaotic_bot(commands.Bot):
             await self.log_channel.send("on_ready called again")
 
     async def close(self):
-        self.db.close()
+        if hasattr(self,"db"):
+            self.db.close()
         await super().close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
 
     async def cog_reloader(self):
+        from data import data
         report=[]
         for ext in data.extensions:
             try:
                 self.reload_extension(ext)
                 report.append("Extension reloaded : "+ext)
+            except commands.ExtensionNotLoaded:
+                try:
+                    bot.load_extension(ext)
+                    report.append("Extension loaded : "+ext)
+                except commands.ExtensionFailed as e:
+                    report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
+                except:
+                    report.append("Extension not loaded : "+ext)
+            except commands.ExtensionFailed as e:
+                report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
             except:
-                report.append("Extension not reloaded : "+ext)
+                report.append("Extension not loaded : "+ext)
         await self.log_channel.send('\n'.join(report))
 
     def get_m_prefix(self,message,not_print=True):
