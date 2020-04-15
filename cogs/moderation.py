@@ -255,7 +255,7 @@ class Moderation(commands.Cog):
                         await dm.send(f"{message.author} used a swear word : {s}, but I lack the permissions to delete the message. Please give them back to me")
                     return
 
-        for s in self.wear_words.get(message.guild.id,[]):
+        for s in self.swear_words.get(message.guild.id,[]):
             if s in message.content.lower().split(' '):
                 try:
                     await message.delete()
