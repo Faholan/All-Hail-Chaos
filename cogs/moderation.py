@@ -163,7 +163,7 @@ class Moderation(commands.Cog):
             word=word.lower()
             if word in self.swear_words.get(ctx.guild.id,[]):
                 self.swear_words[ctx.guild.id].remove(word)
-                if self.swear_words[ctx.guild.id]=[]:
+                if self.swear_words[ctx.guild.id]==[]:
                     self.swear_words.pop(ctx.guild.id)
             else:
                 self.swear_words[ctx.guild.id]=self.swear_words.get(ctx.guild.id,[])+[word]
@@ -205,7 +205,7 @@ class Moderation(commands.Cog):
                 member=self.bot.get_guild(payload.guild_id).get_member(payload.member_id)
                 await member.edit(roles=[r for r in member.roles if not r in self.reactions[(payload.message,payload.emoji)]])
 
-    @commnds.Cog.listener("on_message")
+    @commands.Cog.listener("on_message")
     async def no_swear_words(self,message):
         if message.author==self.bot or not message.guild:
             return
