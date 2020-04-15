@@ -11,11 +11,15 @@ class Moderation(commands.Cog):
             self.reactions=pickle.load(open("data"+path.sep+"moderation.DAT",mode='rb'))
         except:
             self.reactions={}
+        try:
+            self.swear_words=pickle.load(open("data"+path.sep+"swear.DAT",mode='rb'))
+        except:
+            self.swear_words={}
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
+    @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],reason=None):
         """Command used to ban users. You can specify members or roles. The bot will then ban all the members you specified, and all the members having the specified role. You can specify at the end a reason for the ban
         You need the `ban members` permission, and your highest role needs to be higher than the others'. The bot then deletes the banned roles"""
@@ -150,6 +154,29 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(administrator=True)
+    async def swear(self,ctx,*,word=None):
+        """You can specify a word to add/remove it from the list of forbidden words, or you can also don't specify one to check the list of currently banned words.
+        NO SWEAR WORDS IN MY CHRISTIAN SERVER !"""
+        if word:
+            word=word.lower()
+            if word in self.swear_words.get(ctx.guild.id,[]):
+                self.swear_words[ctx.guild.id].remove(word)
+                if self.swear_words[ctx.guild.id]=[]:
+                    self.swear_words.pop(ctx.guild.id)
+            else:
+                self.swear_words[ctx.guild.id]=self.swear_words.get(ctx.guild.id,[])+[word]
+            pickle.dump(self.swear_words,open("data"+path.sep+"swear.DAT",mode='wb'))
+        else:
+            if self.swear_words.get(ctx.guild.id,[]):
+                r='\n'
+                await ctx.send(f"The swear words for the guild {ctx.guild.name} are :{r}{r+' - '.join(self.swear_words[ctx.guild.id])}")
+            else:
+                await ctx.send(f"There are no swear words for the guild {ctx.guild.name}")
+
+    @commands.command()
+    @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def role(self,ctx,message:discord.Message, role:commands.Greedy[discord.Role], emoji:discord.PartialEmoji):
@@ -177,6 +204,22 @@ class Moderation(commands.Cog):
             if (payload.message_id,payload.emoji) in self.reactions:
                 member=self.bot.get_guild(payload.guild_id).get_member(payload.member_id)
                 await member.edit(roles=[r for r in member.roles if not r in self.reactions[(payload.message,payload.emoji)]])
+
+    @commnds.Cog.listener("on_message")
+    async def no_swear_words(self,message):
+        if message.author==self.bot or not message.guild:
+            return
+        for s in self.wear_words.get(message.guild.id,[]):
+            if s in message.content.lower():
+                try:
+                    await message.delete()
+                except discord.Forbidden:
+                    dm=ctx.guild.owner.dm_channel
+                    if not dm:
+                        await ctx.guild.owner.create_dm()
+                        dm=ctx.guild.owner.dm_channel
+                    await dm.send(f"{message.author} used a swear word : {s}, but I lack the permissions to delete the message. Please give them back to me")
+                break
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
