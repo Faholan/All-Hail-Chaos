@@ -3,6 +3,9 @@ import pickle
 from discord.ext import commands
 from os import path
 import typing
+from data import data
+
+auto_swear_detection=["4r5e", "5h1t", "5hit", "a55", "anal", "anus", "ar5e", "arrse", "arse", "ass", "ass-fucker", "asses", "assfucker", "assfukka", "asshole", "assholes", "asswhole", "a_s_s", "b!tch", "b00bs", "b17ch", "b1tch", "ballbag", "balls", "ballsack", "bastard", "beastial", "beastiality", "bellend", "bestial", "bestiality", "bi+ch", "biatch", "bitch", "bitcher", "bitchers", "bitches", "bitchin", "bitching", "bloody", "blow job", "blowjob", "blowjobs", "boiolas", "bollock", "bollok", "boner", "boob", "boobs", "booobs", "boooobs", "booooobs", "booooooobs", "breasts", "buceta", "bugger", "bum", "bunny fucker", "butt", "butthole", "buttmuch", "buttplug", "c0ck", "c0cksucker", "carpet muncher", "cawk", "chink", "cipa", "cl1t", "clit", "clitoris", "clits", "cnut", "cock", "cock-sucker", "cockface", "cockhead", "cockmunch", "cockmuncher", "cocks", "cocksuck", "cocksucked", "cocksucker", "cocksucking", "cocksucks", "cocksuka", "cocksukka", "cok", "cokmuncher", "coksucka", "coon", "cox", "crap", "cum", "cummer", "cumming", "cums", "cumshot", "cunilingus", "cunillingus", "cunnilingus", "cunt", "cuntlick", "cuntlicker", "cuntlicking", "cunts", "cyalis", "cyberfuc", "cyberfuck", "cyberfucked", "cyberfucker", "cyberfuckers", "cyberfucking", "d1ck", "damn", "dick", "dickhead", "dildo", "dildos", "dink", "dinks", "dirsa", "dlck", "dog-fucker", "doggin", "dogging", "donkeyribber", "doosh", "duche", "dyke", "ejaculate", "ejaculated", "ejaculates", "ejaculating", "ejaculatings", "ejaculation", "ejakulate", "f u c k", "f u c k e r", "f4nny", "fag", "fagging", "faggitt", "faggot", "faggs", "fagot", "fagots", "fags", "fanny", "fannyflaps", "fannyfucker", "fanyy", "fatass", "fcuk", "fcuker", "fcuking", "feck", "fecker", "felching", "fellate", "fellatio", "fingerfuck", "fingerfucked", "fingerfucker", "fingerfuckers", "fingerfucking", "fingerfucks", "fistfuck", "fistfucked", "fistfucker", "fistfuckers", "fistfucking", "fistfuckings", "fistfucks", "flange", "fook", "fooker", "fuck", "fucka", "fucked", "fucker", "fuckers", "fuckhead", "fuckheads", "fuckin", "fucking", "fuckings", "fuckingshitmotherfucker", "fuckme", "fucks", "fuckwhit", "fuckwit", "fudge packer", "fudgepacker", "fuk", "fuker", "fukker", "fukkin", "fuks", "fukwhit", "fukwit", "fux", "fux0r", "f_u_c_k", "gangbang", "gangbanged", "gangbangs", "gaylord", "gaysex", "goatse", "God", "god-dam", "god-damned", "goddamn", "goddamned", "hardcoresex", "hell", "heshe", "hoar", "hoare", "hoer", "homo", "hore", "horniest", "horny", "hotsex", "jack-off", "jackoff", "jap", "jerk-off", "jism", "jiz", "jizm", "jizz", "kawk", "knob", "knobead", "knobed", "knobend", "knobhead", "knobjocky", "knobjokey", "kock", "kondum", "kondums", "kum", "kummer", "kumming", "kums", "kunilingus", "l3i+ch", "l3itch", "labia", "lmfao", "lust", "lusting", "m0f0", "m0fo", "m45terbate", "ma5terb8", "ma5terbate", "masochist", "master-bate", "masterb8", "masterbat*", "masterbat3", "masterbate", "masterbation", "masterbations", "masturbate", "mo-fo", "mof0", "mofo", "mothafuck", "mothafucka", "mothafuckas", "mothafuckaz", "mothafucked", "mothafucker", "mothafuckers", "mothafuckin", "mothafucking", "mothafuckings", "mothafucks", "mother fucker", "motherfuck", "motherfucked", "motherfucker", "motherfuckers", "motherfuckin", "motherfucking", "motherfuckings", "motherfuckka", "motherfucks", "muff", "mutha", "muthafecker", "muthafuckker", "muther", "mutherfucker", "n1gga", "n1gger", "nazi", "nigg3r", "nigg4h", "nigga", "niggah", "niggas", "niggaz", "nigger", "niggers", "nob", "nob jokey", "nobhead", "nobjocky", "nobjokey", "numbnuts", "nutsack", "orgasim", "orgasims", "orgasm", "orgasms", "p0rn", "pawn", "pecker", "penis", "penisfucker", "phonesex", "phuck", "phuk", "phuked", "phuking", "phukked", "phukking", "phuks", "phuq", "pigfucker", "pimpis", "piss", "pissed", "pisser", "pissers", "pisses", "pissflaps", "pissin", "pissing", "pissoff", "poop", "porn", "porno", "pornography", "pornos", "prick", "pricks", "pron", "pube", "pusse", "pussi", "pussies", "pussy", "pussys", "rectum", "retard", "rimjaw", "rimming", "s hit", "s.o.b.", "sadist", "schlong", "screwing", "scroat", "scrote", "scrotum", "semen", "sex", "sh!+", "sh!t", "sh1t", "shag", "shagger", "shaggin", "shagging", "shemale", "shi+", "shit", "shitdick", "shite", "shited", "shitey", "shitfuck", "shitfull", "shithead", "shiting", "shitings", "shits", "shitted", "shitter", "shitters", "shitting", "shittings", "shitty", "skank", "slut", "sluts", "smegma", "smut", "snatch", "son-of-a-bitch", "spac", "spunk", "s_h_i_t", "t1tt1e5", "t1tties", "teets", "teez", "testical", "testicle", "tit", "titfuck", "tits", "titt", "tittie5", "tittiefucker", "titties", "tittyfuck", "tittywank", "titwank", "tosser", "turd", "tw4t", "twat", "twathead", "twatty", "twunt", "twunter", "v14gra", "v1gra", "vagina", "viagra", "vulva", "w00se", "wang", "wank", "wanker", "wanky", "whoar", "whore", "willies", "willy", "xrated", "xxx"]
 
 class Moderation(commands.Cog):
     def __init__(self,bot):
@@ -15,6 +18,14 @@ class Moderation(commands.Cog):
             self.swear_words=pickle.load(open("data"+path.sep+"swear.DAT",mode='rb'))
         except:
             self.swear_words={}
+        try:
+            self.swear_off=pickle.load(open("data"+path.sep+"swear_off.DAT",mode='rb'))
+        except:
+            self.swear_off=[]
+        try:
+            self.auto_swear=pickle.load(open("data"+path.sep+"auto_swear.DAT",mode='rb'))
+        except:
+            self.auto_swear=[]
 
     @commands.command()
     @commands.guild_only()
@@ -156,24 +167,44 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(administrator=True)
-    async def swear(self,ctx,*,word=None):
-        """You can specify a word to add/remove it from the list of forbidden words, or you can also don't specify one to check the list of currently banned words.
+    async def swear(self,ctx,word=None):
+        """You can specify a word to add/remove it from the list of forbidden words, or you can also don't specify one to check the swear filter's status. Specify on/off to turn it on/off, and auto to turn the autodetection on/off.
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !"""
         if word:
             word=word.lower()
-            if word in self.swear_words.get(ctx.guild.id,[]):
+            if word=="on":
+                if ctx.guild.id in self.swear_off:
+                    self.swear_off.remove(ctx.guild.id)
+                    pickle.dump(self.swear_off,open("data"+path.sep+"swear_off.DAT",mode='wb'))
+                await ctx.send("Swear filter turned on")
+            elif word=="off":
+                if not ctx.guild.id in self.swear_off:
+                    self.swear_off.append(ctx.guild.id)
+                    pickle.dump(self.swear_off,open("data"+path.sep+"swear_off.DAT",mode='wb'))
+                await ctx.send("Swear filter turned off")
+            elif word=="auto":
+                if ctx.guild.id in self.auto_swear:
+                    self.auto_swear.remove(ctx.guild.id)
+                    await ctx.send("Auto detection turned off")
+                else:
+                    self.auto_swear.append(ctx.guild.id)
+                    await ctx.send("Auto detection turned on")
+                pickle.dump(self.auto_swear,open("data"+path.sep+"auto_swear.DAT",mode='wb'))
+            elif word in self.swear_words.get(ctx.guild.id,[]):
                 self.swear_words[ctx.guild.id].remove(word)
+                await ctx.send(f"{word} removed from the list of swear words")
                 if self.swear_words[ctx.guild.id]==[]:
                     self.swear_words.pop(ctx.guild.id)
             else:
+                await ctx.send(f"{word} added to the list of swear words")
                 self.swear_words[ctx.guild.id]=self.swear_words.get(ctx.guild.id,[])+[word]
             pickle.dump(self.swear_words,open("data"+path.sep+"swear.DAT",mode='wb'))
         else:
-            if self.swear_words.get(ctx.guild.id,[]):
-                r='\n'
-                await ctx.send(f"The swear words for the guild {ctx.guild.name} are :{r}{r+' - '.join(self.swear_words[ctx.guild.id])}")
-            else:
-                await ctx.send(f"There are no swear words for the guild {ctx.guild.name}")
+            embed=discord.Embed(title=f"Swear words in {ctx.guild.name}",colour=data.get_color())
+            embed.add_field(name="Swear filter status",value="Offline" if ctx.guild.id in self.swear_off else "Online")
+            embed.add_field(name="Auto filter status",value="Online" if ctx.guild.id in self.auto_swear else "Offline")
+            embed.add_field(name="Guild-specific swear words",value="\n - ".join(self.swear_words.get(ctx.guild.id,[])) if ctx.guild.id in self.swear_words else "No swear words are defined for this guild",inline=False)
+            await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
@@ -209,8 +240,23 @@ class Moderation(commands.Cog):
     async def no_swear_words(self,message):
         if message.author==self.bot or not message.guild:
             return
+        if message.channel.is_nsfw() or message.guild.id in self.swear_off or message.author.guild_permissions.administrator:
+            return
+        if message.guild.id in self.auto_swear:
+            for s in auto_swear_detection:
+                if s in message.content.lower().split(' '):
+                    try:
+                        await message.delete()
+                    except discord.Forbidden:
+                        dm=ctx.guild.owner.dm_channel
+                        if not dm:
+                            await ctx.guild.owner.create_dm()
+                            dm=ctx.guild.owner.dm_channel
+                        await dm.send(f"{message.author} used a swear word : {s}, but I lack the permissions to delete the message. Please give them back to me")
+                    return
+
         for s in self.wear_words.get(message.guild.id,[]):
-            if s in message.content.lower():
+            if s in message.content.lower().split(' '):
                 try:
                     await message.delete()
                 except discord.Forbidden:
