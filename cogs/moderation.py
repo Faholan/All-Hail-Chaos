@@ -192,11 +192,11 @@ class Moderation(commands.Cog):
                 pickle.dump(self.auto_swear,open("data"+path.sep+"auto_swear.DAT",mode='wb'))
             elif word in self.swear_words.get(ctx.guild.id,[]):
                 self.swear_words[ctx.guild.id].remove(word)
-                await ctx.send(f"{word} removed from the list of swear words")
+                await ctx.send(f"`{word}` was removed from the list of swear words")
                 if self.swear_words[ctx.guild.id]==[]:
                     self.swear_words.pop(ctx.guild.id)
             else:
-                await ctx.send(f"{word} added to the list of swear words")
+                await ctx.send(f"`{word}` was added to the list of swear words")
                 self.swear_words[ctx.guild.id]=self.swear_words.get(ctx.guild.id,[])+[word]
             pickle.dump(self.swear_words,open("data"+path.sep+"swear.DAT",mode='wb'))
         else:
@@ -240,7 +240,10 @@ class Moderation(commands.Cog):
     async def no_swear_words(self,message):
         if message.author==self.bot or not message.guild:
             return
-        if message.channel.is_nsfw() or message.guild.id in self.swear_off or message.author.guild_permissions.administrator:
+        if message.channel.is_nsfw() or message.guild.id in self.swear_off:
+            return
+        member=message.guild.get_member(message.author.id)
+        if member.guild_permissions.administrator:
             return
         if message.guild.id in self.auto_swear:
             for s in auto_swear_detection:
@@ -252,7 +255,7 @@ class Moderation(commands.Cog):
                         if not dm:
                             await ctx.guild.owner.create_dm()
                             dm=ctx.guild.owner.dm_channel
-                        await dm.send(f"{message.author} used a swear word : {s}, but I lack the permissions to delete the message. Please give them back to me")
+                        await dm.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me")
                     return
 
         for s in self.swear_words.get(message.guild.id,[]):
@@ -264,7 +267,7 @@ class Moderation(commands.Cog):
                     if not dm:
                         await ctx.guild.owner.create_dm()
                         dm=ctx.guild.owner.dm_channel
-                    await dm.send(f"{message.author} used a swear word : {s}, but I lack the permissions to delete the message. Please give them back to me")
+                    await dm.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me")
                 break
 
 def setup(bot):

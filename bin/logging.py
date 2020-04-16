@@ -34,7 +34,7 @@ class Logging(commands.Cog):
         self.bot = bot
         self.log_channel = bot.log_channel
 
-    @commands.Cog.listener()
+    #@commands.Cog.listener()
     async def on_command(self, ctx):
         embed = discord.Embed(color=0x7289DA)
         embed.title = f"{ctx.author} ({ctx.author.id}) used {ctx.command}"
@@ -53,10 +53,10 @@ class Logging(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
             return
-        if isinstance(error,CommandInvokeError):
+        if isinstance(error,commands.CommandInvokeError):
             error=error.original
         embed = discord.Embed(color=0xFF0000)
-        embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command} ({type(error.__name__)})"
+        embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command} ({type(error).__name__})"
         if ctx.guild:
             embed.description = f"in {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} ({ctx.channel.id})"
         elif isinstance(ctx.channel,discord.DMChannel):
