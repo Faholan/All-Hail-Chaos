@@ -43,6 +43,8 @@ class chaotic_bot(commands.Bot):
 
         self.ksoft_token=data.ksoft_token
 
+        self.nasa=data.nasa
+
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
@@ -74,7 +76,6 @@ class chaotic_bot(commands.Bot):
             task.cancel()
 
     async def cog_reloader(self):
-        from data import data
         report=[]
         for ext in data.extensions:
             try:
@@ -110,6 +111,10 @@ class chaotic_bot(commands.Bot):
         if ctx.guild:
             return ctx.guild.id
         return ctx.channel.id
+
+    @staticmethod
+    def get_color():
+        return data.get_color()
 
 def command_prefix(bot,message):
     return bot.get_m_prefix(message)

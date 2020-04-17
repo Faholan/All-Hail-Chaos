@@ -145,7 +145,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def wikihow(self,ctx):
         """Retrieves weird images from WikiHow."""
         image=await self.bot.client.random_wikihow()
-        embed=discord.Embed(title=image.title,url=image.article_url)
+        embed=discord.Embed(title=image.title,url=image.article_url,colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
@@ -155,7 +155,7 @@ class Images(commands.Cog): #Thanks KSoft.si
             return await ctx.send(image.message)
         if not image.url:
             return await ctx.send("Sorry, I didn't find anything")
-        embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow())
+        embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow(),colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
@@ -163,7 +163,7 @@ class Images(commands.Cog): #Thanks KSoft.si
         """Embeds a Reddit image then sends it"""
         if hasattr(image,"error"):
             return await ctx.send(image.message)
-        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at))
+        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.get_color())
         if not image.image_url:
             await ctx.send("I didn't find anything")
         embed.set_image(url=image.image_url)

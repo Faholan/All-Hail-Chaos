@@ -157,15 +157,15 @@ class Funny(commands.Cog):
                 else:
                     data=([next.hit(choice(weapons).split('|'))])
                 for m,d,attack,url in data:
-                    embed=discord.Embed(title=attack,description=m.format(attacking=fight[0].display_name,defending=next.display_name,damage=d),colour=choice([0x11806a,0x2ecc71,0x1f8b4c,0x3498db,0x206694,0x9b59b6,0x71368a,0xe91e63,0xad1457,0xf1c40f,0xc27c0e,0xe67e22,0xa84300,0xe74c3c,0x992d22]))
+                    embed=discord.Embed(title=attack,description=m.format(attacking=fight[0].display_name,defending=next.display_name,damage=d),colour=self.bot.get_color())
                     embed.set_author(name=fight[0].display_name,icon_url=fight[0].avatar_url)
                     embed.set_thumbnail(url=url)
                     await ctx.send(embed=embed)
-                embed=discord.Embed(title=fight[0].display_name,colour=choice([0x11806a,0x2ecc71,0x1f8b4c,0x3498db,0x206694,0x9b59b6,0x71368a,0xe91e63,0xad1457,0xf1c40f,0xc27c0e,0xe67e22,0xa84300,0xe74c3c,0x992d22]))
+                embed=discord.Embed(title=fight[0].display_name,colour=self.bot.get_color())
                 embed.set_thumbnail(url=fight[0].avatar_url)
                 embed.add_field(name='Remaining HP :',value=str(fight[0].pv))
                 await ctx.send(embed=embed)
-                embed=discord.Embed(title=next.display_name,colour=choice([0x11806a,0x2ecc71,0x1f8b4c,0x3498db,0x206694,0x9b59b6,0x71368a,0xe91e63,0xad1457,0xf1c40f,0xc27c0e,0xe67e22,0xa84300,0xe74c3c,0x992d22]))
+                embed=discord.Embed(title=next.display_name,colour=self.bot.get_color())
                 embed.set_thumbnail(url=next.avatar_url)
                 embed.add_field(name='Remaining HP :',value=str(next.pv))
                 await ctx.send(embed=embed)
