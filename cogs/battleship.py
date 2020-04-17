@@ -191,7 +191,7 @@ class Battleship(commands.Cog):
                     await ctx.send("Please input a message correctly formatted")
                 elif not 0<int(msg.content[1:-1])<11:
                     await ctx.send("Please input a message correctly formatted")
-                elif msg.content.lower()[-1]=='h':
+                elif msg.content.lower()[-1]=='v':
                     origin=(self.column.index(msg.content.lower()[0]),int(msg.content[1:-1])-1)
                     if origin[0]+size>9:
                         await ctx.send("The boat is too long to be placed in such a position")
@@ -239,7 +239,7 @@ class Battleship(commands.Cog):
                                 player_grid[origin[0]+i][origin[1]]=1
                         else:
                             await ctx.send("There's already something there")
-                elif msg.content.lower()[-1]=="v":
+                elif msg.content.lower()[-1]=="h":
                     origin=(self.column.index(msg.content.lower()[0]),int(msg.content[1:-1])-1)
                     if origin[1]+size>10:
                         await ctx.send("The boat is too long to be placed in such a position")
@@ -324,7 +324,7 @@ class Battleship(commands.Cog):
                                 if t:
                                     await ctx.send(f"You sunk my {self.boat_size[enemy_boats.index(b)][1]} !")
                                     for j in b:
-                                        enemy_boats[j[0],j[1]]=-3
+                                        enemy_grid[j[0]][j[1]]=-3
                                     enemy_state[enemy_boats.index(b)]=0
                                     if sum(enemy_state)==0:
                                         return await ctx.send("You won !!")
