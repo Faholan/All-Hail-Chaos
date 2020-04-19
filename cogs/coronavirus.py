@@ -407,6 +407,7 @@ def noner(n):
     return n
 
 class Coronavirus(commands.Cog):
+    """Pandemy detected"""
     def __init__(self,bot):
         self.bot=bot
         self.corona=CoronaTracker()

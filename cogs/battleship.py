@@ -31,6 +31,7 @@ white=":white_large_square:"
 black=":black_large_square:"
 
 class Battleship(commands.Cog):
+    """Play battleship !!"""
     def __init__(self,bot):
         self.bot=bot
         self.boat_size=[(5,"Carrier"),(4,"Battleship"),(3,"Cruiser"),(3,"Submarine"),(2,"Destroyer")]

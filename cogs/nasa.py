@@ -4,6 +4,7 @@ import requests
 from random import choice
 
 class NASA(commands.Cog):
+    """It's so easy to hack the NASA"""
     def __init__(self,bot):
         self.bot=bot
         self.api_key=bot.nasa

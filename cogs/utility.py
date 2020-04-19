@@ -26,7 +26,6 @@ import discord
 import typing
 import asyncio
 from sys import version
-from data import data
 import requests
 from datetime import datetime
 import aiohttp
@@ -35,7 +34,7 @@ from os import path
 
 def check_admin(): #Checks if the user has admin rights on the bot
     def predictate(ctx):
-        return str(ctx.author) in data.admins or ctx.bot.is_owner(ctx.author)
+        return str(ctx.author) in ctx.bot.admins or ctx.bot.is_owner(ctx.author)
     return commands.check(predictate)
 
 def check_administrator():
@@ -46,17 +45,17 @@ def check_administrator():
     return commands.check(predictate)
 
 class Utility(commands.Cog):
-    '''Some functions to manage the bot.'''
+    '''Some functions to manage the bot or get informations about it'''
     def __init__(self,bot):
         self.bot=bot
-        if data.graphic_interface:
+        if self.bot.graphic_interface:
             import tkinter
             self.interface.start()
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
         '''Returns a link to add the bot to a new server'''
-        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=data.invite_permissions)}")
+        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)}")
 
     @commands.command(ignore_extra=True)
     async def code(self,ctx):
@@ -82,7 +81,7 @@ class Utility(commands.Cog):
                                     file_lines+=1
                         final_path=p+path.sep+name
                         list_of_files.append(final_path.split('.'+path.sep)[-1]+f" : {file_lines} lines")
-        embed=discord.Embed(colour=data.get_color())
+        embed=discord.Embed(colour=self.bot.get_color())
         embed.add_field(name=f"{self.bot.user.name}'s structure",value="\n".join(list_of_files))
         embed.set_footer(text=f'I am made of {total} lines of Python, spread across {file_amount} files !')
         await ctx.send(embed=embed)
@@ -103,14 +102,14 @@ class Utility(commands.Cog):
     async def info(self,ctx):
         """Some info about me"""
         app=await self.bot.application_info()
-        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=data.invite_permissions)} "Please stay at home and use bots")',colour=data.get_color())
+        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)} "Please stay at home and use bots")',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_footer(text=f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
         embed.add_field(name="My owner (please respect him a lil bit) :",value=str(app.owner),inline=False)
         embed.add_field(name="I'm very social. Number of servers i'm in :",value=len(self.bot.guilds),inline=False)
         embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(list(self.bot.get_all_members()))} members",inline=False)
-        embed.add_field(name="Libraries used :",value='[KSoft.si](https://hsoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot',inline=False)
+        embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
@@ -125,8 +124,7 @@ class Utility(commands.Cog):
     @commands.command(aliases=['close'],ignore_extra=True)
     @check_admin()
     async def logout(self,ctx):
-        '''Does just what the name implies.
-        You need to be a bot administrator to use this.'''
+        '''You need to be a bot administrator to use this.'''
         await ctx.send('Logging out...')
         await self.bot.close()
 
@@ -144,63 +142,10 @@ class Utility(commands.Cog):
             return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
         await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(self.bot.get_m_prefix(ctx.message,False))}`")
 
-    @commands.command()
-    async def reputation(self,ctx,*,other:typing.Union[discord.Member,int]):
-        """Checks the reputation of an user.
-        You can refer to him if he's in the same server, or just paste his ID"""
-        if type(other)==int:
-            ID=str(other)
-            name="User "+ID
-            url=ctx.bot.user.avatar_url
-        else:
-            ID=str(other.id)
-            name=str(other)+f" [{ID}]"
-            url=other.avatar_url
-        response=requests.get('https://discordrep.com/api/rep/'+ID+'?authorization='+data.discord_rep)
-        reputation=response.json()
-        response=requests.get('https://discordrep.com/api/u/'+ID+'?authorization='+data.discord_rep)
-        user=response.json()
-        response=requests.get('https://discordrep.com/api/bans/'+ID+'?authorization='+data.discord_rep)
-        ban=response.json()
-        response=requests.get('https://discordrep.com/api/warns/'+ID+'?authorization='+data.discord_rep)
-        warning=response.json()
-
-        if user.get("code"):
-            return await ctx.send("I couldn't find this user.")
-
-        embed=discord.Embed(colour=data.get_color(),description="Source : [DiscordRep](https://discordrep.com) and [KSoft](https://ksoft.si)")
-        embed.set_thumbnail(url=url)
-        embed.set_author(name=name,icon_url=url,url="https://discordrep.com/api/u/"+ID)
-        banning=[]
-        if not warning.get("code"):
-            date=datetime.fromtimestamp(warning["date"]//1000)
-            banning.append(f"Warned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{warning['reason']}`")
-        if not ban.get("code"):
-            date=datetime.fromtimestamp(ban["date"]//1000)
-            banning.append(f"Banned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{ban['reason']}`")
-        check_ban=await self.bot.client.bans_check(int(ID))
-        if banning==[]:
-            if not check_ban:
-                embed.add_field(name="Bans",value="This user hasn't been banned from DiscordRep or KSoft",inline=False)
-            else:
-                embed.add_field(name="Bans from DiscordRep",value="This user hasn't been banned",inline=False)
-        else:
-            embed.add_field(name="Bans from DiscordRep",value="\n".join(banning))
-            if not check_ban:
-                embed.add_field(name="Bans from KSoft",value="This user hasn't been banned from KSoft.si",inline=False)
-        if check_ban:
-            BAN=await self.bot.client.bans_info(int(ID))
-            embed.add_field(name="Bans from KSoft",value=f"Banned on {BAN.timestamp} because of [{BAN.reason}](BAN.proof)",inline=False)
-
-        embed.add_field(name="Reputation on DiscordRep",value=f"Reputation level : {['No special reputation','Bronze','Silver','Gold','Diamond','DiscordRep Plus'][reputation['reputation']]}\n\nUpvotes : {reputation['upvotes']}\nDownvotes : {reputation['downvotes']}\n\nTotal votes : {reputation['upvotes']-reputation['downvotes']}\n\nXP : {reputation['xp']}\n\nDonation level : {['Not a donator','Tier I','Tier II','Tier III','Tier IV','Tier V'][user['donator']]}",inline=False)
-        embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
-        await ctx.send(embed=embed)
-
     @commands.command(ignore_extra=True)
     @check_admin()
     async def reload(self,ctx):
-        """Reloads the bot.
-        You need to be one of the bot's admins to use this command"""
+        """Reloads the bot. You need to be one of the bot's admins to use this command"""
         await ctx.send("Reloading...")
         await self.bot.cog_reloader()
 
@@ -210,7 +155,7 @@ class Utility(commands.Cog):
         account_list=pickle.load(open("data"+path.sep+"accounts.DAT",mode='rb'))
         account=account_list[account_list.index(str(ctx.author))]
         gotten,locked,total=account.get_successes()
-        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=data.get_color())
+        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
         for succ in gotten:

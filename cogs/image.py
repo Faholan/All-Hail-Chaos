@@ -23,11 +23,18 @@ SOFTWARE."""
 from discord.ext import commands
 import discord
 from datetime import datetime
+from random import choice
+import requests
 
 def check_channel(channel):
     if isinstance(channel,discord.TextChannel):
         return channel.is_nsfw()
     return True
+
+class Pic():
+    def __init__(self,url,tag):
+        self.url=url
+        self.tag=tag
 
 class Images(commands.Cog): #Thanks KSoft.si
     '''Commands to get random images'''
@@ -35,24 +42,9 @@ class Images(commands.Cog): #Thanks KSoft.si
         self.bot=bot
 
     @commands.command(ignore_extra=True)
-    async def aww(self,ctx):
-        """Get random cute pictures, mostly animals."""
-        await self.reddit_sender(ctx,await self.bot.client.random_aww())
-
-    @commands.command(ignore_extra=True)
-    async def birb(self,ctx):
-        """Get random birb image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="birb"))
-
-    @commands.command(ignore_extra=True)
     async def dab(self,ctx):
         """Get random dab image"""
         await self.image_sender(ctx,await self.bot.client.random_image(tag="dab"))
-
-    @commands.command(ignore_extra=True)
-    async def dog(self,ctx):
-        """Get random dog image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="dog"))
 
     @commands.command(ignore_extra=True)
     async def doge(self,ctx):
@@ -91,6 +83,13 @@ class Images(commands.Cog): #Thanks KSoft.si
         """Get random kiss image"""
         await self.image_sender(ctx,await self.bot.client.random_image(tag="kiss"))
 
+    @commands.command()
+    async def kitten(self,ctx,*,hash):
+        """Get a kitten image from an input"""
+        embed=discord.Embed(title=hash)
+        embed.set_image(url="https://robohash.org/"+hash+".png?set=set4")
+        await ctx.send(embed=embed)
+
     @commands.command(ignore_extra=True,hidden=True,aliases=["im_nsfw"])
     async def image_nsfw(self,ctx,nsfw:bool=False):
         """Retrieve the list of all available NSFW tags"""
@@ -98,6 +97,13 @@ class Images(commands.Cog): #Thanks KSoft.si
         embed=discord.Embed(timestamp=datetime.utcnow(),color=self.bot.get_color())
         embed.add_field(name="NSFW tags",value='\n'.join(tag_list.nsfw_tags))
         embed.set_author(name=ctx.author.display_name,icon_url=str(ctx.author.avatar_url))
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def monster(self,ctx,*,hash):
+        """Get a monster image from an input"""
+        embed=discord.Embed(title=hash)
+        embed.set_image(url="https://robohash.org/"+hash+".png?set=set2")
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True,ignore_extra=True)
@@ -136,6 +142,13 @@ class Images(commands.Cog): #Thanks KSoft.si
             raise commands.NSFWChannelRequired()
         await self.reddit_sender(ctx,await self.bot.client.random_reddit(subreddit.split('r/')[-1],nsfw=nsfw))
 
+    @commands.command()
+    async def robot(self,ctx,*,hash):
+        """Get a robot image from an input"""
+        embed=discord.Embed(title=hash)
+        embed.set_image(url="https://robohash.org/"+hash+".png")
+        await ctx.send(embed=embed)
+
     @commands.command(ignore_extra=True)
     async def tickle(self,ctx):
         """Get random tickle image"""
@@ -152,9 +165,9 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def image_sender(self,ctx,image):
         """Embeds an image then sends it"""
         if hasattr(image,"code"):
-            return await ctx.send(image.message)
+            return await self.bot.http(ctx,image["code"])
         if not image.url:
-            return await ctx.send("Sorry, I didn't find anything")
+            return await self.bot.http(ctx,404)
         embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow(),colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)

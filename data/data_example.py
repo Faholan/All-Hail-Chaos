@@ -2,7 +2,7 @@
 from random import choice
 token="THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
 admins="ALL THE DISCORD ACCOUNTS WHICH HAVE ADMIN RIGHTS FOR THE BOT"
-extensions=["cogs.battleship","cogs.business","cogs.coronavirus","cogs.funny","cogs.image","cogs.moderation","cogs.music","cogs.nasa","cogs.utility","bin.events","bin.logging","bin.success"]
+extensions=["cogs.animals","cogs.battleship","cogs.business","cogs.coronavirus","cogs.funny","cogs.image","cogs.moderation","cogs.music","cogs.nasa","cogs.utility","bin.error","bin.success"]
 user_agent="chaotic_bot"
 default_prefix="€"
 

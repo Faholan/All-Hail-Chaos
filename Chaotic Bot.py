@@ -45,6 +45,10 @@ class chaotic_bot(commands.Bot):
 
         self.nasa=data.nasa
 
+        self.admins=data.admins
+        self.graphic_interface=data.graphic_interface
+        self.discord_rep=data.discord_rep
+
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
@@ -105,6 +109,11 @@ class chaotic_bot(commands.Bot):
         except:
             prefixes={}
         return prefixes.get(self.get_id(message),self.default_prefix)
+
+    async def http(self,ctx,code,title=discord.Embed.Empty):
+        embed=Embed(title=title,color=self.get_color())
+        embed.set_image(url="https://http.cat/"+str(code)+".jpg")
+        await ctx.send(embed=embed)
 
     @staticmethod
     def get_id(ctx):
