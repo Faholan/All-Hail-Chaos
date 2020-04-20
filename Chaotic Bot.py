@@ -23,6 +23,7 @@ SOFTWARE."""
 from discord.ext import commands
 from discord import Embed,Game,Status
 import discord.utils
+from datetime import datetime
 
 from data import data
 import ksoftapi
@@ -47,6 +48,7 @@ class chaotic_bot(commands.Bot):
 
         self.admins=data.admins
         self.graphic_interface=data.graphic_interface
+        self.invite_permissions=data.invite_permissions
         self.discord_rep=data.discord_rep
 
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
@@ -56,6 +58,7 @@ class chaotic_bot(commands.Bot):
     async def on_ready(self):
         if self.first_on_ready:
             self.first_on_ready=False
+            self.last_update=datetime.utcnow()
             self.log_channel=self.get_channel(data.log_channel)
             await bot.change_presence(activity=Game(self.default_prefix+'help'))
             report=[]
@@ -80,6 +83,7 @@ class chaotic_bot(commands.Bot):
             task.cancel()
 
     async def cog_reloader(self):
+        self.last_update=datetime.utcnow()
         report=[]
         for ext in data.extensions:
             try:

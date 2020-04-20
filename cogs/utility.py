@@ -44,6 +44,21 @@ def check_administrator():
         return True
     return commands.check(predictate)
 
+def secondes(s):
+    r=[]
+    if s>=86400:
+        r.append(str(s//86400)+' days')
+        s%=86400
+    if s>=3600:
+        r.append(str(s//3600)+' hours')
+        s%=3600
+    if s>=60:
+        r.append(str(s//60)+' minutes')
+        s%=60
+    if s>0:
+        r.append(str(s)+' seconds')
+    return ', '.join(r)
+
 class Utility(commands.Cog):
     '''Some functions to manage the bot or get informations about it'''
     def __init__(self,bot):
@@ -101,6 +116,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     async def info(self,ctx):
         """Some info about me"""
+        delta=datetime.utcnow()-self.bot.last_update
         app=await self.bot.application_info()
         embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)} "Please stay at home and use bots")',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
@@ -110,6 +126,7 @@ class Utility(commands.Cog):
         embed.add_field(name="I'm very social. Number of servers i'm in :",value=len(self.bot.guilds),inline=False)
         embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(list(self.bot.get_all_members()))} members",inline=False)
         embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
+        embed.add_field(name="Time since last update :",value=secondes(delta.seconds+86400*delta.days))
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
