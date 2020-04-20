@@ -83,8 +83,8 @@ class Images(commands.Cog): #Thanks KSoft.si
         """Get random kiss image"""
         await self.image_sender(ctx,await self.bot.client.random_image(tag="kiss"))
 
-    @commands.command()
-    async def kitten(self,ctx,*,hash):
+    #@commands.command()
+    async def kitten(self,ctx,*,hash): #This command doesn't work because of robohash
         """Get a kitten image from an input"""
         embed=discord.Embed(title=hash)
         embed.set_image(url="https://robohash.org/"+hash+".png?set=set4")
