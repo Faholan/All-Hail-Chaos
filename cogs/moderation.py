@@ -49,21 +49,21 @@ class Moderation(commands.Cog):
                         roles.append(banned)
                         for member in banned.members:
                             if member==ctx.guild.owner:
-                                await ctx.send("I cannot ban the guild owner")
+                                await self.bot.httpcat(ctx,403,"I cannot ban the guild owner")
                             elif member!=ctx.me:
                                 if not member in banning:
                                     banning.append(member)
                             else:
-                                await ctx.send("I cannot ban myself")
+                                await self.bot.httpcat(ctx,403,"I cannot ban myself")
                 else:
-                    await ctx.send(f"You cannot ban the role {banned.name} : it is higher than your highest role")
+                    await self.bot.httpcat(ctx,401,f"You cannot ban the role {banned.name} : it is higher than your highest role")
             else:
                 if banned==ctx.me:
-                    await ctx.send("I cannot ban myself")
+                    await self.bot.httpcat(ctx,403,"I cannot ban myself")
                 elif ctx.me.roles[-1]<=banned.roles[-1]:
-                    await ctx.send(f"I cannot ban {banned.name} : he has a higher role than me")
+                    await self.bot.httpcat(ctx,403,f"I cannot ban {banned.name} : he has a higher role than me")
                 elif banned==ctx.guild.owner:
-                    await ctx.send(f"I cannot ban {banned.name} : he is the guild owner")
+                    await self.bot.httpcat(ctx,403,f"I cannot ban {banned.name} : he is the guild owner")
                 elif not member in banning:
                     banning.append(member)
         r='\n'
@@ -109,29 +109,29 @@ class Moderation(commands.Cog):
         for kicked in who:
             if isinstance(kicked,discord.Role):
                 if kicked.is_default():
-                    await ctx.send("You cannot kick the default role.")
+                    await self.bot.httpcat(ctx,403,"You cannot kick the default role.")
                 elif ctx.me.roles[-1]<=kicked:
-                    await ctx.send(f"I cannot kick the role {kicked.name} : it is higher than my highest role")
+                    await self.bot.httpcat(ctx,403,f"I cannot kick the role {kicked.name} : it is higher than my highest role")
                 elif ctx.author.roles[-1]>kicked:
                     if not kicked in roles:
                         roles.append(kicked)
                         for member in kicked.members:
                             if member==ctx.guild.owner:
-                                await ctx.send("I cannot kick the guild owner")
+                                await self.bot.httpcat(ctx,403,"I cannot kick the guild owner")
                             elif member!=ctx.me:
                                 if not member in kicking:
                                     kicking.append(member)
                             else:
-                                await ctx.send("I cannot kick myself")
+                                await self.bot.httpcat(ctx,403,"I cannot kick myself")
                 else:
-                    await ctx.send(f"You cannot kick the role {kicked.name} : it is higher than your highest role")
+                    await self.bot.httpcat(ctx,401,f"You cannot kick the role {kicked.name} : it is higher than your highest role")
             else:
                 if kicked==ctx.me:
-                    await ctx.send("I cannot kick myself")
+                    await self.bot.httpcat(ctx,403,"I cannot kick myself")
                 elif ctx.me.roles[-1]<=kicked.roles[-1]:
-                    await ctx.send(f"I cannot kick {kicked.name} : he has a higher role than me")
+                    await self.bot.httpcat(ctx,403,f"I cannot kick {kicked.name} : he has a higher role than me")
                 elif kicked==ctx.guild.owner:
-                    await ctx.send(f"I cannot kick {kicked.name} : he is the guild owner")
+                    await self.bot.httpcat(ctx,403,f"I cannot kick {kicked.name} : he is the guild owner")
                 elif not member in kicking:
                     kicking.append(member)
         r='\n'
@@ -187,7 +187,7 @@ class Moderation(commands.Cog):
         warning=response.json()
 
         if user.get("code"):
-            return await ctx.send("I couldn't find this user.")
+            return await self.bot.httpcat(ctx,404,"I couldn't find this user.")
 
         embed=discord.Embed(colour=self.bot.get_color(),description="Source : [DiscordRep](https://discordrep.com) and [KSoft](https://ksoft.si)")
         embed.set_thumbnail(url=url)
@@ -296,7 +296,9 @@ class Moderation(commands.Cog):
             return
         if message.channel.is_nsfw() or message.guild.id in self.swear_off:
             return
-        member=message.guild.get_member(message.author.id)
+        member=await message.guild.fetch_member(message.author.id)
+        if not member:
+            return
         if member.guild_permissions.administrator:
             return
         if message.guild.id in self.auto_swear:

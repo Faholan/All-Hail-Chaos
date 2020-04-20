@@ -165,9 +165,9 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def image_sender(self,ctx,image):
         """Embeds an image then sends it"""
         if hasattr(image,"code"):
-            return await self.bot.http(ctx,image["code"])
+            return await self.bot.httpcat(ctx,image["code"])
         if not image.url:
-            return await self.bot.http(ctx,404)
+            return await self.bot.httpcat(ctx,404)
         embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow(),colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)

@@ -159,9 +159,9 @@ class Funny(commands.Cog):
         attacker=fighter(ctx.author)
         defender=fighter(cible)
         if defender.id==attacker.id:
-            await ctx.send("You cannot fight alone. Try asking a friend you don't like pretty much.")
+            await self.bot.httpcat(ctx,403,"You cannot fight alone. Try asking a friend you don't like pretty much.")
         elif defender.id==self.bot.user.id:
-            await ctx.send("You cannot fight me : I'm juste the supreme judge.")
+            await self.bot.httpcat(ctx,403,"You cannot fight me : I'm juste the supreme judge.")
         else:
             combat=True
             fight=[defender,attacker]

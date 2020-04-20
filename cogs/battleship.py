@@ -189,13 +189,13 @@ class Battleship(commands.Cog):
                 if msg.content.lower()=="quit":
                     return await ctx.send("Maybe we can play together another time")
                 if msg.content.lower()[0] not in self.column or not msg.content[1:-1].isdigit():
-                    await ctx.send("Please input a message correctly formatted")
+                    await self.bot.httpcat(ctx,400,"Please input a message correctly formatted")
                 elif not 0<int(msg.content[1:-1])<11:
-                    await ctx.send("Please input a message correctly formatted")
+                    await self.bot.httpcat(ctx,400,"Please input a message correctly formatted")
                 elif msg.content.lower()[-1]=='v':
                     origin=(self.column.index(msg.content.lower()[0]),int(msg.content[1:-1])-1)
                     if origin[0]+size>9:
-                        await ctx.send("The boat is too long to be placed in such a position")
+                        await self.boat.httpcat(ctx,400,"The boat is too long to be placed in such a position")
                     else:
                         invalid=False
                         for i in range(size):

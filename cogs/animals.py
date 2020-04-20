@@ -55,7 +55,7 @@ class Animals(commands.Cog):
         if hasattr(image,"code"):
             return await ctx.send(image.message)
         if not image.url:
-            return await self.bot.http(ctx,404)
+            return await self.bot.httpcat(ctx,404)
         embed=discord.Embed(timestamp=datetime.utcnow(),colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -66,7 +66,7 @@ class Animals(commands.Cog):
             return await ctx.send(image.message)
         embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.get_color())
         if not image.image_url:
-            await ctx.send("I didn't find anything")
+            await self.bot.httpcat(ctx,404)
         embed.set_image(url=image.image_url)
         embed.set_footer(text=f"👍 {image.upvotes} | 👎 {image.downvotes} | 💬 {image.comments}")
         embed.set_author(name=f"Posted by {image.author} in {image.subreddit}",icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",url=f"https://reddit.com"+image.author)

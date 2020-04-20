@@ -46,45 +46,45 @@ def secondes(s):
 async def error_manager(ctx,error):
     '''Error manager'''
     if isinstance(error,commands.CheckAnyFailure):
-        await self.bot.http(ctx,401,"You don't have the rights to send use the command "+ctx.invoked_with)
+        await ctx.bot.httpcat(ctx,401,"You don't have the rights to send use the command "+ctx.invoked_with)
     elif isinstance(error,(commands.BadArgument,commands.BadUnionArgument)):
-        await self.bot.http(ctx,400,str(error))
+        await ctx.bot.httpcat(ctx,400,str(error))
     elif isinstance(error,commands.MissingRequiredArgument):
-        await self.bot.http(ctx,400,"Hmmmm, looks like an argument is missing : "+error.param.name)
+        await ctx.bot.httpcat(ctx,400,"Hmmmm, looks like an argument is missing : "+error.param.name)
     elif isinstance(error,commands.PrivateMessageOnly):
-        await self.bot.http(ctx,403,"You must be in a private channel to use this command.")
+        await ctx.bot.httpcat(ctx,403,"You must be in a private channel to use this command.")
     elif isinstance(error,commands.NoPrivateMessage):
-        await self.bot.http(ctx,403,"I can't dot this in private.")
-    elif isinstance(error,commandnds.CommandNotFound):
-        await self.bot.http(ctx,404)
+        await ctx.bot.httpcat(ctx,403,"I can't dot this in private.")
+    elif isinstance(error,commands.CommandNotFound):
+        await ctx.bot.httpcat(ctx,404)
     elif isinstance(error,commands.CommandInvokeError):
-        await self.bot.http(ctx,500,str(error))
+        await ctx.bot.httpcat(ctx,500,str(error))
     elif isinstance(error,commands.DisabledCommand):
-        await self.bot.http(ctx,423,'God said : this command is disabled. So it is.')
+        await ctx.bot.httpcat(ctx,423,'God said : this command is disabled. So it is.')
     elif isinstance(error,commands.TooManyArguments):
-        await self.bot.http(ctx,400,"You gave me too much arguments for me to process.")
+        await ctx.bot.httpcat(ctx,400,"You gave me too much arguments for me to process.")
     elif isinstance(error,commands.CommandOnCooldown):
-        await self.bot.http(ctx,429,'Calm down, breath and try again in '+secondes(round(error.retry_after)))
+        await ctx.bot.httpcat(ctx,429,'Calm down, breath and try again in '+secondes(round(error.retry_after)))
     elif isinstance(error,commands.MissingPermissions):
-        await self.bot.http(ctx,401,'\n-'.join(['Try again with the following permission(s) :']+error.missing_perms))
+        await ctx.bot.httpcat(ctx,401,'\n-'.join(['Try again with the following permission(s) :']+error.missing_perms))
     elif isinstance(error,commands.BotMissingPermissions):
-        await self.bot.http(ctx,401,'\n-'.join(["I need these permissions :"]+error.missing_perms))
+        await ctx.bot.httpcat(ctx,401,'\n-'.join(["I need these permissions :"]+error.missing_perms))
     elif isinstance(error,commands.MissingRole):
-        await self.bot.http(ctx,401,"Sorry, but you need to be a "+str(error.missing_role))
+        await ctx.bot.httpcat(ctx,401,"Sorry, but you need to be a "+str(error.missing_role))
     elif isinstance(error,commands.BotMissingRole):
-        await self.bot.http(ctx,401,"Gimme the role "+str(error.missing_role)+" first, ok ?")
+        await ctx.bot.httpcat(ctx,401,"Gimme the role "+str(error.missing_role)+" first, ok ?")
     elif isinstance(error,commands.NSFWChannelRequired):
-        await self.bot.http(ctx,403,"Woooh ! You must be in an NSFW channel to use this.")
+        await ctx.bot.httpcat(ctx,403,"Woooh ! You must be in an NSFW channel to use this.")
     elif isinstance(error,commands.UnexpectedQuoteError):
-        await self.bot.http(ctx,400,"I didn't expected that quote...")
+        await ctx.bot.httpcat(ctx,400,"I didn't expected that quote...")
     elif isinstance(error,commands.InvalidEndOfQuotedStringError):
-        await self.bot.http(ctx,400,"You must separated the quoted argument from the others with spaces")
+        await ctx.bot.httpcat(ctx,400,"You must separated the quoted argument from the others with spaces")
     elif isinstance(error,commands.ExpectedClosingQuoteError):
-        await self.bot.http(ctx,400,"I expected a closing quote")
+        await ctx.bot.httpcat(ctx,400,"I expected a closing quote")
     elif isinstance(error,commands.CheckFailure):
-        await self.bot.http(ctx,401,"You don't have the rights to use this command")
+        await ctx.bot.httpcat(ctx,401,"You don't have the rights to use this command")
     else:
-        await self.bot.http(ctx,500,'The command raised an error')
+        await ctx.bot.httpcat(ctx,500,'The command raised an error')
 
     if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
         return
@@ -100,7 +100,7 @@ async def error_manager(ctx,error):
         embed.description = f"in the Group {ctx.channel.name} ({ctx.channel.id})"
     tb = "".join(traceback.format_tb(error.__traceback__))
     embed.description += f"```\n{tb}```"
-    embed.set_footer(text=f"{self.bot.user.name} Logging", icon_url=ctx.me.avatar_url_as(static_format="png"))
+    embed.set_footer(text=f"{ctx.bot.user.name} Logging", icon_url=ctx.me.avatar_url_as(static_format="png"))
     embed.timestamp = datetime.datetime.utcnow()
     await ctx.bot.log_channel.send(embed=embed)
 

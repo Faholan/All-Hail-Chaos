@@ -421,10 +421,10 @@ class Coronavirus(commands.Cog):
             return await ctx.send("I'm currently updating my database. Please try again in a few seconds")
         country_name=country_dict.get(''.join([before_dict.get(i,i) for i in country.lower()]).replace(' ','').replace("'","").replace("-",""))
         if country_name==None:
-            return await ctx.send("I don't know this country. Please try again.")
+            return await self.bot.httpcat(ctx,404,"I don't know this country. Please try again.")
         corona_country=self.corona.get_country(country_name)
         if corona_country==None:
-            return await ctx.send("I didn't find this country.")
+            return await self.bot.httpcat(ctx,404,"I didn't find this country.")
         embed=Embed(title=f"Coronavirus stats for {country}",description=f"Confirmed cases : {noner(corona_country.total_stats.confirmed)}\nDeaths : {noner(corona_country.total_stats.deaths)}\nRecovered : {noner(corona_country.total_stats.recovered)}",colour=data.get_color(),timestamp=corona_country.last_updated)
         for area in corona_country.areas:
             embed.add_field(name=area.name,value=f"Confirmed cases : {noner(area.total_stats.confirmed)}\nDeaths : {noner(area.total_stats.deaths)}\nRecovered : {noner(area.total_stats.recovered)}")
