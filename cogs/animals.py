@@ -2,9 +2,10 @@ from discord.ext import commands
 import discord
 import requests
 from random import choice
+from datetime import datetime
 
 class Pic():
-    def __init__(self,url,tag):
+    def __init__(self,url,tag=discord.Embed.Empty):
         self.url=url
         self.title=tag
 
