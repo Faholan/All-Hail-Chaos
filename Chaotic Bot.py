@@ -182,5 +182,5 @@ async def help(ctx,*command_help):
                 else:
                     await ctx.send(f"I couldn't find {helper}")
 
-bot.client=ksoftapi.Client(bot.ksoft_token,bot,bot.loop)
+bot.client=ksoftapi.Client(bot.ksoft_token,bot.loop)
 bot.run(data.token)
