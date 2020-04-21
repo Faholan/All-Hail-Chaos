@@ -292,15 +292,11 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def no_swear_words(self,message):
-        if message.author==self.bot or not message.guild:
+        if message.author==self.bot or not isinstance(message.author,discord.Member):
             return
         if message.channel.is_nsfw() or message.guild.id in self.swear_off:
             return
-        #member=await message.guild.fetch_member(message.author.id)
-        member=message.author
-        if not member:
-            return
-        if member.guild_permissions.administrator:
+        if message.author.guild_permissions.administrator:
             return
         if message.guild.id in self.auto_swear:
             for s in auto_swear_detection:
