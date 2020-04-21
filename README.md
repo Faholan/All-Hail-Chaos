@@ -8,7 +8,7 @@ You need to rename the file `data/data_example.py` into `data/data.py`, and then
 
 ```python
 
-token="THE BEAUTIFUL TOKEN OF MY DISCORD BOT" #<- Place your bot token here (you can obtain one at Discord's developer portal : https://discordapp.com/developers/applications
+token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT" #<- Place your bot token here. You can obtain one at Discord's developer portal : https://discordapp.com/developers/applications
 
 log_channel = 00000000000000000 #<- The ID of the channel you want the bot to output the logs to
 
@@ -24,8 +24,8 @@ To use Lavalink and the Music cog, please install Java 13 and run lavalink.bat b
 
 ```bash
 
-    $ cd bot
-    $ java -jar Lavalink.jar
+$ cd bot
+$ java -jar Lavalink.jar
 ```
 
 In this example, the files Lavalink.jar and application.yml are in a folder named `bot`. They must be in the same folder for the Music Cog to work.

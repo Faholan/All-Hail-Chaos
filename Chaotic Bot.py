@@ -147,8 +147,8 @@ async def help(ctx,*command_help):
         #Aide générale
         embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=data.invite_permissions)} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.get_color())
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-        embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
-        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
+        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))
         for cog in bot.cogs:
             if bot.get_cog(cog).get_commands():
                 command_list=[discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
@@ -165,14 +165,14 @@ async def help(ctx,*command_help):
                     #Aide d'un cog
                     embed=Embed(title=helper,description=cog.description,colour=data.get_color())
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-                    embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+                    embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
                     for command in cog.get_commands():
                         if not command.hidden:
                             aliases=[command.name]
                             if command.aliases!=[]:
                                 aliases+=command.aliases
                             embed.add_field(name='/'.join(aliases),value=command.help,inline=False)
-                    embed.set_footer(text=f"Are you interested in {helper} ?",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+                    embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
                     await ctx.send(embed=embed)
             else:
                 cog=bot.get_command(helper)
@@ -182,11 +182,11 @@ async def help(ctx,*command_help):
                     if cog.aliases!=[]:
                         embed.add_field(name="Aliases :",value="\n".join(cog.aliases))
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-                    embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+                    embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
                     if cog.hidden:
-                        embed.set_footer(text=f"Wow, you found {helper} !",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+                        embed.set_footer(text=f"Wow, you found {helper} !",icon_url=str(ctx.bot.user.avatar_url))
                     else:
-                        embed.set_footer(text=f"Are you interested in {helper} ?",icon_url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+                        embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send(f"I couldn't find {helper}")
