@@ -131,6 +131,11 @@ class Utility(commands.Cog):
                 except asyncio.TimeoutError:
                     return await ctx.send("The webhook wasn't deleted")
                 if msg.content.lower().startswith("y"):
+                    repo = self.bot.github.get_repo(self.bot.github_repo)
+                    for webhook in repo.get_hooks():
+                        if webhook.config['url'].startswith(hook.url):
+                            webhook.delete()
+                            break
                     await hook.delete()
                     return await ctx.send("Webhook deleted")
                 else:
