@@ -296,7 +296,8 @@ class Moderation(commands.Cog):
             return
         if message.channel.is_nsfw() or message.guild.id in self.swear_off:
             return
-        member=await message.guild.fetch_member(message.author.id)
+        #member=await message.guild.fetch_member(message.author.id)
+        member=message.author
         if not member:
             return
         if member.guild_permissions.administrator:
