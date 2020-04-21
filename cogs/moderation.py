@@ -72,7 +72,7 @@ class Moderation(commands.Cog):
         else:
             await ctx.send(f"You're about to ban {len(banning)} members :{r}{r+' -'.join([member.mention for member in banning])}{r}Do you want to proceed ? (y/n)")
         def check(m):
-            return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower.startswith('n')) and m.channel==ctx.channel
+            return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and m.channel==ctx.channel
         try:
             msg=await self.bot.wait_for('message',check=check,timeout=30.0)
             proceed=msg.content.lower().startswith('y')

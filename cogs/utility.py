@@ -113,6 +113,35 @@ class Utility(commands.Cog):
             return await ctx.send(data["message"])
         await ctx.send(f"The value of {value} {original} is {data['pretty']}")
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_webhooks=True)
+    @commands.bot_has_permissions(manage_webhooks=True)
+    async def github(self,ctx):
+        """Creates or deletes a webhook to get updates about the bot's cog"""
+        if not hasattr(self.bot,"github") or not self.bot.github_repo:
+            return await ctx.send("This command hasn't been configured by the developer yet")
+        for hook in await ctx.channel.webhooks():
+            if hook.user==self.bot.user:
+                await ctx.send("I already have created a webhook in this channel. Do you want me to delete it (y/n)")
+                def check(m):
+                    return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and m.channel==ctx.channel
+                try:
+                    msg=await self.bot.wait_for('message',check=check,timeout=30.0)
+                except asyncio.TimeoutError:
+                    return await ctx.send("The webhook wasn't deleted")
+                if msg.content.lower().startswith("y"):
+                    await hook.delete()
+                    return await ctx.send("Webhook deleted")
+                else:
+                    return await ctx.send("The webhook wasn't deleted")
+
+        repo = self.bot.github.get_repo(self.bot.github_repo)
+        hook = await ctx.channel.create_webhook(name=f"{self.bot.user.name} github updates webhook")
+        repo.create_hook("web",{"url":hook.url+"/github", "content_type":"json"},["fork","create","delete","fork","pull_request","push","issue_comment","project","project_card","project_column"])
+        await ctx.send("Webhook successfully created !")
+        await self.bot.log_channel.send(f"Webhook created : {ctx.guild} - {ctx.channel} ({ctx.author})")
+
     @commands.command(ignore_extra=True)
     async def info(self,ctx):
         """Some info about me"""

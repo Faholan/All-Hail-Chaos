@@ -34,6 +34,7 @@ from asyncio import all_tasks
 from os import path
 
 import dbl
+from github import Github
 
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
@@ -59,6 +60,10 @@ class chaotic_bot(commands.Bot):
 
         if data.dbl_token:
             self.dbl_client=dbl.DBLClient(self.bot, data.dbl_token, autopost=True)
+
+        if data.github_token:
+            self.github=Github(data.github_token)
+        self.github_repo=data.github_repo
 
     async def on_ready(self):
         if self.first_on_ready:
