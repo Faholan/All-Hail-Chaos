@@ -15,6 +15,7 @@ invite_permissions=None #Permissions to require when someone invites the bot in 
 ksoft_token = "MY KSOFT.SI TOKEN"
 discord_rep = "MY DISCORDREP TOKEN"
 nasa = "I AM HACKING THE NASA" #NASA API token
+dbl_token = None #Discord Bot List Token
 
 def get_color():
     return choice([0x11806a,0x2ecc71,0x1f8b4c,0x3498db,0x206694,0x9b59b6,0x71368a,0xe91e63,0xad1457,0xf1c40f,0xc27c0e,0xe67e22,0xa84300,0xe74c3c,0x992d22])

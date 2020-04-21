@@ -50,10 +50,6 @@ SKIP_EMOJI = ":next_track:"
 BACK_EMOJI = ":previous_track:"
 # ---------------------------- #
 
-def check_guild(ctx):
-    if ctx.guild==None:
-        raise commands.NoPrivateMessage(ctx.message)
-    return True
 
 def rq_check(ctx):
     p = ctx.bot.lavalink.player_manager.get(ctx.guild.id)
@@ -85,8 +81,12 @@ class Music(commands.Cog):
             bot.add_listener(bot.lavalink.voice_update_handler, 'on_socket_response')
 
         bot.lavalink.add_event_hook(self.track_hook)
-        self.cog_check(check_guild)
         self.empty_vc_check.start()
+
+    async def cog_check(self,ctx):
+        if not ctx.guild:
+            await ctx.send("You must be in a guild to use this command")
+        return ctx.guild
 
     @tasks.loop(seconds=5.0)
     async def empty_vc_check(self):

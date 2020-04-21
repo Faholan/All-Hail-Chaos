@@ -33,6 +33,8 @@ from asyncio import all_tasks
 
 from os import path
 
+import dbl
+
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
     def __init__(self,**kwargs):
@@ -54,6 +56,9 @@ class chaotic_bot(commands.Bot):
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
+
+        if data.dbl_token:
+            self.dbl_client=dbl.DBLClient(self.bot, data.dbl_token, autopost=True)
 
     async def on_ready(self):
         if self.first_on_ready:
