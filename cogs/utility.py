@@ -121,8 +121,11 @@ class Utility(commands.Cog):
         embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)} "Please stay at home and use bots")',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_footer(text=f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
-        embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.add_field(name="My owner (please respect him a lil bit) :",value=str(app.owner),inline=False)
+        artist=self.bot.get_user(372336190919147522)
+        if artist:
+            embed.add_field(name="Credits for the superb profile pic :",value=str(artist),inline=False)
         embed.add_field(name="I'm very social. Number of servers i'm in :",value=len(self.bot.guilds),inline=False)
         embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(list(self.bot.get_all_members()))} members",inline=False)
         embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
@@ -174,7 +177,7 @@ class Utility(commands.Cog):
         gotten,locked,total=account.get_successes()
         embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
-        embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
+        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for succ in gotten:
             embed.add_field(name=succ.name+' - Unlocked',value=succ.description,inline=False)
         for succ in locked:
