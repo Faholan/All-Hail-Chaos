@@ -6,7 +6,7 @@ extensions=["cogs.animals","cogs.battleship","cogs.business","cogs.coronavirus",
 user_agent="chaotic_bot"
 default_prefix="€"
 
-log_channel = 694804739270901801 #Change this by the channel in which you want the logs
+log_channel = 00000000000000000 #Change this by the channel in which you want the logs
 
 graphic_interface=True
 
