@@ -7,7 +7,6 @@ from data import data
 from collections import namedtuple
 from datetime import datetime
 import requests
-import aiohttp
 
 TotalStats = namedtuple('TotalStats', 'confirmed deaths recovered')
 Country = namedtuple('Country', 'total_stats id last_updated areas name lat long')
@@ -20,21 +19,11 @@ class CoronaTracker:
         self.total_stats = None
 
         self._data = {}
-        self.__aio_session = None
 
     def fetch_results(self):
         r = requests.get(self.ENDPOINT)
 
         self._data = r.json()
-        self.countries = self.generate_areas(self._data['areas'])
-
-    async def aio_fetch_results(self):
-        if self.__aio_session is None:
-            self.__aio_session = aiohttp.ClientSession()
-
-        r = await self.__aio_session.get(self.ENDPOINT)
-
-        self._data = await r.json()
         self.countries = self.generate_areas(self._data['areas'])
 
     def generate_areas(self, areas, *, cls=Country):
@@ -424,7 +413,7 @@ class Coronavirus(commands.Cog):
             return await self.bot.httpcat(ctx,404,"I don't know this country. Please try again.")
         corona_country=self.corona.get_country(country_name)
         if corona_country==None:
-            return await self.bot.httpcat(ctx,404,"I didn't find this country.")
+            return await self.bot.httpcat(ctx,404,"I didn't find this country. You should wait, this issue is probably caused by an error in the database connection, which shouldn't last too long")
         embed=Embed(title=f"Coronavirus stats for {country}",description=f"Confirmed cases : {noner(corona_country.total_stats.confirmed)}\nDeaths : {noner(corona_country.total_stats.deaths)}\nRecovered : {noner(corona_country.total_stats.recovered)}",colour=data.get_color(),timestamp=corona_country.last_updated)
         for area in corona_country.areas:
             embed.add_field(name=area.name,value=f"Confirmed cases : {noner(area.total_stats.confirmed)}\nDeaths : {noner(area.total_stats.deaths)}\nRecovered : {noner(area.total_stats.recovered)}")
@@ -432,7 +421,7 @@ class Coronavirus(commands.Cog):
         embed.set_thumbnail(url="https://d3i6fh83elv35t.cloudfront.net/static/2020/01/RTS301GM-1024x576.jpg")
         await ctx.send(embed=embed)
 
-    @tasks.loop(hours=2)
+    @tasks.loop(minutes=30)
     async def corona_update(self):
         self.fetching=True
         try:
