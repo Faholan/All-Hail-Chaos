@@ -60,7 +60,7 @@ async def error_manager(ctx,error):
     elif isinstance(error,commands.CommandInvokeError):
         await ctx.bot.httpcat(ctx,500,str(error))
     elif isinstance(error,commands.DisabledCommand):
-        await ctx.bot.httpcat(ctx,423,'God said : this command is disabled. So it is.')
+        await ctx.bot.httpcat(ctx,423,'God said : this command is disabled. So is it.')
     elif isinstance(error,commands.TooManyArguments):
         await ctx.bot.httpcat(ctx,400,"You gave me too much arguments for me to process.")
     elif isinstance(error,commands.CommandOnCooldown):
@@ -92,26 +92,18 @@ async def error_manager(ctx,error):
         error=error.original
     embed = discord.Embed(color=0xFF0000)
     embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command}"
-    embed.description=type(error).__name__
+    embed.description=type(error).__name__+" : "+str(error)
     if ctx.guild:
-        embed.description = f"in {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} ({ctx.channel.id})"
+        embed.description += f"\nin {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} ({ctx.channel.id})"
     elif isinstance(ctx.channel,discord.DMChannel):
-        embed.description = f"in a Private Channel ({ctx.channel.id})"
+        embed.description += f"\nin a Private Channel ({ctx.channel.id})"
     else:
-        embed.description = f"in the Group {ctx.channel.name} ({ctx.channel.id})"
+        embed.description += f"\nin the Group {ctx.channel.name} ({ctx.channel.id})"
     tb = "".join(traceback.format_tb(error.__traceback__))
     embed.description += f"```\n{tb}```"
     embed.set_footer(text=f"{ctx.bot.user.name} Logging", icon_url=ctx.me.avatar_url_as(static_format="png"))
     embed.timestamp = datetime.datetime.utcnow()
     await ctx.bot.log_channel.send(embed=embed)
 
-async def guild_joiner(guild):
-    await ctx.bot.log_channel.send(guild.name+" joined")
-
-async def guild_leaver(guild):
-     ctx.bot.log_channel.send(guild.name+" leaved")
-
 def setup(bot):
     bot.add_listener(error_manager,'on_command_error')
-    bot.add_listener(guild_joiner,'on_guild_join')
-    bot.add_listener(guild_leaver,'on_guild_remove')

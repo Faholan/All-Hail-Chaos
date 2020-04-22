@@ -53,6 +53,7 @@ class chaotic_bot(commands.Bot):
         self.graphic_interface=data.graphic_interface
         self.invite_permissions=data.invite_permissions
         self.discord_rep=data.discord_rep
+        self.discord_bots=data.discord_bots
 
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
@@ -70,7 +71,7 @@ class chaotic_bot(commands.Bot):
             self.first_on_ready=False
             self.last_update=datetime.utcnow()
             self.log_channel=self.get_channel(data.log_channel)
-            await bot.change_presence(activity=Game(self.default_prefix+'help'))
+            await self.change_presence(activity=Game(self.default_prefix+'help'))
             report=[]
             for ext in data.extensions:
                     if not ext in bot.extensions:
@@ -85,12 +86,18 @@ class chaotic_bot(commands.Bot):
         else:
             await self.log_channel.send("on_ready called again")
 
+    async def on_guild_join(self,guild):
+        await self.log_channel.send(guild.name+" joined")
+
+    async def on_guild_remove(self,guild):
+         await self.log_channel.send(guild.name+" leaved")
+
     async def close(self):
         if hasattr(self,"db"):
             self.db.close()
-        await super().close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
+        await super().close()
 
     async def cog_reloader(self):
         self.last_update=datetime.utcnow()
@@ -194,7 +201,7 @@ async def help(ctx,*command_help):
                         embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
                     await ctx.send(embed=embed)
                 else:
-                    await ctx.send(f"I couldn't find {helper}")
+                    await ctx.bot.httpcat(404,f"I couldn't find {helper}")
 
 bot.client=ksoftapi.Client(bot.ksoft_token,bot.loop)
 bot.run(data.token)

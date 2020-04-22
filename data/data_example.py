@@ -16,6 +16,7 @@ ksoft_token = "MY KSOFT.SI TOKEN"
 discord_rep = "MY DISCORDREP TOKEN"
 nasa = "I AM HACKING THE NASA" #NASA API token
 dbl_token = None #Discord Bot List Token
+discord_bots = None #discord.bots.gg Token
 
 github_token = None #Github token
 github_repo = None #Github repo for webhooks

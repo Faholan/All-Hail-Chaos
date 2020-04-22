@@ -17,12 +17,12 @@ class Animals(commands.Cog):
     @commands.command(ignore_extra=True)
     async def aww(self,ctx):
         """Get random cute pictures, mostly animals."""
-        await self.reddit_sender(ctx,await self.bot.client.random_aww())
+        await self.reddit_sender(ctx,await self.bot.client.images.random_aww())
 
     @commands.command(ignore_extra=True)
     async def birb(self,ctx):
         """Get random birb image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="birb"))
+        await self.image_sender(ctx,await self.bot.client.images.random_image(tag="birb"))
 
     @commands.command()
     async def cat(self,ctx):
@@ -41,7 +41,7 @@ class Animals(commands.Cog):
     async def dog(self,ctx):
         """Get random dog image"""
         if choice([True,False]):
-            await self.image_sender(ctx,await self.bot.client.random_image(tag="dog"))
+            await self.image_sender(ctx,await self.bot.client.images.random_image(tag="dog"))
         else:
             await self.image_sender(ctx,Pic(requests.get("https://random.dog/woof.json").json()['url'],'Dog'))
 

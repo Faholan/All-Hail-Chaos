@@ -66,6 +66,8 @@ class Utility(commands.Cog):
         if self.bot.graphic_interface:
             import tkinter
             self.interface.start()
+        if self.bot.discord_bots:
+            self.discord_bots.start()
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
@@ -118,7 +120,7 @@ class Utility(commands.Cog):
     @commands.has_permissions(manage_webhooks=True)
     @commands.bot_has_permissions(manage_webhooks=True)
     async def github(self,ctx):
-        """Creates or deletes a webhook to get updates about the bot's cog"""
+        """Creates or deletes a webhook to get updates about the bot's development"""
         if not hasattr(self.bot,"github") or not self.bot.github_repo:
             return await ctx.send("This command hasn't been configured by the developer yet")
         for hook in await ctx.channel.webhooks():
@@ -325,6 +327,10 @@ class Utility(commands.Cog):
     async def after_interface(self):
         if self.interface.is_being_cancelled():
             self.fenetre.destroy()
+
+    @tasks.loop(minutes=30)
+    async def discord_bots(self):
+        requests.post("https://discord.bots.gg/api/v1/bots/"+str(self.bot.user.id)+"/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})
 
 def setup(bot):
     bot.add_cog(Utility(bot))

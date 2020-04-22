@@ -42,7 +42,7 @@ class NASA(commands.Cog):
         r=requests.get("https://api.nasa.gov/mars-photos/api/v1/rovers/"+rover.lower()+"/photos",{"earth_date":date,"api_key":self.api_key})
         images=r.json()
         if images.get("photos",[])==[]:
-            return await ctx.send("I didn't find anything for your query")
+            return await self.bot.httpcat(404,"I didn't find anything for your query")
         for i in range(min(n,len(images["photos"]))):
             embed=discord.Embed(title="Picture from "+rover.capitalize(),description="Picture taken from the "+images["photos"][i]["camera"]["full_name"],colour=self.bot.get_color())
             embed.set_image(url=images["photos"][i]["img_src"])

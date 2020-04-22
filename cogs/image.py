@@ -36,52 +36,57 @@ class Pic():
         self.url=url
         self.tag=tag
 
+class PicError():
+    def __init__(self):
+        self.code=404
+
 class Images(commands.Cog): #Thanks KSoft.si
-    '''Commands to get random images'''
+    '''Commands to get random images
+    You can try using the nsfw command, if you dare'''
     def __init__(self,bot):
         self.bot=bot
 
     @commands.command(ignore_extra=True)
     async def dab(self,ctx):
         """Get random dab image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="dab"))
+        await self.image_sender(ctx,await self.rand_im("dab"))
 
     @commands.command(ignore_extra=True)
     async def doge(self,ctx):
         """Get random doge image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="doge"))
+        await self.image_sender(ctx,await self.rand_im("doge"))
 
     @commands.command(ignore_extra=True)
     async def fbi(self,ctx):
         """Get random FBI image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="fbi"))
+        await self.image_sender(ctx,await self.rand_im("fbi"))
 
     @commands.command(ignore_extra=True,hidden=True)
     @commands.is_nsfw()
     async def hentai(self,ctx):
         """Get random hentai image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="hentai",nsfw=True))
+        await self.image_sender(ctx,await self.rand_im("hentai",True))
 
     @commands.command(ignore_extra=True,hidden=True)
     @commands.is_nsfw()
     async def hentai_gif(self,ctx):
         """Get random hentai GIF"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="hentai_gif",nsfw=True))
+        await self.image_sender(ctx,await self.rand_im("hentai_gif",True))
 
     @commands.command(ignore_extra=True)
     async def hug(self,ctx):
         """Get random hug image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="hug"))
+        await self.image_sender(ctx,await self.rand_im("hug"))
 
     @commands.command(ignore_extra=True)
     async def kappa(self,ctx):
         """Get random kappa image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="kappa"))
+        await self.image_sender(ctx,await self.rand_im("kappa"))
 
     @commands.command(ignore_extra=True)
     async def kiss(self,ctx):
         """Get random kiss image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="kiss"))
+        await self.image_sender(ctx,await self.rand_im("kiss"))
 
     #@commands.command()
     async def kitten(self,ctx,*,hash): #This command doesn't work because of robohash
@@ -91,9 +96,9 @@ class Images(commands.Cog): #Thanks KSoft.si
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True,hidden=True,aliases=["im_nsfw"])
-    async def image_nsfw(self,ctx,nsfw:bool=False):
+    async def image_nsfw(self,ctx):
         """Retrieve the list of all available NSFW tags"""
-        tag_list=await self.bot.client.tags()
+        tag_list=await self.bot.client.images.tags()
         embed=discord.Embed(timestamp=datetime.utcnow(),color=self.bot.get_color())
         embed.add_field(name="NSFW tags",value='\n'.join(tag_list.nsfw_tags))
         embed.set_author(name=ctx.author.display_name,icon_url=str(ctx.author.avatar_url))
@@ -110,19 +115,19 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.is_nsfw()
     async def neko(self,ctx):
         """Get random neko image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="neko",nsfw=True))
+        await self.image_sender(ctx,await self.rand_im("neko",nsfw=True))
 
     @commands.command(hidden=True,ignore_extra=True)
     @commands.is_nsfw()
     async def nsfw(self,ctx):
         """Retrieves random NSFW pics.
         To find the other NSFW commands : use im_nsfw or reddit with an NSFW subreddit"""
-        await self.reddit_sender(ctx,await self.bot.client.random_nsfw())
+        await self.reddit_sender(ctx,await self.bot.client.images.random_nsfw())
 
     @commands.command(ignore_extra=True)
     async def meme(self,ctx):
         """Retrieves a random meme from Reddit"""
-        await self.reddit_sender(ctx,await self.bot.client.random_meme())
+        await self.reddit_sender(ctx,await self.bot.client.images.random_meme())
 
     @commands.command(ignore_extra=True)
     async def pat(self,ctx):
@@ -132,15 +137,17 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.command(ignore_extra=True)
     async def pepe(self,ctx):
         """Get random pepe image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="pepe"))
+        await self.image_sender(ctx,await self.rand_im("pepe"))
 
-    @commands.command()
-    async def reddit(self,ctx,subreddit,nsfw:bool=False):
+    @commands.command(enabled=False)
+    async def reddit(self,ctx,subreddit): #the Ksoft.SI API used in this command is broken. Waiting for the devs to debug it
         """Retrieve images from the specified subreddit.
-        Add a True-like value if the subreddit is NSFW"""
-        if nsfw and not check_channel(ctx.channel):
-            raise commands.NSFWChannelRequired()
-        await self.reddit_sender(ctx,await self.bot.client.random_reddit(subreddit.split('r/')[-1],nsfw=nsfw))
+        This command may return NSFW results only in NSFW channels"""
+        try:
+            await self.reddit_sender(ctx,await self.bot.client.images.random_reddit(subreddit.split('r/')[-1],remove_nsfw=not check_channel(ctx.channel)))
+        except Exception as e:
+            await ctx.send(type(e).__name__+' : '+str(e))
+            await self.bot.httpcat(ctx,404,"I didn't find any image for your query")
 
     @commands.command()
     async def robot(self,ctx,*,hash):
@@ -152,15 +159,21 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.command(ignore_extra=True)
     async def tickle(self,ctx):
         """Get random tickle image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="tickle"))
+        await self.image_sender(ctx,await self.rand_im("tickle"))
 
     @commands.command(ignore_extra=True)
     async def wikihow(self,ctx):
         """Retrieves weird images from WikiHow."""
-        image=await self.bot.client.random_wikihow()
+        image=await self.bot.client.images.random_wikihow()
         embed=discord.Embed(title=image.title,url=image.article_url,colour=self.bot.get_color())
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
+
+    async def rand_im(self,tag,nsfw=False):
+        try:
+            return await self.bot.client.images.random_image(tag=tag,nsfw=nsfw)
+        except:
+            return PicError()
 
     async def image_sender(self,ctx,image):
         """Embeds an image then sends it"""
@@ -178,7 +191,7 @@ class Images(commands.Cog): #Thanks KSoft.si
             return await ctx.send(image.message)
         embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.get_color())
         if not image.image_url:
-            await ctx.send("I didn't find anything")
+            return await self.bot.httpcat(ctx,404)
         embed.set_image(url=image.image_url)
         embed.set_footer(text=f"👍 {image.upvotes} | 👎 {image.downvotes} | 💬 {image.comments}")
         embed.set_author(name=f"Posted by {image.author} in {image.subreddit}",icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",url=f"https://reddit.com"+image.author)

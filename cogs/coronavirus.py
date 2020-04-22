@@ -438,7 +438,7 @@ class Coronavirus(commands.Cog):
         try:
             self.corona.fetch_results()
         except:
-            print("Error in corona.fetch_results()")
+            await self.bot.log_channel.send("Error in corona.fetch_results()")
         self.fetching=False
 
 def setup(bot):
