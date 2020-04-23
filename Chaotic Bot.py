@@ -67,11 +67,11 @@ class chaotic_bot(commands.Bot):
         self.github_repo=data.github_repo
 
     async def on_ready(self):
+        await self.change_presence(activity=Game(self.default_prefix+'help'))
         if self.first_on_ready:
             self.first_on_ready=False
             self.last_update=datetime.utcnow()
             self.log_channel=self.get_channel(data.log_channel)
-            await self.change_presence(activity=Game(self.default_prefix+'help'))
             report=[]
             for ext in data.extensions:
                     if not ext in bot.extensions:
