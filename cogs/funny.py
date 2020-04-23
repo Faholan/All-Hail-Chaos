@@ -264,11 +264,10 @@ class Funny(commands.Cog):
         elif int(a)==0:
             return await ctx.send("You cannot roll a 0-dice")
         else:
-            t.append([s+str(randint(1,int(a))) for _ in range(b)])
+            t.append([s+str(randint(1,int(a))) for _ in range(int(b))])
         await ctx.send(self.summer(t,ctx.author.mention))
 
     def summer(self,l,author):
-        r=''
         k=[]
         t=0
         for n in l:
@@ -282,7 +281,10 @@ class Funny(commands.Cog):
                 plus=sum([int(i) for i in n])
                 k.append(''.join([j[0]+" "+j[1:]+" " for j in n])[1:] + f"= {plus}")
                 t+=plus
-        return f"{author} rolled **{t}**. ({',   '.join(k)[1:]})"
+        r = ',   '.join(k)
+        if not r[0].isdigit():
+            r=r[1:]
+        return f"{author} rolled **{t}**. ({r})"
 
 
     @commands.command(hidden=True,aliases=['s_kill','s_paillard','s_excuse','s_fight'])

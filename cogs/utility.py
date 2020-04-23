@@ -29,6 +29,7 @@ from sys import version
 import requests
 from datetime import datetime
 import aiohttp
+import psutil
 
 from os import path
 
@@ -47,16 +48,16 @@ def check_administrator():
 def secondes(s):
     r=[]
     if s>=86400:
-        r.append(str(s//86400)+' days')
+        r.append(f'{s//86400} days')
         s%=86400
     if s>=3600:
-        r.append(str(s//3600)+' hours')
+        r.append(f'{s//3600} hours')
         s%=3600
     if s>=60:
-        r.append(str(s//60)+' minutes')
+        r.append(f'{s//60} minutes')
         s%=60
     if s>0:
-        r.append(str(s)+' seconds')
+        r.append(f'{s} seconds')
     return ', '.join(r)
 
 class Utility(commands.Cog):
@@ -68,6 +69,9 @@ class Utility(commands.Cog):
             self.interface.start()
         if self.bot.discord_bots:
             self.discord_bots.start()
+        self.process=psutil.Process()
+        self.process.cpu_percent()
+        psutil.cpu_percent()
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
@@ -166,6 +170,7 @@ class Utility(commands.Cog):
         embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(list(self.bot.get_all_members()))} members",inline=False)
         embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
         embed.add_field(name="Time since last update :",value=secondes(delta.seconds+86400*delta.days))
+        embed.add_field(name="CPU usage - bot (total)",value=f"{self.process.cpu_percent():.2f} % ({psutil.cpu_percent():.2f} %)")
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
@@ -194,7 +199,7 @@ class Utility(commands.Cog):
             except:
                 prefixes={}
             prefixes[self.bot.get_id(ctx)]=p
-            pickle.dump(prefixes,open("data"+path.sep+"prefixes.DAT",mode="wb"))
+            pickle.dump(prefixes,open(f"data{path.sep}prefixes.DAT",mode="wb"))
             return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
         await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(self.bot.get_m_prefix(ctx.message,False))}`")
 
@@ -215,7 +220,7 @@ class Utility(commands.Cog):
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for succ in gotten:
-            embed.add_field(name=succ.name+' - Unlocked',value=succ.description,inline=False)
+            embed.add_field(name=f"{succ.name} - Unlocked",value=succ.description,inline=False)
         for succ in locked:
             embed.add_field(name=succ.name+succ.advance(self.bot),value=succ.locked,inline=False)
         await ctx.send(embed=embed)
@@ -330,7 +335,7 @@ class Utility(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def discord_bots(self):
-        requests.post("https://discord.bots.gg/api/v1/bots/"+str(self.bot.user.id)+"/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})
+        requests.post(f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})
 
 def setup(bot):
     bot.add_cog(Utility(bot))

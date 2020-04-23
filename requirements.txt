@@ -4,3 +4,4 @@ ksoftapi
 git+https://github.com/Devoxin/Lavalink.py@dev
 dblpy
 pygithub
+psutil
