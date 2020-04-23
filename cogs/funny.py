@@ -219,35 +219,71 @@ class Funny(commands.Cog):
         await ctx.send(choice(chanson_paillarde).replace('|','\n'))
 
     @commands.command(aliases=['dice'])
-    async def roll(self,ctx,*,dice):
-        '''To roll dices'''
-        def de(n,m):
-            return n*randint(1,m)
-        def roller(owo): #Do you have a problem with this name ?
-            if not owo[0].isdigit():
-                raise ValueError("'"+owo[0]+"' is not a number")
-            c=0
-            while owo[c].isdigit():
-                c+=1
-                if c==len(owo):
-                    return owo
-            if owo[c] in ['+','-','*']:
-                if c+1==len(owo):
-                    raise ValueError()
-                return owo[:c]+owo[c]+roller(owo[:c+1])
-            elif owo[c]=='d':
-                d=c+1
-                if not owo[d].isdigit():
-                    raise ValueError()
-                while owo[d].isdigit():
-                    d+=1
-                    if d==len(owo):
-                        return 'de('+owo[:c]+','+owo[c+1:]+')'
-                if owo[d] in ['+','-','*']:
-                    if d+1==len(owo):
-                        raise ValueError("Please specify the value you wanna roll")
-                    return 'de('+owo[:c]+','+owo[c+1:d]+')'+owo[d]+roller(owo[d+1:])
-        await ctx.send(str(eval(roller(dice))))
+    async def roll(self,ctx,*,expr):
+        '''To roll dices
+        Syntax : €roll 1d5+7 - 3d8 (whitespaces are ignored)'''
+        expr=expr.replace(" ","")
+        char=[str(i) for i in range(10)]+["d","+","-"]
+        for c in expr:
+            if not c in char:
+                return await ctx.send(f"Invalid character : `{c}` at position `{expr.index(c)}`")
+        if not expr[0].isdigit() or not expr[-1].isdigit():
+            return await ctx.send("The first and last characters must be digits")
+        b=''
+        a=''
+        s='+'
+        t=[]
+        for i in expr:
+            if i=='d':
+                if a:
+                    return await ctx.send("The expression you enterded isn't valid (d character used while rolling dice)")
+                a='+'
+            elif i.isdigit():
+                if a:
+                    a+=i
+                else:
+                    b+=i
+            else:
+                if b=='' or a=='+':
+                    return await ctx.send('You cannot roll empty dices or empty times a dice')
+                if a=='':
+                    t.append(s+b)
+                    b=''
+                    s=i
+                elif int(a)==0:
+                    return await ctx.send("You cannot roll a 0-dice")
+                else:
+                    t.append([s+str(randint(1,int(a))) for _ in range(int(b))])
+                    a=''
+                    b=''
+                    s=i
+        if b=='':
+            return await ctx.send('You cannot roll empty dices or empty times a dice')
+        if a=='':
+            t.append(s+b)
+        elif int(a)==0:
+            return await ctx.send("You cannot roll a 0-dice")
+        else:
+            t.append([s+str(randint(1,int(a))) for _ in range(b)])
+        await ctx.send(self.summer(t,ctx.author.mention))
+
+    def summer(self,l,author):
+        r=''
+        k=[]
+        t=0
+        for n in l:
+            if type(n)==str:
+                k.append(str(int(n)))
+                t+=int(n)
+            elif len(n)==1:
+                t+=int(n[0])
+                k.append(str(int(n[0])))
+            else:
+                plus=sum([int(i) for i in n])
+                k.append(''.join([j[0]+" "+j[1:]+" " for j in n])[1:] + f"= {plus}")
+                t+=plus
+        return f"{author} rolled **{t}**. ({',   '.join(k)[1:]})"
+
 
     @commands.command(hidden=True,aliases=['s_kill','s_paillard','s_excuse','s_fight'])
     async def suggestion(self,ctx,idea,*ideas):
