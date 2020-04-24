@@ -27,13 +27,15 @@ class Animals(commands.Cog):
     async def cat(self,ctx):
         """Sens a random cat picture"""
         async with self.bot.aio_session.get("https://aws.random.cat/meow") as response:
-            await self.image_sender(ctx,Pic(await response.json()['file']))
+            picture = await response.json()
+            await self.image_sender(ctx,Pic(picture['file']))
 
     @commands.command()
     async def catfact(self,ctx):
         """Sends a random cat fact"""
         async with self.bot.aio_session.get("https://cat-fact.herokuapp.com/facts") as response:
-            fact=choice(await response.json()['all'])
+            all_facts = await response.json()
+            fact=choice(all_facts['all'])
             await ctx.send(fact['text'])
 
     @commands.command(ignore_extra=True)
@@ -43,13 +45,15 @@ class Animals(commands.Cog):
             await self.image_sender(ctx,await self.bot.client.images.random_image(tag="dog"))
         else:
             async with self.bot.aio_session.get("https://random.dog/woof.json") as response:
-                await self.image_sender(ctx,Pic(await response.json()['url'],'Dog'))
+                picture = await response.json()
+                await self.image_sender(ctx,Pic(picture['url'],'Dog'))
 
     @commands.command()
     async def fox(self,ctx):
         """Sends a random fox picture"""
         async with self.bot.aio_session.get("https://randomfox.ca/floof/") as response:
-            await self.image_sender(ctx,Pic(await response.json()['image']))
+            picture = await response.json()
+            await self.image_sender(ctx,Pic(picture['image'],"Fox"))
 
     async def image_sender(self,ctx,image):
         """Embeds an image then sends it"""

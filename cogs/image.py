@@ -131,7 +131,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.command(ignore_extra=True)
     async def pat(self,ctx):
         """Get random pat image"""
-        await self.image_sender(ctx,await self.bot.client.random_image(tag="pat"))
+        await self.image_sender(ctx,await self.rand_im("pat"))
 
     @commands.command(ignore_extra=True)
     async def pepe(self,ctx):

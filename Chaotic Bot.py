@@ -74,6 +74,7 @@ class chaotic_bot(commands.Bot):
             self.aio_session=aiohttp.ClientSession()
             self.last_update=datetime.utcnow()
             self.log_channel=self.get_channel(data.log_channel)
+            self.suggestion_channel=self.get_channel(data.suggestion_channel)
             report=[]
             for ext in data.extensions:
                     if not ext in bot.extensions:

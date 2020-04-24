@@ -68,6 +68,11 @@ class Utility(commands.Cog):
             self.interface.start()
         if self.bot.discord_bots:
             self.discord_bots.start()
+        try:
+            self.blacklist_suggestion = pickle.load(open(f'data{path.sep}blacklist_suggestion.DAT',mode='rb'))
+        except:
+            self.blacklist_suggestion = []
+
         self.process=psutil.Process()
         self.process.cpu_percent()
         psutil.cpu_percent()
@@ -108,7 +113,7 @@ class Utility(commands.Cog):
 
     @commands.command(aliases=["convert"])
     async def currency(self,ctx,original,goal,value:float):
-        """Converts money from one currency to another one"""
+        """Converts money from one currency to another one. Syntax : €currency [Original currency code] [Goal currency code] [value]"""
         if not len(original)==len(goal)==3:
             return await ctx.send("To get currency codes, refer to https://en.wikipedia.org/wiki/ISO_4217#Active_codes")
         async with aiohttp.ClientSession() as session:
@@ -223,6 +228,30 @@ class Utility(commands.Cog):
         for succ in locked:
             embed.add_field(name=succ.name+succ.advance(self.bot),value=succ.locked,inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.cooldown(2,600,commands.BucketType.user)
+    async def suggestion(self,ctx,subject,*,idea):
+        '''Command to make suggestions for the bot. Please note that your Discord name will be recorded and publicly associated to the idea in the support server.
+        Syntax : €suggestion [subject] [idea]. If the subject includes whitespaces, surround it with double braces, "like that".'''
+        if ctx.author.id in self.blacklist_suggestion:
+            return await ctx.send("You cannot make suggestions anymore about the bot")
+        embed=discord.Embed(title=f"Suggestion by **{ctx.author}**",description=f"Subject of <@{ctx.author.id}>'s suggestion : {subject}")
+        embed.add_field(name="Idea",value=idea)
+        await self.bot.suggestion_channel.send(embed=embed)
+        await ctx.send("Thanks for your participation in this project !")
+
+    #@commands.command() #This command isn't useful right now. No need for the users to think I believe they'll soon be toxic
+    #@commands.is_owner()
+    async def suggestion_blacklist(self,ctx,user_id:int):
+        """Blacklists a user from the suggestion command"""
+        if user_id in self.blacklist_suggestion:
+            self.blacklist_suggestion.remove(user_id)
+            await self.bot.log_channel.send(f"<@{user_id}> removed from the blacklist")
+        else:
+            self.blacklist_suggestion.append(user_id)
+            await self.bot.log_channel.send(f"<@{user_id}> added to the blacklist")
+        pickle.dump(self.blacklist_suggestion,open(f"data{path.sep}blacklist_suggestion.DAT",mode='wb'))
 
     def cog_unload(self):
         self.interface.cancel()

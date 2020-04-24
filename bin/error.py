@@ -60,7 +60,7 @@ async def error_manager(ctx,error):
     elif isinstance(error,commands.CommandInvokeError):
         await ctx.bot.httpcat(ctx,500,str(error))
     elif isinstance(error,commands.DisabledCommand):
-        await ctx.bot.httpcat(ctx,423,'God said : this command is disabled. So is it.')
+        await ctx.bot.httpcat(ctx,423,'Sorry but this command is under maintenance')
     elif isinstance(error,commands.TooManyArguments):
         await ctx.bot.httpcat(ctx,400,"You gave me too much arguments for me to process.")
     elif isinstance(error,commands.CommandOnCooldown):

@@ -30,9 +30,6 @@ from os import path
 file=open('data'+path.sep+'deaths.txt','r',encoding='utf-8')
 death=file.readlines()
 file.close()
-file=open('data'+path.sep+'paillard.txt','r',encoding='utf-8')
-chanson_paillarde=file.readlines()
-file.close()
 file=open('data'+path.sep+'Excuses.txt','r',encoding='utf-8')
 excuses=file.readlines()
 file.close()
@@ -112,7 +109,6 @@ class Funny(commands.Cog):
     '''Some funny commands'''
     def __init__(self,bot):
         self.bot=bot
-        self.diktat={'suggestion':'','s_kill':'of death','s_paillard':'of lewd','s_excuse':"of excuse",'s_fight':'of fight'}
 
     async def adventure(self,ctx,*,aventure=None): #Let me finish story.py first
         try:
@@ -126,19 +122,23 @@ class Funny(commands.Cog):
         """Get a random Chuck Norris joke"""
         if randint(0,1):
             async with self.bot.aio_session.get("https://api.chucknorris.io/jokes/random") as response:
-                return await ctx.send(await response.json()["value"])
+                joke = await response.json()
+                return await ctx.send(joke["value"])
         if ctx.guild:
             if not ctx.channel.is_nsfw():
                 async with self.bot.aio_session.get("http://api.icndb.com/jokes/random?exclude=[explicit]") as response:
-                    return await ctx.send(await response.json()["value"]["joke"])
+                    joke = await response.json()
+                    return await ctx.send(joke["value"]["joke"])
         async with self.bot.aio_session.get("http://api.icndb.com/jokes/random") as response:
-            await ctx.send(await response.json()["value"]["joke"])
+            joke = await response.json()
+            await ctx.send(joke["value"]["joke"].replace('&quote','"'))
 
     @commands.command()
     async def dad(self,ctx):
         """Get a random dad joke"""
         async with self.bot.aio_session.get("https://icanhazdadjoke.com/slack") as response:
-            await ctx.send(await response.json()['attachments'][0]['text'])
+            joke = await response.json()
+            await ctx.send(joke['attachments'][0]['text'])
 
     @commands.command()
     async def dong(self,ctx,dick:discord.Member=None):
@@ -149,8 +149,7 @@ class Funny(commands.Cog):
 
     @commands.command(ignore_extra=True)
     async def excuse(self,ctx):
-        '''We all do mishaps, and we all need a good excuse once in a while.
-        If you got any idea, use €s_excuse [idea]'''
+        '''We all do mishaps, and we all need a good excuse once in a while.'''
         r='\n' #One cannot use backslash in a f-string
         await ctx.send(f"I'm sorry master... it's because {choice(excuses[0].split('|')).strip(r)} {choice(excuses[1].split('|')).strip(r)} in {choice(excuses[2].split('|')).strip(r)} and all of that because of {choice(excuses[3].split('|')).strip(r)} {choice(excuses[4].split('|')).strip(r)} which {choice(excuses[5].split('|')).strip(r)} so it's not my fault !")
 
@@ -158,7 +157,7 @@ class Funny(commands.Cog):
     @commands.guild_only()
     async def fight(self,ctx,cible:discord.Member):
         '''To punch someone to death. We won't be hold accountable for any broken crane, ripped guts or any other painful death.
-        If you got any idea, use €s_fight [idea]'''
+        If you got any idea, use €suggestion fight [idea]'''
         attacker=fighter(ctx.author)
         defender=fighter(cible)
         if defender.id==attacker.id:
@@ -207,19 +206,13 @@ class Funny(commands.Cog):
     @commands.command()
     async def kill(self,ctx,kill,*kills):
         '''Just in case you wanna kill your neighbour.
-        If you have an idea for an horrible death, use €s_kill [idea]'''
-        await ctx.send('\n'.join([choice(death).format(author=ctx.message.author.display_name,victim=dead) for dead in [kill]+kills]))
-
-    @commands.command(ignore_extra=True)
-    async def paillard(self,ctx):
-        '''A utiliser en cas, hmmm... d'envie de rigoler, dirons-nous. (french only)
-        If you got any idea, use €s_paillard [idea]'''
-        await ctx.send(choice(chanson_paillarde).replace('|','\n'))
+        If you have an idea for an horrible death, use €suggestion fight [idea]'''
+        await ctx.send('\n'.join([choice(death).format(author=ctx.message.author.display_name,victim=dead) for dead in [kill]+list(kills)]))
 
     @commands.command(aliases=['dice'])
     async def roll(self,ctx,*,expr):
         '''To roll dices
-        Syntax : €roll 1d5+7 - 3d8 (whitespaces are ignored)'''
+        Syntax example : €roll 1d5+7 - 3d8 (whitespaces are ignored)'''
         expr=expr.replace(" ","")
         char=[str(i) for i in range(10)]+["d","+","-"]
         for c in expr:
@@ -283,13 +276,6 @@ class Funny(commands.Cog):
         if not r[0].isdigit():
             r=r[1:]
         return f"{author} rolled **{t}**. ({r})"
-
-
-    @commands.command(hidden=True,aliases=['s_kill','s_paillard','s_excuse','s_fight'])
-    async def suggestion(self,ctx,idea,*ideas):
-        '''Hidden command to make suggestions'''
-        print(f'Idea {self.diktat[ctx.invoked_with]} of {str(ctx.message.author)}'+' '.join([idea]+list(ideas)),file=open('ideas.log',mode='a'))
-        await ctx.send('Thanks for your idea.')
 
 def setup(bot):
     bot.add_cog(Funny(bot))
