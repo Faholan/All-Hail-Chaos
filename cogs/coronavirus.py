@@ -15,17 +15,18 @@ SubArea = namedtuple('SubArea', 'total_stats id last_updated areas name lat long
 
 class CoronaTracker:
     ENDPOINT = 'https://api.covid19api.com/summary'
-    def __init__(self):
+    def __init__(self,bot):
+        self.bot = bot
         self.countries = []
         self.total_stats = None
 
-    def fetch_results(self):
-        r = requests.get(self.ENDPOINT)
-        _data=r.json()
+    async def fetch_results(self):
+        async with self.bot.aio_session.get(self.ENDPOINT) as r:
+            _data=await r.json()
 
-        self.total_stats = _data["Global"]
+            self.total_stats = _data["Global"]
 
-        self.countries = _data["Countries"]
+            self.countries = _data["Countries"]
 
     def get_country(self,country):
         return utils.find(lambda c:c["Slug"]==country,self.countries)
@@ -211,7 +212,7 @@ class Coronavirus(commands.Cog):
     """Pandemy detected"""
     def __init__(self,bot):
         self.bot=bot
-        self.corona=CoronaTracker()
+        self.corona=CoronaTracker(bot)
         self.fetching=False
         self.corona_update.start()
 
@@ -236,7 +237,7 @@ class Coronavirus(commands.Cog):
     async def corona_update(self):
         self.fetching=True
         try:
-            self.corona.fetch_results()
+            await self.corona.fetch_results()
         except Exception as error:
             embed = Embed(color=0xFF0000)
             embed.title = f"Error in corona.fetch_results()"

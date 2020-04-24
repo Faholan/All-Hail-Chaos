@@ -30,6 +30,7 @@ import ksoftapi
 
 import pickle
 from asyncio import all_tasks
+import aiohttp
 
 from os import path
 
@@ -70,6 +71,7 @@ class chaotic_bot(commands.Bot):
         await self.change_presence(activity=Game(self.default_prefix+'help'))
         if self.first_on_ready:
             self.first_on_ready=False
+            self.aio_session=aiohttp.ClientSession()
             self.last_update=datetime.utcnow()
             self.log_channel=self.get_channel(data.log_channel)
             report=[]
@@ -93,8 +95,12 @@ class chaotic_bot(commands.Bot):
          await self.log_channel.send(guild.name+" leaved")
 
     async def close(self):
+        await self.aio_session.close()
         if hasattr(self,"db"):
             self.db.close()
+        if hasattr(self,"session"):
+            print("AIO SESSION")
+            await self.session.close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
         await super().close()

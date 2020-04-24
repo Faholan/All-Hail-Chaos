@@ -24,7 +24,6 @@ from discord.ext import commands
 import discord
 from datetime import datetime
 from random import choice
-import requests
 
 def check_channel(channel):
     if isinstance(channel,discord.TextChannel):

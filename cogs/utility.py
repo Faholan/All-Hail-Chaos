@@ -26,7 +26,6 @@ import discord
 import typing
 import asyncio
 from sys import version
-import requests
 from datetime import datetime
 import aiohttp
 import psutil
@@ -335,7 +334,7 @@ class Utility(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def discord_bots(self):
-        requests.post(f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})
+        await self.bot.aio_session.post(f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})
 
 def setup(bot):
     bot.add_cog(Utility(bot))

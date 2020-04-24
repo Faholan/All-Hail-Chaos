@@ -25,7 +25,6 @@ from random import randint,choice
 import asyncio
 import discord
 from os import path
-import requests
 
 #All the data files necessary for the commands
 file=open('data'+path.sep+'deaths.txt','r',encoding='utf-8')
@@ -126,16 +125,20 @@ class Funny(commands.Cog):
     async def chuck(self,ctx):
         """Get a random Chuck Norris joke"""
         if randint(0,1):
-            return await ctx.send(requests.get("https://api.chucknorris.io/jokes/random").json()["value"])
+            async with self.bot.aio_session.get("https://api.chucknorris.io/jokes/random") as response:
+                return await ctx.send(await response.json()["value"])
         if ctx.guild:
             if not ctx.channel.is_nsfw():
-                return await ctx.send(requests.get("http://api.icndb.com/jokes/random?exclude=[explicit]").json()["value"]["joke"])
-        await ctx.send(requests.get("http://api.icndb.com/jokes/random").json()["value"]["joke"])
+                async with self.bot.aio_session.get("http://api.icndb.com/jokes/random?exclude=[explicit]") as response:
+                    return await ctx.send(await response.json()["value"]["joke"])
+        async with self.bot.aio_session.get("http://api.icndb.com/jokes/random") as response:
+            await ctx.send(await response.json()["value"]["joke"])
 
     @commands.command()
     async def dad(self,ctx):
         """Get a random dad joke"""
-        await ctx.send(requests.get("https://icanhazdadjoke.com/slack").json()['attachments'][0]['text'])
+        async with self.bot.aio_session.get("https://icanhazdadjoke.com/slack") as response:
+            await ctx.send(await response.json()['attachments'][0]['text'])
 
     @commands.command()
     async def dong(self,ctx,dick:discord.Member=None):
@@ -200,11 +203,6 @@ class Funny(commands.Cog):
                 else:
                     combat=False
                     await ctx.send(next.display_name+' annihilated '+fight[0].display_name+'. What a show !')
-
-    @commands.command()
-    async def insult(self,ctx):
-        """Get a random evil insult"""
-        await ctx.send(requests.get("https://evilinsult.com/generate_insult.php?lang=en").text)
 
     @commands.command()
     async def kill(self,ctx,kill,*kills):

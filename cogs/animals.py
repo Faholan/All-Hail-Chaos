@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-import requests
 from random import choice
 from datetime import datetime
 
@@ -27,15 +26,15 @@ class Animals(commands.Cog):
     @commands.command()
     async def cat(self,ctx):
         """Sens a random cat picture"""
-        response=requests.get("https://aws.random.cat/meow")
-        await self.image_sender(ctx,Pic(response.json()['file']))
+        async with self.bot.aio_session.get("https://aws.random.cat/meow") as response:
+            await self.image_sender(ctx,Pic(await response.json()['file']))
 
     @commands.command()
     async def catfact(self,ctx):
         """Sends a random cat fact"""
-        response=requests.get("https://cat-fact.herokuapp.com/facts")
-        fact=choice(response.json()['all'])
-        await ctx.send(fact['text'])
+        async with self.bot.aio_session.get("https://cat-fact.herokuapp.com/facts") as response:
+            fact=choice(await response.json()['all'])
+            await ctx.send(fact['text'])
 
     @commands.command(ignore_extra=True)
     async def dog(self,ctx):
@@ -43,13 +42,14 @@ class Animals(commands.Cog):
         if choice([True,False]):
             await self.image_sender(ctx,await self.bot.client.images.random_image(tag="dog"))
         else:
-            await self.image_sender(ctx,Pic(requests.get("https://random.dog/woof.json").json()['url'],'Dog'))
+            async with self.bot.aio_session.get("https://random.dog/woof.json") as response:
+                await self.image_sender(ctx,Pic(await response.json()['url'],'Dog'))
 
     @commands.command()
     async def fox(self,ctx):
         """Sends a random fox picture"""
-        response=requests.get("https://randomfox.ca/floof/")
-        await self.image_sender(ctx,Pic(response.json()['image']))
+        async with self.bot.aio_session.get("https://randomfox.ca/floof/") as response:
+            await self.image_sender(ctx,Pic(await response.json()['image']))
 
     async def image_sender(self,ctx,image):
         """Embeds an image then sends it"""
