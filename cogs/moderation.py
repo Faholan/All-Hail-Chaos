@@ -32,7 +32,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def ban(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],reason=None):
+    async def ban(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],*,reason=None):
         """Command used to ban users. You can specify members or roles. The bot will then ban all the members you specified, and all the members having the specified role. You can specify at the end a reason for the ban
         You need the `ban members` permission, and your highest role needs to be higher than the others'. The bot then deletes the banned roles"""
         banning=[]
@@ -63,44 +63,47 @@ class Moderation(commands.Cog):
                     await self.bot.httpcat(ctx,403,f"I cannot ban {banned.name} : he has a higher role than me")
                 elif banned==ctx.guild.owner:
                     await self.bot.httpcat(ctx,403,f"I cannot ban {banned.name} : he is the guild owner")
-                elif not member in banning:
-                    banning.append(member)
+                elif not banned in banning:
+                    banning.append(banned)
         r='\n'
         if reason:
-            await ctx.send(f"You're about to ban {len(banning)} members because of `{reason}` :{r}{r+' -'.join([member.mention for member in banning])}{r}Do you want to proceed ? (y/n)")
+            await ctx.send(f"You're about to ban {len(banning)} members because of `{reason}` :\n -{(r+' -').join([member.mention for member in banning])}\n\nDo you want to proceed ? (y/n)")
         else:
-            await ctx.send(f"You're about to ban {len(banning)} members :{r}{r+' -'.join([member.mention for member in banning])}{r}Do you want to proceed ? (y/n)")
+            await ctx.send(f"You're about to ban {len(banning)} members :\n -{(r+' -').join([member.mention for member in banning])}\n\nDo you want to proceed ? (y/n)")
         def check(m):
             return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and m.channel==ctx.channel
         try:
             msg=await self.bot.wait_for('message',check=check,timeout=30.0)
             proceed=msg.content.lower().startswith('y')
         except asyncio.TimeoutError:
-            await ctx.send('Cancelling the ban')
             proceed=False
         if proceed:
             for m in banning:
                 await m.ban(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :{r}{r+' -'.join([role.mention if role.mentionable else role.name for role in roles])}{r}Do you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :{r}{r+' -'.join([role.mention if role.mentionable else role.name for role in roles])}{r}Do you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
                 except asyncio.TimeoutError:
-                    await ctx.send('Cancelling the deletion')
                     proceed=False
                 if proceed:
                     for role in roles:
                         await role.delete(reason=reason)
+                    await ctx.send(f"len(roles) roles deleted")
+                else:
+                    await ctx.send("No roles were deleted")
+        else:
+            await ctx.send("No members were banned")
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],reason=None):
+    async def kick(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],*,reason=None):
         """Command used to kick users. You can specify members or roles. The bot will then kick all the members you specified, and all the members having the specified role. You can specify at the end a reason for the kick
         You need the `kick members` permission, and your highest role needs to be higher than the others'. The bot then deletes the kicked roles"""
         kicking=[]
@@ -131,29 +134,28 @@ class Moderation(commands.Cog):
                     await self.bot.httpcat(ctx,403,f"I cannot kick {kicked.name} : he has a higher role than me")
                 elif kicked==ctx.guild.owner:
                     await self.bot.httpcat(ctx,403,f"I cannot kick {kicked.name} : he is the guild owner")
-                elif not member in kicking:
-                    kicking.append(member)
+                elif not kicked in kicking:
+                    kicking.append(kicked)
         r='\n'
         if reason:
-            await ctx.send(f"You're about to kick {len(kicking)} members because of `{reason}` :{r}{r+' -'.join([member.mention for member in kicking])}{r}Do you want to proceed ? (y/n)")
+            await ctx.send(f"You're about to kick {len(kicking)} members because of `{reason}` :\n -{(r+' -').join([member.mention for member in kicking])}\n\nDo you want to proceed ? (y/n)")
         else:
-            await ctx.send(f"You're about to kick {len(kicking)} members :{r}{r+' -'.join([member.mention for member in kicking])}{r}Do you want to proceed ? (y/n)")
+            await ctx.send(f"You're about to kick {len(kicking)} members :\n -{(r+' -').join([member.mention for member in kicking])}\n\nDo you want to proceed ? (y/n)")
         def check(m):
             return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower.startswith('n')) and m.channel==ctx.channel
         try:
             msg=await self.bot.wait_for('message',check=check,timeout=30.0)
             proceed=msg.content.lower().startswith('y')
         except asyncio.TimeoutError:
-            await ctx.send('Cancelling the kick')
             proceed=False
         if proceed:
             for m in kicking:
                 await m.kick(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :{r}{r+' -'.join([role.mention if role.mentionable else role.name for role in roles])}{r}Do you want to proceed ? (y/n)")
+                    await ctx.send(f"{len(kicking)} members kicked\n\nYou're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :{r}{r+' -'.join([role.mention if role.mentionable else role.name for role in roles])}{r}Do you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
@@ -163,6 +165,11 @@ class Moderation(commands.Cog):
                 if proceed:
                     for role in roles:
                         await role.delete(reason=reason)
+                    await ctx.send(f"len(roles) roles deleted")
+                else:
+                    await ctx.send("No roles were deleted")
+        else:
+            await ctx.send("No members were kicked")
 
     @commands.command()
     async def reputation(self,ctx,*,other:typing.Union[discord.Member,int]):
@@ -218,6 +225,25 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def role(self,ctx,message:discord.Message, Roles:commands.Greedy[discord.Role], emoji):
+        """This command allows you to automatically give a role to anyone who reacts with a given emoji to a given message. The order is : message, role, emoji
+        You can also use this command to cancel the assignation, or use it multiple times/with different roles to add multiple roles on reaction.
+        To specify the message, you can enter the message url, the message id if in the same channel, or a string {channel_id}-{message_id}
+        We both need the `manage_roles` permission for that."""
+        for Role in Roles:
+            if Role.id in self.reactions.get((message.id,emoji),[]):
+                self.reactions[(message.id,emoji)].remove(Role.id)
+            else:
+                self.reactions[(message.id,emoji)]=self.reactions.get((message.id,emoji),[])+[Role.id]
+            if self.reactions[(message.id,emoji)]==[]:
+                self.reactions.pop((message.id,emoji))
+        pickle.dump(self.reactions,open("data"+path.sep+"moderation.DAT",mode='wb'))
+        await ctx.send("Role assignment updated")
+
+    @commands.command()
+    @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(administrator=True)
     async def swear(self,ctx,word=None):
@@ -259,35 +285,31 @@ class Moderation(commands.Cog):
             embed.add_field(name="Guild-specific swear words",value="\n - ".join(self.swear_words.get(ctx.guild.id,[])) if ctx.guild.id in self.swear_words else "No swear words are defined for this guild",inline=False)
             await ctx.send(embed=embed)
 
-    @commands.command()
-    @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def role(self,ctx,message:discord.Message, role:commands.Greedy[discord.Role], emoji:discord.PartialEmoji):
-        """This command allows you to automatically give a role to anyone who reacts with a given emoji to a given message. The order is : message, role, emoji
-        You can also use this command to cancel the assignation, or use it multiple times/with different roles to add multiple roles on reaction
-        We both need the `manage messages` permission for that."""
-        if role in self.reactions.get((message.id,emoji),[]):
-            self.reactions[(message.id,emoji)].remove(role)
-        else:
-            self.reactions[(message.id,emoji)]=self.reactions.get((message.id,emoji),[])+[role]
-        if self.reactions[(message.id,emoji)]==[]:
-            self.reactions.pop((message.id,emoji))
-        pickle.dump(self.reactions,open("data"+path.sep+"moderation.DAT",mode='wb'))
-        await ctx.send("Role assignment updated")
-
     @commands.Cog.listener('on_raw_reaction_add')
     async def role_adder(self,payload):
         if payload.guild_id:
-            if (payload.message_id,payload.emoji) in self.reactions:
-                await payload.member.edit(roles=payload.member.roles+[r for r in self.reactions[(payload.message,payload.emoji)] if not r in payload.member.roles])
+            if (payload.message_id,payload.emoji.name) in self.reactions:
+                guild=self.bot.get_guild(payload.guild_id)
+                roles=payload.member.roles
+                for r in self.reactions[(payload.message_id,payload.emoji.name)]:
+                    role=guild.get_role(r)
+                    if role and not role in roles:
+                        roles.append(role)
+                await payload.member.edit(roles=roles)
 
     @commands.Cog.listener('on_raw_reaction_remove')
     async def role_remover(self,payload):
         if payload.guild_id:
-            if (payload.message_id,payload.emoji) in self.reactions:
-                member=self.bot.get_guild(payload.guild_id).get_member(payload.member_id)
-                await member.edit(roles=[r for r in member.roles if not r in self.reactions[(payload.message,payload.emoji)]])
+            if (payload.message_id,payload.emoji.name) in self.reactions:
+                guild=self.bot.get_guild(payload.guild_id)
+                member=guild.get_member(payload.user_id)
+                if member:
+                    roles=member.roles
+                    for r in self.reactions[(payload.message_id,payload.emoji.name)]:
+                        role=guild.get_role(r)
+                        if role and role in roles:
+                            roles.remove(role)
+                    await member.edit(roles=roles)
 
     @commands.Cog.listener("on_message")
     async def no_swear_words(self,message):
