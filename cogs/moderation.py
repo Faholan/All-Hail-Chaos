@@ -82,9 +82,9 @@ class Moderation(commands.Cog):
                 await m.ban(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
@@ -153,9 +153,9 @@ class Moderation(commands.Cog):
                 await m.kick(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"{len(kicking)} members kicked\n\nYou're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"{len(kicking)} members kicked\n\nYou're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
@@ -235,12 +235,14 @@ class Moderation(commands.Cog):
         for Role in Roles:
             if Role.id in self.reactions.get((message.id,emoji),[]):
                 self.reactions[(message.id,emoji)].remove(Role.id)
+                await ctx.send(f"Role {Role.name} removed from assignment")
             else:
                 self.reactions[(message.id,emoji)]=self.reactions.get((message.id,emoji),[])+[Role.id]
+                await ctx.send(f"Role {Role.name} added to assignment")
             if self.reactions[(message.id,emoji)]==[]:
                 self.reactions.pop((message.id,emoji))
+                await ctx.send(f"Role assignment deleted")
         pickle.dump(self.reactions,open("data"+path.sep+"moderation.DAT",mode='wb'))
-        await ctx.send("Role assignment updated")
 
     @commands.command()
     @commands.guild_only()
