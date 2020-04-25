@@ -23,7 +23,7 @@ class Account():
             if not self.succ_state[i]:
                 s = self.succ[i](ctx)
                 if s != None:
-                    self.unlock_success(s)
+                    self.succ_state[i] = True
                     embed = Embed(title = 'Succes unlocked !', description = s.name, colour = data.get_color())
                     embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
                     embed.set_thumbnail(url = 'https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg')
@@ -55,9 +55,6 @@ class Account():
     def reset(self):
         for i in range(len(self.succ_state)):
             self.succ_state[i] = False
-
-    def unlock_success(self,success):
-        self.succ_state[self.succ.index(success)] = True
 
 class Success():
     '''Class implementation of a Discord success'''

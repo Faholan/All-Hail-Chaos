@@ -56,7 +56,7 @@ async def error_manager(ctx,error):
     elif isinstance(error,commands.NoPrivateMessage):
         await ctx.bot.httpcat(ctx,403,"I can't dot this in private.")
     elif isinstance(error,commands.CommandNotFound):
-        await ctx.bot.httpcat(ctx,404)
+        return
     elif isinstance(error,commands.CommandInvokeError):
         await ctx.bot.httpcat(ctx,500,str(error))
     elif isinstance(error,commands.DisabledCommand):
@@ -86,7 +86,7 @@ async def error_manager(ctx,error):
     else:
         await ctx.bot.httpcat(ctx,500,'The command raised an error')
 
-    if isinstance(error, commands.CommandNotFound) or isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
+    if isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
         return
     if isinstance(error,commands.CommandInvokeError):
         error=error.original
