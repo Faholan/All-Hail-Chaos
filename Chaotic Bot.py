@@ -55,15 +55,20 @@ class chaotic_bot(commands.Bot):
         self.invite_permissions=data.invite_permissions
         self.discord_rep=data.discord_rep
         self.discord_bots=data.discord_bots
+        self.xyz = data.xyz
 
         self.support = data.support
+
+        self.top_gg = data.top_gg
+        self.bots_on_discord = data.bots_on_discord
+        self.discord_bots_page = data.discord_bots_page
 
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
 
         if data.dbl_token:
-            self.dbl_client=dbl.DBLClient(self.bot, data.dbl_token, autopost=True)
+            self.dbl_client=dbl.DBLClient(self, data.dbl_token, autopost=True)
 
         if data.github_token:
             self.github=Github(data.github_token)
