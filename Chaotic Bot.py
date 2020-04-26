@@ -56,6 +56,8 @@ class chaotic_bot(commands.Bot):
         self.discord_rep=data.discord_rep
         self.discord_bots=data.discord_bots
 
+        self.support = data.support
+
         #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
 
         self.first_on_ready=True
@@ -108,8 +110,9 @@ class chaotic_bot(commands.Bot):
 
     async def cog_reloader(self):
         self.last_update=datetime.utcnow()
+        from data import data as D
         report=[]
-        for ext in data.extensions:
+        for ext in D.extensions:
             try:
                 self.reload_extension(ext)
                 report.append("Extension reloaded : "+ext)
@@ -164,7 +167,7 @@ async def help(ctx,*command_help):
     Trust me, there's nothing to see here. Absolutely nothing."""
     if len(command_help)==0:
         #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=data.invite_permissions)} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.get_color())
+        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.get_color())
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))

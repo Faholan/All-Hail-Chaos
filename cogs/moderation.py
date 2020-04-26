@@ -82,9 +82,9 @@ class Moderation(commands.Cog):
                 await m.ban(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
@@ -153,9 +153,9 @@ class Moderation(commands.Cog):
                 await m.kick(reason=reason)
             if roles:
                 if reason:
-                    await ctx.send(f"{len(kicking)} members kicked\n\nYou're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"{len(kicking)} members kicked\n\nYou're about to delete {len(roles)} roles because of `{reason}` :\n -{(r+' -').join([role.mention for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 else:
-                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention if role.mentionable or ctx.me.permissions_in(ctx.channel).mention_everyone else role.name for role in roles])}\n\nDo you want to proceed ? (y/n)")
+                    await ctx.send(f"You're about to delete {len(roles)} roles :\n -{(r+' -').join([role.mention for role in roles])}\n\nDo you want to proceed ? (y/n)")
                 try:
                     msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     proceed=msg.content.lower().startswith('y')
@@ -232,6 +232,15 @@ class Moderation(commands.Cog):
         You can also use this command to cancel the assignation, or use it multiple times/with different roles to add multiple roles on reaction.
         To specify the message, you can enter the message url, the message id if in the same channel, or a string {channel_id}-{message_id}
         We both need the `manage_roles` permission for that."""
+        Reaction=discord.utils.get(message.reactions, emoji = emoji)
+        if Reaction:
+            if not Reaction.me:
+                await message.add_reaction(emoji)
+        else:
+            try:
+                await message.add_reaction(emoji)
+            except discord.Forbidden:
+                await ctx.send("I lack the permissions to add the first reaction")
         for Role in Roles:
             if Role.id in self.reactions.get((message.id,emoji),[]):
                 self.reactions[(message.id,emoji)].remove(Role.id)
@@ -242,6 +251,10 @@ class Moderation(commands.Cog):
             if self.reactions[(message.id,emoji)]==[]:
                 self.reactions.pop((message.id,emoji))
                 await ctx.send(f"Role assignment deleted")
+                Reaction=discord.utils.get(message.reactions, emoji = emoji)
+                if Reaction:
+                    if Reaction.me:
+                        await message.remove_reaction(emoji, ctx.me)
         pickle.dump(self.reactions,open("data"+path.sep+"moderation.DAT",mode='wb'))
 
     @commands.command()

@@ -12,6 +12,7 @@ suggestion_channel = 00000000000000000 #Change this to the channel in which you 
 graphic_interface=True
 
 invite_permissions=None #Permissions to require when someone invites the bot in a server
+support = "https://discord.gg/eFfjdyZ"
 
 ksoft_token = "MY KSOFT.SI TOKEN"
 discord_rep = "MY DISCORDREP TOKEN"

@@ -33,8 +33,8 @@ import psutil
 from os import path
 
 def check_admin(): #Checks if the user has admin rights on the bot
-    def predictate(ctx):
-        return str(ctx.author) in ctx.bot.admins or ctx.bot.is_owner(ctx.author)
+    async def predictate(ctx):
+        return str(ctx.author) in ctx.bot.admins or await ctx.bot.is_owner(ctx.author)
     return commands.check(predictate)
 
 def check_administrator():
@@ -80,7 +80,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
         '''Returns a link to add the bot to a new server'''
-        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)}")
+        await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))}")
 
     @commands.command(ignore_extra=True)
     async def code(self,ctx):
@@ -162,7 +162,7 @@ class Utility(commands.Cog):
         """Some info about me"""
         delta=datetime.utcnow()-self.bot.last_update
         app=await self.bot.application_info()
-        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=self.bot.invite_permissions)} "Please stay at home and use bots")',colour=self.bot.get_color())
+        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))} "Please stay at home and use bots")\n[Support Server Invite]({self.bot.support})',colour=self.bot.get_color())
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_footer(text=f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
@@ -186,10 +186,10 @@ class Utility(commands.Cog):
         await ctx.send("See you soon !")
         await ctx.guild.leave()
 
-    @commands.command(aliases=['close'],ignore_extra=True)
+    @commands.command(ignore_extra=True)
     @check_admin()
     async def logout(self,ctx):
-        '''You need to be a bot administrator to use this.'''
+        '''Owner command'''
         await ctx.send('Logging out...')
         await self.bot.close()
 
@@ -210,7 +210,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     @check_admin()
     async def reload(self,ctx):
-        """Reloads the bot. You need to be one of the bot's admins to use this command"""
+        """Owner command"""
         await ctx.send("Reloading...")
         await self.bot.cog_reloader()
 
