@@ -58,7 +58,7 @@ async def error_manager(ctx,error):
     elif isinstance(error,commands.CommandNotFound):
         return
     elif isinstance(error,commands.CommandInvokeError):
-        await ctx.bot.httpcat(ctx,500,str(error))
+        await ctx.bot.httpcat(ctx,500,"Internal error")
     elif isinstance(error,commands.DisabledCommand):
         await ctx.bot.httpcat(ctx,423,'Sorry but this command is under maintenance')
     elif isinstance(error,commands.TooManyArguments):

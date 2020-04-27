@@ -22,11 +22,15 @@ class CoronaTracker:
 
     async def fetch_results(self):
         async with self.bot.aio_session.get(self.ENDPOINT) as r:
-            _data=await r.json()
+            if r.status==200:
+                _data=await r.json()
 
-            self.total_stats = _data["Global"]
+                self.total_stats = _data["Global"]
 
-            self.countries = _data["Countries"]
+                self.countries = _data["Countries"]
+            else:
+                embed=discord.Embed(title=f"Error {r.status_code} in fetch_results() :",description=r.text)
+                await self.bot.log_channel.send(embed=embed)
 
     def get_country(self,country):
         return utils.find(lambda c:c["Slug"]==country,self.countries)
