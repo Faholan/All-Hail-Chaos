@@ -61,7 +61,7 @@ class Animals(commands.Cog):
             return await ctx.send(image.message)
         if not image.url:
             return await self.bot.httpcat(ctx,404)
-        embed=discord.Embed(timestamp=datetime.utcnow(),colour=self.bot.get_color())
+        embed=discord.Embed(timestamp=datetime.utcnow(),colour=self.bot.colors['blue'])
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
@@ -69,7 +69,7 @@ class Animals(commands.Cog):
         """Embeds a Reddit image then sends it"""
         if hasattr(image,"error"):
             return await ctx.send(image.message)
-        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.get_color())
+        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.colors['blue'])
         if not image.image_url:
             await self.bot.httpcat(ctx,404)
         embed.set_image(url=image.image_url)

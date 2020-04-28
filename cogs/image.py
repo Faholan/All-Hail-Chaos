@@ -153,7 +153,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     #@commands.command()
     async def kitten(self,ctx,*,hash): #This command doesn't work because of robohash
         """Get a kitten image from an input"""
-        embed=discord.Embed(title=hash)
+        embed=discord.Embed(title=hash,color=0x000000)
         embed.set_image(url="https://robohash.org/"+sha(hash)+".png?set=set4")
         await ctx.send(embed=embed)
 
@@ -215,7 +215,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def robot(self,ctx,*,hash):
         """Get a robot image from an input"""
         embed=discord.Embed(title=hash)
-        embed.set_image(url="https://robohash.org/"+sha(hash)+".png")
+        embed.set_image(url="https://robohash.org/"+sha(hash)+".png?set=set1")
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
@@ -227,7 +227,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def wikihow(self,ctx):
         """Retrieves weird images from WikiHow."""
         image=await self.bot.client.images.random_wikihow()
-        embed=discord.Embed(title=image.title,url=image.article_url,colour=self.bot.get_color())
+        embed=discord.Embed(title=image.title,url=image.article_url,colour=self.bot.colors['blue'])
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
@@ -243,7 +243,7 @@ class Images(commands.Cog): #Thanks KSoft.si
             return await self.bot.httpcat(ctx,image["code"])
         if not image.url:
             return await self.bot.httpcat(ctx,404)
-        embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow(),colour=self.bot.get_color())
+        embed=discord.Embed(title=image.tag,timestamp=datetime.utcnow(),colour=self.bot.colors['blue'])
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
@@ -251,7 +251,7 @@ class Images(commands.Cog): #Thanks KSoft.si
         """Embeds a Reddit image then sends it"""
         if hasattr(image,"error"):
             return await ctx.send(image.message)
-        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.get_color())
+        embed=discord.Embed(title=image.title,url=image.source,timestamp=datetime.fromtimestamp(image.created_at),colour=self.bot.colors['blue'])
         if not image.image_url:
             return await self.bot.httpcat(ctx,404)
         embed.set_image(url=image.image_url)

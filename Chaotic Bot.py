@@ -42,6 +42,8 @@ class chaotic_bot(commands.Bot):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
+        self.colors = data.colors
+
         self.default_prefix=data.default_prefix
 
         self.http.user_agent=data.user_agent
@@ -148,7 +150,7 @@ class chaotic_bot(commands.Bot):
         return prefixes.get(self.get_id(message),self.default_prefix)
 
     async def httpcat(self,ctx,code,title=discord.Embed.Empty):
-        embed=Embed(title=title,color=self.get_color())
+        embed=Embed(title=title,color=self.colors['red'])
         embed.set_image(url="https://http.cat/"+str(code)+".jpg")
         await ctx.send(embed=embed)
 
@@ -173,7 +175,7 @@ async def help(ctx,*command_help):
     Trust me, there's nothing to see here. Absolutely nothing."""
     if len(command_help)==0:
         #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.get_color())
+        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.colors['blue'])
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))
@@ -191,7 +193,7 @@ async def help(ctx,*command_help):
             if cog:
                 if cog.get_commands():
                     #Aide d'un cog
-                    embed=Embed(title=helper,description=cog.description,colour=data.get_color())
+                    embed=Embed(title=helper,description=cog.description,colour=data.colors['blue'])
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
                     embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
                     for command in cog.get_commands():
@@ -206,7 +208,7 @@ async def help(ctx,*command_help):
                 cog=bot.get_command(helper)
                 if cog:
                     #Aide d'une commande spécifique
-                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.get_color())
+                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.color['blue'])
                     if cog.aliases!=[]:
                         embed.add_field(name="Aliases :",value="\n".join(cog.aliases))
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))

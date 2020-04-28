@@ -110,7 +110,7 @@ class Utility(commands.Cog):
                                     file_lines+=1
                         final_path=p+path.sep+name
                         list_of_files.append(final_path.split('.'+path.sep)[-1]+f" : {file_lines} lines")
-        embed=discord.Embed(colour=self.bot.get_color())
+        embed=discord.Embed(colour=self.bot.colors['yellow'])
         embed.add_field(name=f"{self.bot.user.name}'s structure",value="\n".join(list_of_files))
         embed.set_footer(text=f'I am made of {total} lines of Python, spread across {file_amount} files !')
         await ctx.send(embed=embed)
@@ -225,7 +225,7 @@ class Utility(commands.Cog):
         account_list=pickle.load(open("data"+path.sep+"accounts.DAT",mode='rb'))
         account=account_list[account_list.index(str(ctx.author))]
         gotten,locked,total=account.get_successes()
-        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=self.bot.get_color())
+        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=self.bot.colors['green'])
         embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for succ in gotten:
@@ -241,7 +241,7 @@ class Utility(commands.Cog):
         Syntax : €suggestion [subject] [idea]. If the subject includes whitespaces, surround it with double braces, "like that".'''
         if ctx.author.id in self.blacklist_suggestion:
             return await ctx.send("You cannot make suggestions anymore about the bot")
-        embed=discord.Embed(title=f"Suggestion by **{ctx.author}**",description=f"Subject of <@{ctx.author.id}>'s suggestion : {subject}")
+        embed=discord.Embed(title=f"Suggestion by **{ctx.author}**",description=f"Subject of <@{ctx.author.id}>'s suggestion : {subject}",colour=self.bot.colors['yellow'])
         embed.add_field(name="Idea",value=idea)
         await self.bot.suggestion_channel.send(embed=embed)
         await ctx.send("Thanks for your participation in this project !")

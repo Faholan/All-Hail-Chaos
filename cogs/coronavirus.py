@@ -29,7 +29,7 @@ class CoronaTracker:
 
                 self.countries = _data["Countries"]
             else:
-                embed=Embed(title=f"Error {r.status_code} in fetch_results() :",description=r.text)
+                embed=Embed(title=f"Error {r.status_code} in fetch_results() :",description=r.text,color=self.bot.colors['red'])
                 await self.bot.log_channel.send(embed=embed)
 
     def get_country(self,country):
@@ -229,7 +229,7 @@ class Coronavirus(commands.Cog):
         corona_country=self.corona.get_country(country_name)
         if corona_country==None:
             return await self.bot.httpcat(ctx,404,"I didn't find this country.")
-        embed=Embed(title=f"Coronavirus stats for {country}",colour=self.bot.get_color())
+        embed=Embed(title=f"Coronavirus stats for {country}",colour=self.bot.colors['blue'])
         embed.add_field(name="Confirmed cases",value=corona_country.get("TotalRecovered",0))
         embed.add_field(name="Deaths",value=corona_country.get("TotalDeaths",0))
         embed.add_field(name="Recovered",value=corona_country.get("TotalRecovered",0))
