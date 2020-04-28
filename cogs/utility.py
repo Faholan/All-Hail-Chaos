@@ -70,6 +70,8 @@ class Utility(commands.Cog):
             self.discord_bots.start()
         if self.bot.xyz:
             self.xyz.start()
+        if self.bot.discord_bot_list:
+            self.discord_bot_list.start()
         try:
             self.blacklist_suggestion = pickle.load(open(f'data{path.sep}blacklist_suggestion.DAT',mode='rb'))
         except:
@@ -173,7 +175,7 @@ class Utility(commands.Cog):
         if artist:
             embed.add_field(name="Credits for the superb profile pic :",value=str(artist),inline=False)
         embed.add_field(name="I'm very social. Number of servers i'm in :",value=len(self.bot.guilds),inline=False)
-        embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(list(self.bot.get_all_members()))} members",inline=False)
+        embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(self.bot.users):,} users",inline=False)
         embed.add_field(name="Description page :",value=f'[top.gg page]({self.bot.top_gg} "Description on top.gg")\n[bots on discord page]({self.bot.bots_on_discord} "Description on bots on discord")\n[Discord bots page]({self.bot.discord_bots_page} "Description on discord bots")')
         embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
         embed.add_field(name="Time since last update :",value=secondes(delta.seconds+86400*delta.days))
@@ -371,6 +373,10 @@ class Utility(commands.Cog):
     @tasks.loop(minutes=30)
     async def xyz(self):
         await self.bot.aio_session.post(f"https://bots.ondiscord.xyz/bot-api/bots/{self.bot.user.id}/guilds",json={"guildCount":len(self.bot.guilds)},headers={"Authorization":self.bot.xyz})
+
+    @tasks.loop(minutes=30)
+    async def discord_bot_list(self):
+        await self.bot.aio_session.post(f"https://discordbotlist.com/api/bots/{self.bot.user.id}/stats",json={"guilds":len(self.bot.guilds),"users":len(self.bot.users)},headers={"Authorization":f"Bot {self.bot.discord_bot_list}"})
 
 
 def setup(bot):

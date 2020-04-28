@@ -56,6 +56,7 @@ class chaotic_bot(commands.Bot):
         self.discord_rep=data.discord_rep
         self.discord_bots=data.discord_bots
         self.xyz = data.xyz
+        self.discord_bot_list = data.discord_bot_list
 
         self.support = data.support
 

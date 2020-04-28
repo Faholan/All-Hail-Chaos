@@ -20,6 +20,7 @@ nasa = "I AM HACKING THE NASA" #NASA API token
 dbl_token = None #Discord Bot List Token
 discord_bots = None #discord.bots.gg Token
 xyz = None #bots.ondiscord.xyz token
+discord_bot_list = None #discordbotlist.com token
 
 github_token = None #Github token
 github_repo = None #Github repo for webhooks

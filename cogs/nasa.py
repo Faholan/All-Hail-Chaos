@@ -45,12 +45,10 @@ class NASA(commands.Cog):
         """Get images from Mars. You must specify the date (in the form YYYY-MM-DD), and you can specify the rover (one of Curiosity, Opportunity and Spirit) and the number of images to retrieve (default : 1)"""
         if not rover.lower() in ("curiosity","opportunity","spirit"):
             return await ctx.send("Sorry but this rover doesn't exist")
-        if " " in date:
-            return await ctx.send("The date cannot contain whitespasces")
         async with self.bot.aio_session.get("https://api.nasa.gov/mars-photos/api/v1/rovers/"+rover.lower()+"/photos",params={"earth_date":date,"api_key":self.api_key}) as response:
             images=await response.json()
             if images.get("photos",[])==[]:
-                return await self.bot.httpcat(404,"I didn't find anything for your query")
+                return await self.bot.httpcat(ctx,404,f"I didn't find anything for your query. It's probably because the rover {rover.capitalize()} wasn't in activity at this time")
             for i in range(min(n,len(images["photos"]))):
                 embed=discord.Embed(title="Picture from "+rover.capitalize(),description="Picture taken from the "+images["photos"][i]["camera"]["full_name"],colour=self.bot.get_color())
                 embed.set_image(url=images["photos"][i]["img_src"])
