@@ -29,7 +29,7 @@ class CoronaTracker:
 
                 self.countries = _data["Countries"]
             else:
-                embed=Embed(title=f"Error {r.status_code} in fetch_results() :",description=r.text,color=self.bot.colors['red'])
+                embed=Embed(title=f"Error {r.status} in fetch_results() :",description=await r.text(),color=self.bot.colors['red'])
                 await self.bot.log_channel.send(embed=embed)
 
     def get_country(self,country):

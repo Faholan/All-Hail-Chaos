@@ -195,7 +195,7 @@ class Battleship(commands.Cog):
                 elif msg.content.lower()[-1]=='v':
                     origin=(self.column.index(msg.content.lower()[0]),int(msg.content[1:-1])-1)
                     if origin[0]+size>9:
-                        await self.boat.httpcat(ctx,400,"The boat is too long to be placed in such a position")
+                        await self.bot.httpcat(ctx,400,"The boat is too long to be placed in such a position")
                     else:
                         invalid=False
                         for i in range(size):

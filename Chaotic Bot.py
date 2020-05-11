@@ -208,7 +208,7 @@ async def help(ctx,*command_help):
                 cog=bot.get_command(helper)
                 if cog:
                     #Aide d'une commande spécifique
-                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.color['blue'])
+                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.colors['blue'])
                     if cog.aliases!=[]:
                         embed.add_field(name="Aliases :",value="\n".join(cog.aliases))
                     embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
