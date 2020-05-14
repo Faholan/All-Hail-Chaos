@@ -1,17 +1,13 @@
 """MIT License
-
 Copyright (c) 2020 Faholan
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +26,7 @@ import lavalink
 from discord.ext import commands, tasks
 
 from data import data
+from asyncio import sleep
 
 # ----- define constants ----- #
 time_rx = re.compile("[0-9]+")
@@ -267,6 +264,7 @@ class Music(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def play(self, ctx, *, query: str):
         """ Searches and plays a song from a given query. """
+        await sleep(1)
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         query = query.strip("<>")

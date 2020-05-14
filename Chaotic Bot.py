@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 from discord.ext import commands
-from discord import Embed,Game,Status
+from discord import Embed,Game
 import discord.utils
 from datetime import datetime
 

@@ -182,30 +182,29 @@ class Moderation(commands.Cog):
             ID=str(other.id)
             name=str(other)+f" [{ID}]"
             url=other.avatar_url
-        async with self.bot.aio_session.get('https://discordrep.com/api/rep/'+ID+'?authorization='+self.bot.discord_rep) as response:
-            reputation=await response.json()
-        async with self.bot.aio_session.get('https://discordrep.com/api/u/'+ID+'?authorization='+self.bot.discord_rep) as response:
-            user=await response.json()
-        async with self.bot.aio_session.get('https://discordrep.com/api/bans/'+ID+'?authorization='+self.bot.discord_rep) as response:
-            ban=await response.json()
-        async with self.bot.aio_session.get('https://discordrep.com/api/warns/'+ID+'?authorization='+self.bot.discord_rep) as response:
-            warning=await response.json()
 
-        if user.get("code"):
-            return await self.bot.httpcat(ctx,404,"I couldn't find this user.")
+        async with self.bot.aio_session.get('https://discordrep.com/u/'+ID) as response:
+            if response.status != 200:
+                return await self.bot.httpcat(ctx,404,"I couldn't find this user.")
+
+        async with self.bot.aio_session.get('https://discordrep.com/api/v3/rep/'+ID,headers={'Authorization':self.bot.discord_rep}) as response:
+            reputation=await response.json()
+
+        async with self.bot.aio_session.get('https://discordrep.com/api/v3/infractions/',headers={'Authorization':self.bot.discord_rep}) as response:
+            infractions=await response.json()
 
         embed=discord.Embed(colour=self.bot.colors['green'],description="Source : [DiscordRep](https://discordrep.com) and [KSoft](https://ksoft.si)")
         embed.set_thumbnail(url=url)
-        embed.set_author(name=name,icon_url=url,url="https://discordrep.com/api/u/"+ID)
+        embed.set_author(name=name,icon_url=url,url="https://discordrep.com/u/"+ID)
         banning=[]
-        if not warning.get("code"):
-            date=datetime.fromtimestamp(warning["date"]//1000)
+        if infractions.get("type") == "BAN":
+            date=datetime.fromtimestamp(infractions["date"]//1000)
             embed.colour = self.bot.colors['yellow']
-            banning.append(f"Warned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{warning['reason']}`")
-        if not ban.get("code"):
-            date=datetime.fromtimestamp(ban["date"]//1000)
+            banning.append(f"Warned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{infractions['reason']}`")
+        elif infractions.get("type") == "WARN":
+            date=datetime.fromtimestamp(infractions["date"]//1000)
             embed.colour = self.bot.colors['red']
-            banning.append(f"Banned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{ban['reason']}`")
+            banning.append(f"Banned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{infractions['reason']}`")
         check_ban=await self.bot.client.bans_check(int(ID))
         if banning==[]:
             if not check_ban:
@@ -221,8 +220,8 @@ class Moderation(commands.Cog):
             embed.colour = self.bot.colors['red']
             embed.add_field(name="Bans from KSoft",value=f"Banned on {BAN.timestamp} because of [{BAN.reason}]({BAN.proof})",inline=False)
 
-        embed.add_field(name="Reputation on DiscordRep",value=f"Reputation level : {['No special reputation','Bronze','Silver','Gold','Diamond','DiscordRep Plus'][reputation['reputation']]}\n\nUpvotes : {reputation['upvotes']}\nDownvotes : {reputation['downvotes']}\n\nTotal votes : {reputation['upvotes']-reputation['downvotes']}\n\nXP : {reputation['xp']}\n\nDonation level : {['Not a donator','Tier I','Tier II','Tier III','Tier IV','Tier V'][user['donator']]}",inline=False)
-        embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
+        embed.add_field(name="Reputation on DiscordRep",value=f"Rank : {[reputation['rank']]}\n\nUpvotes : {reputation['rank']}\nDownvotes : {reputation['downvotes']}\n\nTotal votes : {reputation['upvotes']-reputation['downvotes']}\n\nXP : {reputation['xp']}",inline=False)
+        #embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
         await ctx.send(embed=embed)
 
     @commands.command()
