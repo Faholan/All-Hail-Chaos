@@ -205,7 +205,7 @@ class Moderation(commands.Cog):
             date=datetime.fromtimestamp(infractions["date"]//1000)
             embed.colour = self.bot.colors['red']
             banning.append(f"Banned on {date.day}-{date.month}-{date.year} {date.hour}:{date.minute}:{date.second} because of : `{infractions['reason']}`")
-        check_ban=await self.bot.client.bans_check(int(ID))
+        check_ban=await self.bot.ksoft_client.bans.check(int(ID))
         if banning==[]:
             if not check_ban:
                 embed.add_field(name="Bans",value="This user hasn't been banned from DiscordRep or KSoft",inline=False)
@@ -216,11 +216,11 @@ class Moderation(commands.Cog):
             if not check_ban:
                 embed.add_field(name="Bans from KSoft",value="This user hasn't been banned from KSoft.si",inline=False)
         if check_ban:
-            BAN=await self.bot.client.bans_info(int(ID))
+            BAN=await self.bot.ksoft_client.bans.info(int(ID))
             embed.colour = self.bot.colors['red']
             embed.add_field(name="Bans from KSoft",value=f"Banned on {BAN.timestamp} because of [{BAN.reason}]({BAN.proof})",inline=False)
 
-        embed.add_field(name="Reputation on DiscordRep",value=f"Rank : {[reputation['rank']]}\n\nUpvotes : {reputation['rank']}\nDownvotes : {reputation['downvotes']}\n\nTotal votes : {reputation['upvotes']-reputation['downvotes']}\n\nXP : {reputation['xp']}",inline=False)
+        embed.add_field(name="Reputation on DiscordRep",value=f"Rank : {reputation['rank']}\n\nUpvotes : {reputation['upvotes']}\nDownvotes : {reputation['downvotes']}\n\nTotal votes : {reputation['upvotes']-reputation['downvotes']}\n\nXP : {reputation['xp']}",inline=False)
         #embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
         await ctx.send(embed=embed)
 

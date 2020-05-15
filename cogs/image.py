@@ -160,7 +160,7 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.command(ignore_extra=True,hidden=True,aliases=["im_nsfw"])
     async def image_nsfw(self,ctx):
         """Retrieve the list of all available NSFW tags"""
-        tag_list=await self.bot.client.images.tags()
+        tag_list=await self.bot.ksoft_client.images.tags()
         embed=discord.Embed(timestamp=datetime.utcnow(),color=self.bot.get_color())
         embed.add_field(name="NSFW tags",value='\n'.join(tag_list.nsfw_tags))
         embed.set_author(name=ctx.author.display_name,icon_url=str(ctx.author.avatar_url))
@@ -184,12 +184,12 @@ class Images(commands.Cog): #Thanks KSoft.si
     async def nsfw(self,ctx):
         """Retrieves random NSFW pics.
         To find the other NSFW commands : use im_nsfw or reddit with an NSFW subreddit"""
-        await self.reddit_sender(ctx,await self.bot.client.images.random_nsfw())
+        await self.reddit_sender(ctx,await self.bot.ksoft_client.images.random_nsfw())
 
     @commands.command(ignore_extra=True)
     async def meme(self,ctx):
         """Retrieves a random meme from Reddit"""
-        await self.reddit_sender(ctx,await self.bot.client.images.random_meme())
+        await self.reddit_sender(ctx,await self.bot.ksoft_client.images.random_meme())
 
     @commands.command(ignore_extra=True)
     async def pat(self,ctx):
@@ -206,7 +206,7 @@ class Images(commands.Cog): #Thanks KSoft.si
         """Retrieve images from the specified subreddit.
         This command may return NSFW results only in NSFW channels"""
         try:
-            await self.reddit_sender(ctx,await self.bot.client.images.random_reddit(subreddit.split('r/')[-1],remove_nsfw=not check_channel(ctx.channel)))
+            await self.reddit_sender(ctx,await self.bot.ksoft_client.images.random_reddit(subreddit.split('r/')[-1],remove_nsfw=not check_channel(ctx.channel)))
         except Exception as e:
             await ctx.send(type(e).__name__+' : '+str(e))
             await self.bot.httpcat(ctx,404,"I didn't find any image for your query")
@@ -226,14 +226,14 @@ class Images(commands.Cog): #Thanks KSoft.si
     @commands.command(ignore_extra=True)
     async def wikihow(self,ctx):
         """Retrieves weird images from WikiHow."""
-        image=await self.bot.client.images.random_wikihow()
+        image=await self.bot.ksoft_client.images.random_wikihow()
         embed=discord.Embed(title=image.title,url=image.article_url,colour=self.bot.colors['blue'])
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
     async def rand_im(self,tag,nsfw=False):
         try:
-            return await self.bot.client.images.random_image(tag=tag,nsfw=nsfw)
+            return await self.bot.ksoft_client.images.random_image(tag=tag,nsfw=nsfw)
         except:
             return PicError()
 
