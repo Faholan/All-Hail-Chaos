@@ -190,7 +190,7 @@ class Moderation(commands.Cog):
         async with self.bot.aio_session.get('https://discordrep.com/api/v3/rep/'+ID,headers={'Authorization':self.bot.discord_rep}) as response:
             reputation=await response.json()
 
-        async with self.bot.aio_session.get('https://discordrep.com/api/v3/infractions/',headers={'Authorization':self.bot.discord_rep}) as response:
+        async with self.bot.aio_session.get('https://discordrep.com/api/v3/infractions/'+ID,headers={'Authorization':self.bot.discord_rep}) as response:
             infractions=await response.json()
 
         embed=discord.Embed(colour=self.bot.colors['green'],description="Source : [DiscordRep](https://discordrep.com) and [KSoft](https://ksoft.si)")
