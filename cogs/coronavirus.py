@@ -237,7 +237,7 @@ class Coronavirus(commands.Cog):
         embed.set_thumbnail(url="https://d3i6fh83elv35t.cloudfront.net/static/2020/01/RTS301GM-1024x576.jpg")
         await ctx.send(embed=embed)
 
-    @tasks.loop(minutes=30)
+    @tasks.loop(hours=1)
     async def corona_update(self):
         self.fetching=True
         try:
