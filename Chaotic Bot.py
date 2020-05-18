@@ -149,8 +149,8 @@ class chaotic_bot(commands.Bot):
             prefixes={}
         return prefixes.get(self.get_id(message),self.default_prefix)
 
-    async def httpcat(self,ctx,code,title=discord.Embed.Empty):
-        embed=Embed(title=title,color=self.colors['red'])
+    async def httpcat(self,ctx,code,title=discord.Embed.Empty,description=discord.Embed.Empty):
+        embed=Embed(title=title,color=self.colors['red'],description=description)
         embed.set_image(url="https://http.cat/"+str(code)+".jpg")
         await ctx.send(embed=embed)
 

@@ -84,7 +84,7 @@ async def error_manager(ctx,error):
     elif isinstance(error,commands.CheckFailure):
         await ctx.bot.httpcat(ctx,401,"You don't have the rights to use this command")
     else:
-        await ctx.bot.httpcat(ctx,500,'The command raised an error')
+        await ctx.bot.httpcat(ctx,500,'The command raised an error',description="Thank you. My owner is now aware of this bug, which'll be fixed shortly. (typically, a few minutes if he sees it)")
 
     if isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
         return
