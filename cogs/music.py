@@ -298,9 +298,7 @@ class Music(commands.Cog):
             embed.description = (
                 f'[{track["info"]["title"]}]({track["info"]["uri"]})\n{other}'
             )
-            embed.set_image(
-                url=f"https://img.youtube.com/vi/{track['info']['identifier']}/maxresdefault.jpg"
-            )
+            embed.set_image(url=f"https://img.youtube.com/vi/{track['info']['identifier']}/hqdefault.jpg")
             embed.set_footer(
                 text=f"Use {ctx.prefix}np for playing status | {self.bot.user.name} Music Player",
                 icon_url=self.bot.user.avatar_url_as(static_format="png"),
@@ -398,9 +396,7 @@ class Music(commands.Cog):
         track_time = player.position + seconds
         await player.seek(track_time)
 
-        await ctx.send(
-            f"ℹ | Moved track to **{lavalink.utils.format_time(track_time)}**"
-        )
+        await ctx.send(f"Moved track to **{lavalink.utils.format_time(track_time)}**")
 
     @commands.command()
     @commands.cooldown(1, 2, commands.BucketType.user)
