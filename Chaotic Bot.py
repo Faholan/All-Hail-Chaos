@@ -219,7 +219,7 @@ async def help(ctx,*command_help):
                         embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
                     await ctx.send(embed=embed)
                 else:
-                    await ctx.bot.httpcat(404,f"I couldn't find {helper}")
+                    await ctx.bot.httpcat(ctx,404,f"I couldn't find {helper}")
 
 bot.ksoft_client=ksoftapi.Client(bot.ksoft_token,bot.loop)
 bot.run(data.token)
