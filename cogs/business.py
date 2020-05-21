@@ -74,7 +74,7 @@ class Business_guy():
         return 'You took '+guild+"'s 500 daily GP."
 
     def money_out(self):
-        embed=discord.Embed(title='Banque de '+self.name,colour=data.get_color())
+        embed=discord.Embed(title=f"{self.name}'s bank :",colour=data.get_color())
         embed.set_author(name=self.name,icon_url=self.avatar_url)
         embed.set_thumbnail(url='https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg') #A modifier
         embed.add_field(name='Banked :',value=str(self.bank)+'/'+str(self.bank_max))
@@ -119,14 +119,14 @@ class Business(commands.Cog):
     @commands.cooldown(1,86400,commands.BucketType.user)
     async def daily(self,ctx):
         '''Get your daily GP (100*streak, max : 500)'''
-        fetched = await _fetcher(ctx.author.id)
+        fetched = await self._fetcher(ctx.author.id)
         business = Business_guy(await fetched.fetchone(), ctx.author, ctx.bot.db)
         await ctx.send(await business.daily())
 
     @commands.command(ignore_extra=False)
     async def deposit(self,ctx,money:int):
         '''Deposit your money in a safe at the bank'''
-        fetched = await _fetcher(ctx.author.id)
+        fetched = await self._fetcher(ctx.author.id)
         business = Business_guy(await fetched.fetchone(), ctx.author, ctx.bot.db)
         await ctx.send(await business.deposit(money))
 
@@ -134,24 +134,24 @@ class Business(commands.Cog):
     @commands.cooldown(1,86400,commands.BucketType.guild)
     async def gift(self,ctx):
         '''Get the guild's daily gift (500 GP)'''
-        fetched = await _fetcher(ctx.author.id)
+        fetched = await self._fetcher(ctx.author.id)
         business = Business_guy(fetched.fetchone(), ctx.author, ctx.bot.db)
         await ctx.send(await business.gift(ctx.guild.name))
 
     @commands.command(ignore_extra=True)
     async def money(self,ctx):
         '''How much money do I have ?'''
-        fetched = await _fetcher(ctx.author.id)
-        business = Business_guy(await fetched(ctx.author.id).fetchone(), ctx.author, ctx.bot.db)
+        fetched = await self._fetcher(ctx.author.id)
+        business = Business_guy(await fetched.fetchone(), ctx.author, ctx.bot.db)
         await ctx.send(embed=business.money_out())
 
     @commands.command(ignore_extra=False)
     @commands.cooldown(1,600,commands.BucketType.user)
     async def steal(self,ctx,victim:discord.Member):
         '''Stealing is much more gainful than killing'''
-        fetched = await _fetcher(ctx.author.id)
+        fetched = await self._fetcher(ctx.author.id)
         pickpocket = Business_guy(await fetched.fetchone(), ctx.author, ctx.bot.db)
-        fetched = await _fetcher(victim.id)
+        fetched = await self._fetcher(victim.id)
         stolen = Business_guy(await fetched.fetchone(), victim, ctx.bot.db)
         if pickpocket == stolen:
             self.steal.reset_cooldown(ctx)

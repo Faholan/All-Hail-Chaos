@@ -125,16 +125,12 @@ class chaotic_bot(commands.Bot):
         report=[]
         for ext in D.extensions:
             try:
-                self.reload_extension(ext)
-                report.append("Extension reloaded : "+ext)
-            except commands.ExtensionNotLoaded:
                 try:
+                    self.reload_extension(ext)
+                    report.append("Extension reloaded : "+ext)
+                except commands.ExtensionNotLoaded:
                     bot.load_extension(ext)
                     report.append("Extension loaded : "+ext)
-                except commands.ExtensionFailed as e:
-                    report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
-                except:
-                    report.append("Extension not loaded : "+ext)
             except commands.ExtensionFailed as e:
                 report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
             except:
@@ -147,7 +143,7 @@ class chaotic_bot(commands.Bot):
         elif message.content.startswith(self.default_prefix+"help") and not_print:
             return self.default_prefix
         if not hasattr(self, 'db'):
-            return "€"
+            return self.default_prefix
         await self.db.execute('CREATE TABLE IF NOT EXISTS prefixes (ctx_id INT PRIMARY KEY, prefix TINYTEXT)')
         cur = await self.db.execute('SELECT * FROM prefixes WHERE ctx_id=?', (self.get_id(message),))
         result = await cur.fetchone()
@@ -155,9 +151,9 @@ class chaotic_bot(commands.Bot):
             return result['prefix']
         return self.default_prefix
 
-    async def httpcat(self,ctx,code,title=discord.Embed.Empty,description=discord.Embed.Empty):
-        embed=Embed(title=title,color=self.colors['red'],description=description)
-        embed.set_image(url="https://http.cat/"+str(code)+".jpg")
+    async def httpcat(self, ctx, code, title = discord.Embed.Empty, description = discord.Embed.Empty):
+        embed=Embed(title = title, color = self.colors['red'], description = description)
+        embed.set_image(url = "https://http.cat/"+str(code)+".jpg")
         await ctx.send(embed=embed)
 
     @staticmethod
@@ -181,15 +177,15 @@ async def help(ctx,*command_help):
     Trust me, there's nothing to see here. Absolutely nothing."""
     if len(command_help)==0:
         #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}`',colour=data.colors['blue'])
+        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))}`',colour=data.colors['blue'])
         embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))
+        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))
         for cog in bot.cogs:
             if bot.get_cog(cog).get_commands():
-                command_list=[discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
+                command_list=[discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
                 embed.add_field(name=bot.get_cog(cog).qualified_name,value='\n'.join(command_list),inline=False)
-        command_list=[discord.utils.escape_markdown(bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.commands if not command.cog and not command.hidden]
+        command_list=[discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.commands if not command.cog and not command.hidden]
         if command_list:
             embed.add_field(name='Other commands',value='\n'.join(command_list))
         await ctx.send(embed=embed)
@@ -214,16 +210,16 @@ async def help(ctx,*command_help):
                 cog=bot.get_command(helper)
                 if cog:
                     #Aide d'une commande spécifique
-                    embed=Embed(title=bot.get_m_prefix(ctx.message,False)+helper,description=cog.help,colour=data.colors['blue'])
+                    embed=Embed(title = await bot.get_m_prefix(ctx.message,False) + helper, description = cog.help, colour = data.colors['blue'])
                     if cog.aliases!=[]:
-                        embed.add_field(name="Aliases :",value="\n".join(cog.aliases))
-                    embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-                    embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
+                        embed.add_field(name = "Aliases :", value = "\n".join(cog.aliases))
+                    embed.set_author(name = str(ctx.message.author), icon_url = str(ctx.message.author.avatar_url))
+                    embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
                     if cog.hidden:
-                        embed.set_footer(text=f"Wow, you found {helper} !",icon_url=str(ctx.bot.user.avatar_url))
+                        embed.set_footer(text = f"Wow, you found {helper} !", icon_url = str(ctx.bot.user.avatar_url))
                     else:
-                        embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
-                    await ctx.send(embed=embed)
+                        embed.set_footer(text = f"Are you interested in {helper} ?", icon_url = str(ctx.bot.user.avatar_url))
+                    await ctx.send(embed = embed)
                 else:
                     await ctx.bot.httpcat(ctx,404,f"I couldn't find {helper}")
 
