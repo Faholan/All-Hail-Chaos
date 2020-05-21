@@ -413,7 +413,7 @@ class Moderation(commands.Cog):
             if status is None:
                 status = {'manual_on':0, 'autoswear':0, 'notification':1}
 
-            cur = await self.bot.db.execute('SELECT * from ?', (f"guild_{ctx.guild.id}_swear_words",))
+            cur = await self.bot.db.execute(f'SELECT * from guild_{ctx.guild.id}_swear_words')
             swear_words = tuple(await cur.fetchall())
 
             embed = discord.Embed(title = f"Swear words in {ctx.guild.name}", colour=self.bot.colors['yellow'])
