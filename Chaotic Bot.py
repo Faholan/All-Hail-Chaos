@@ -26,9 +26,10 @@ import discord.utils
 from datetime import datetime
 
 from data import data
+import aiosqlite
+
 import ksoftapi
 
-import pickle
 from asyncio import all_tasks
 import aiohttp
 
@@ -80,19 +81,23 @@ class chaotic_bot(commands.Bot):
     async def on_ready(self):
         await self.change_presence(activity=Game(self.default_prefix+'help'))
         if self.first_on_ready:
-            self.first_on_ready=False
-            self.aio_session=aiohttp.ClientSession()
-            self.last_update=datetime.utcnow()
-            self.log_channel=self.get_channel(data.log_channel)
-            self.suggestion_channel=self.get_channel(data.suggestion_channel)
-            report=[]
+            self.first_on_ready = False
+            self.db = await aiosqlite.connect('data'+path.sep+'database.db')
+            self.db.row_factory = aiosqlite.Row
+            await self.db.execute("CREATE TABLE IF NOT EXISTS swear (id INT PRIMARY KEY NOT NULL, manual_on BOOL DEFAULT 0, autoswear BOOL DEFAULT 0, notification BOOL DEFAULT 1)")
+            await self.db.execute('CREATE TABLE IF NOT EXISTS roles (message_id INT, channel_id INT, guild_id INT, emoji TINYTEXT, roleids TEXT)')
+            self.aio_session = aiohttp.ClientSession()
+            self.last_update = datetime.utcnow()
+            self.log_channel = self.get_channel(data.log_channel)
+            self.suggestion_channel = self.get_channel(data.suggestion_channel)
+            report = []
             for ext in data.extensions:
                     if not ext in bot.extensions:
                         try:
                             bot.load_extension(ext)
                             report.append("Extension loaded : "+ext)
                         except commands.ExtensionFailed as e:
-                            report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
+                            report.append(e.name+" : " + str(type(e.original)) + " : " + str(e.original))
                         except:
                             report.append("Extension not loaded : "+ext)
             await self.log_channel.send('\n'.join(report))
@@ -107,10 +112,8 @@ class chaotic_bot(commands.Bot):
 
     async def close(self):
         await self.aio_session.close()
-        if hasattr(self,"db"):
-            self.db.close()
+        await self.db.close()
         if hasattr(self,"session"):
-            print("AIO SESSION")
             await self.session.close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
@@ -138,16 +141,19 @@ class chaotic_bot(commands.Bot):
                 report.append("Extension not loaded : "+ext)
         await self.log_channel.send('\n'.join(report))
 
-    def get_m_prefix(self,message,not_print=True):
+    async def get_m_prefix(self, message, not_print=True):
         if message.content.startswith("¤") and not_print:
             return '¤'
         elif message.content.startswith(self.default_prefix+"help") and not_print:
             return self.default_prefix
-        try:
-            prefixes=pickle.load(open("data"+path.sep+"prefixes.DAT",mode='rb'))
-        except:
-            prefixes={}
-        return prefixes.get(self.get_id(message),self.default_prefix)
+        if not hasattr(self, 'db'):
+            return "€"
+        await self.db.execute('CREATE TABLE IF NOT EXISTS prefixes (ctx_id INT PRIMARY KEY, prefix TINYTEXT)')
+        cur = await self.db.execute('SELECT * FROM prefixes WHERE ctx_id=?', (self.get_id(message),))
+        result = await cur.fetchone()
+        if result:
+            return result['prefix']
+        return self.default_prefix
 
     async def httpcat(self,ctx,code,title=discord.Embed.Empty,description=discord.Embed.Empty):
         embed=Embed(title=title,color=self.colors['red'],description=description)
@@ -164,8 +170,8 @@ class chaotic_bot(commands.Bot):
     def get_color():
         return data.get_color()
 
-def command_prefix(bot,message):
-    return bot.get_m_prefix(message)
+async def command_prefix(bot,message):
+    return await bot.get_m_prefix(message)
 
 bot=chaotic_bot(command_prefix=command_prefix,description="A bot for fun",help_command=None,fetch_offline_members=True)
 

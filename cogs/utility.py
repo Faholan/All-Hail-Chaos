@@ -203,14 +203,9 @@ class Utility(commands.Cog):
     async def prefix(self,ctx,*,p=None):
         """Changes the bot's prefix for this guild or private channel"""
         if p:
-            try:
-                prefixes=pickle.load(open("data"+path.sep+"prefixes.DAT",mode="rb"))
-            except:
-                prefixes={}
-            prefixes[self.bot.get_id(ctx)]=p
-            pickle.dump(prefixes,open(f"data{path.sep}prefixes.DAT",mode="wb"))
+            await self.db.execute('INSERT INTO prefixes VALUES (?, ?) ON DUPLICATE KEY UPDATE prefix=?',(self.bot.get_id(ctx),p,p))
             return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
-        await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(self.bot.get_m_prefix(ctx.message,False))}`")
+        await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message,False))}`")
 
     @commands.command(ignore_extra=True)
     @check_admin()
@@ -218,21 +213,6 @@ class Utility(commands.Cog):
         """Owner command"""
         await ctx.send("Reloading...")
         await self.bot.cog_reloader()
-
-    @commands.command(ignore_extra=True,aliases=['succes'])
-    async def success(self,ctx):
-        '''Sends back your successes'''
-        account_list=pickle.load(open("data"+path.sep+"accounts.DAT",mode='rb'))
-        account=account_list[account_list.index(str(ctx.author))]
-        gotten,locked,total=account.get_successes()
-        embed=discord.Embed(title=f'Success list ({len(gotten)}/{total})',colour=self.bot.colors['green'])
-        embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
-        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-        for succ in gotten:
-            embed.add_field(name=f"{succ.name} - Unlocked",value=succ.description,inline=False)
-        for succ in locked:
-            embed.add_field(name=succ.name+succ.advance(self.bot),value=succ.locked,inline=False)
-        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.cooldown(2,600,commands.BucketType.user)
@@ -245,18 +225,6 @@ class Utility(commands.Cog):
         embed.add_field(name="Idea",value=idea)
         await self.bot.suggestion_channel.send(embed=embed)
         await ctx.send("Thanks for your participation in this project !")
-
-    #@commands.command() #This command isn't useful right now. No need for the users to think I believe they'll soon be toxic
-    #@commands.is_owner()
-    async def suggestion_blacklist(self,ctx,user_id:int):
-        """Blacklists a user from the suggestion command"""
-        if user_id in self.blacklist_suggestion:
-            self.blacklist_suggestion.remove(user_id)
-            await self.bot.log_channel.send(f"<@{user_id}> removed from the blacklist")
-        else:
-            self.blacklist_suggestion.append(user_id)
-            await self.bot.log_channel.send(f"<@{user_id}> added to the blacklist")
-        pickle.dump(self.blacklist_suggestion,open(f"data{path.sep}blacklist_suggestion.DAT",mode='wb'))
 
     def cog_unload(self):
         self.interface.cancel()
