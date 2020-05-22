@@ -97,10 +97,10 @@ class Successes(commands.Cog):
     def __init__(self, bot, success_list):
         self.bot = bot
         self.success_list = success_list
-        self.ensure_database.start()
+        asyncio.create_task(self.ensure_database())
 
-    @tasks.loop(count = 1)
     async def ensure_database(self):
+        """Prepare the database"""
         await self.bot.db.execute("CREATE TABLE IF NOT EXISTS successes (id INT PRIMARY KEY)")
         cur = await self.bot.db.execute("SELECT * FROM pragma_table_info('successes')")
         result = await cur.fetchall()
@@ -129,7 +129,8 @@ class Successes(commands.Cog):
             embed.add_field(name = succ.name + await succ.advancer(ctx, state[succ.column]), value = succ.locked, inline = False)
         await ctx.send(embed = embed)
 
-    async def bot_check(self, ctx):
+    async def succ_sender(self, ctx):
+        """Checks and sends the successes"""
         cur = await ctx.bot.db.execute("SELECT * FROM successes WHERE id=?", (ctx.author.id,))
         result = await cur.fetchone()
         if not result:
@@ -146,7 +147,7 @@ class Successes(commands.Cog):
                     embed.add_field(name = s.description, value = "Requirements met")
                     embeds.append(embed)
                     await ctx.bot.db.execute(f"UPDATE successes SET `{s.state_column}`=1 WHERE id=?", (ctx.author.id,))
-        asyncio.create_task(ctx.bot.db.commit())
+        await ctx.bot.db.commit()
         i = 0
         for embed in embeds:
             i+=1
@@ -154,6 +155,9 @@ class Successes(commands.Cog):
             if i == 4:
                 await asyncio.sleep(5)
                 i = 0
+
+    async def bot_check(self, ctx):
+        asyncio.create_task(self.succ_sender(ctx))
         return True
 
 def setup(bot):

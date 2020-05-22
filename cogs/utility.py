@@ -164,22 +164,23 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     async def info(self,ctx):
         """Some info about me"""
-        delta=datetime.utcnow()-self.bot.last_update
-        app=await self.bot.application_info()
-        embed=discord.Embed(title=f'Informations about {self.bot.user}',description=f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))} "Please stay at home and use bots")\n[Support Server Invite]({self.bot.support})',colour=self.bot.get_color())
-        embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
-        embed.set_footer(text=f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
-        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-        embed.add_field(name="My owner (please respect him a lil bit) :",value=str(app.owner),inline=False)
-        artist=self.bot.get_user(372336190919147522)
+        delta = datetime.utcnow()-self.bot.last_update
+        app = await self.bot.application_info()
+        embed = discord.Embed(title = f'Informations about {self.bot.user}', description = f'[Invite Link]({discord.utils.oauth_url(str(self.bot.user.id), permissions = discord.Permissions(self.bot.invite_permissions))} "Please stay at home and use bots")\n[Support Server Invite]({self.bot.support})', colour = self.bot.get_color())
+        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
+        embed.set_footer(text = f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
+        embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
+        embed.add_field(name = "My owner (please respect him a lil bit) :", value = str(app.owner), inline=False)
+        artist = self.bot.get_user(372336190919147522)
         if artist:
-            embed.add_field(name="Credits for the superb profile pic :",value=str(artist),inline=False)
-        embed.add_field(name="I'm very social. Number of servers i'm in :",value=len(self.bot.guilds),inline=False)
-        embed.add_field(name="I know pretty much everybody.",value=f"In fact I only know {len(self.bot.users):,} users",inline=False)
-        embed.add_field(name="Description page :",value=f'[top.gg page]({self.bot.top_gg} "Description on top.gg")\n[bots on discord page]({self.bot.bots_on_discord} "Description on bots on discord")\n[Discord bots page]({self.bot.discord_bots_page} "Description on discord bots")')
-        embed.add_field(name="Libraries used :",value='[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog',inline=False)
-        embed.add_field(name="Time since last update :",value=secondes(delta.seconds+86400*delta.days))
-        embed.add_field(name="CPU usage - bot (total)",value=f"{self.process.cpu_percent():.2f} % ({psutil.cpu_percent():.2f} %)")
+            embed.add_field(name = "Credits for the superb profile pic :", value = str(artist), inline = False)
+        embed.add_field(name = "I'm very social. Number of servers i'm in :", value = len(self.bot.guilds), inline = False)
+        embed.add_field(name = "I know pretty much everybody.", value = f"In fact I only know {len(self.bot.users)} users", inline = False)
+        embed.add_field(name = "I've got many commands", value = f"More exactly {len(self.bot.commands)} commands", inline = False)
+        embed.add_field(name = "Description page :", value = f'[top.gg page]({self.bot.top_gg} "Description on top.gg")\n[bots on discord page]({self.bot.bots_on_discord} "Description on bots on discord")\n[Discord bots page]({self.bot.discord_bots_page} "Description on discord bots")', inline = False)
+        embed.add_field(name = "Libraries used :", value = '[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog', inline = False)
+        embed.add_field(name = "Time since last update :",value=secondes(delta.seconds+86400*delta.days))
+        embed.add_field(name = "CPU usage - bot (total)", value = f"{self.process.cpu_percent():.2f} % ({psutil.cpu_percent():.2f} %)")
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
@@ -221,12 +222,13 @@ class Utility(commands.Cog):
     @commands.cooldown(2,600,commands.BucketType.user)
     async def suggestion(self,ctx,subject,*,idea):
         '''Command to make suggestions for the bot. Please note that your Discord name will be recorded and publicly associated to the idea in the support server.
-        Syntax : €suggestion [subject] [idea]. If the subject includes whitespaces, surround it with double braces, "like that".'''
+        Syntax : €suggestion [subject] [idea]. If the subject includes whitespaces, surround it with double braces, "like this".'''
         if ctx.author.id in self.blacklist_suggestion:
             return await ctx.send("You cannot make suggestions anymore about the bot")
-        embed=discord.Embed(title=f"Suggestion by **{ctx.author}**",description=f"Subject of <@{ctx.author.id}>'s suggestion : {subject}",colour=self.bot.colors['yellow'])
-        embed.add_field(name="Idea",value=idea)
-        await self.bot.suggestion_channel.send(embed=embed)
+        embed = discord.Embed(title = f"Suggestion for **{subject}**", description = f"Subject of <@{ctx.author.id}>'s suggestion : {subject}", colour = self.bot.colors['yellow'])
+        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.icon_url))
+        embed.add_field(name = f"<@{ctx.author.id}>'s idea", value = idea)
+        await self.bot.suggestion_channel.send(embed = embed)
         await ctx.send("Thanks for your participation in this project !")
 
     def cog_unload(self):

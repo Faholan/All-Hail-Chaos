@@ -92,7 +92,8 @@ async def error_manager(ctx,error):
     if isinstance(error,commands.CommandInvokeError):
         error=error.original
     embed = discord.Embed(color=0xFF0000)
-    embed.title = f"{ctx.author} ({ctx.author.id}) caused an error in {ctx.command}"
+    embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
+    embed.title = f"{ctx.author.id} caused an error in {ctx.command}"
     embed.description=type(error).__name__+" : "+str(error)
     if ctx.guild:
         embed.description += f"\nin {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} ({ctx.channel.id})"

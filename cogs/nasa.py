@@ -21,14 +21,14 @@ class NASA(commands.Cog):
         embed=discord.Embed(title=self.apod_pic.get("title","Astronomy Picture Of the Day"),description=self.apod_pic.get("explanation"),colour=self.bot.get_color())
         if self.apod_pic.get('media_type')=='video':
             if 'embed' in self.apod_pic.get('url','nope'):
-                embed.set_image(url=f"https://img.youtube.com/vi/{self.apod_pic.get('url').split('/')[-1].split('?')[0]}/mqdefault.jpg")
+                embed.set_image(url = f"https://img.youtube.com/vi/{self.apod_pic.get('url').split('/')[-1].split('?')[0]}/hqdefault.jpg")
             else:
-                embed.set_image(url=f"https://img.youtube.com/vi/{self.apod_pic.get('url').split('=')[-1]}/mqdefault.jpg")
-            embed.description+=f'\nWatch the video using [This link]({self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
+                embed.set_image(url = f"https://img.youtube.com/vi/{self.apod_pic.get('url').split('=')[-1]}/hqdefault.jpg")
+            embed.description += f'\nWatch the video using [This link]({self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
         else:
-            embed.set_image(url=self.apod_pic.get("hdurl",self.apod_pic.get("url")))
-        embed.set_author(name=self.apod_pic.get("copyright","NASA's APOD"))
-        await ctx.send(embed=embed)
+            embed.set_image(url = self.apod_pic.get("hdurl", self.apod_pic.get("url")))
+        embed.set_author(name = self.apod_pic.get("copyright", "NASA's APOD"))
+        await ctx.send(embed = embed)
 
     @commands.command()
     async def epic(self,ctx,Max:int=1):
