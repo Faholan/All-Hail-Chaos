@@ -39,9 +39,9 @@ class chaotic_bot(commands.Bot):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
-        self.load_extension('data.data')
-
         self.first_on_ready = True
+
+        self.load_extension('data.data')
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(self, self.dbl_token, autopost=True)
@@ -84,8 +84,7 @@ class chaotic_bot(commands.Bot):
     async def close(self):
         await self.aio_session.close()
         await self.db.close()
-        if hasattr(self,"session"):
-            await self.session.close()
+        await self.ksoft_client.close()
         for task in all_tasks(loop=self.loop):
             task.cancel()
         await super().close()
