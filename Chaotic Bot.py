@@ -45,17 +45,17 @@ class chaotic_bot(commands.Bot):
 
         self.colors = data.colors
 
-        self.default_prefix=data.default_prefix
+        self.default_prefix = data.default_prefix
 
-        self.http.user_agent=data.user_agent
+        self.http.user_agent = data.user_agent
 
-        self.ksoft_token=data.ksoft_token
+        self.nasa = data.nasa
 
-        self.nasa=data.nasa
+        self.admins = data.admins
+        self.graphic_interface = data.graphic_interface
+        self.invite_permissions = data.invite_permissions
 
-        self.admins=data.admins
-        self.graphic_interface=data.graphic_interface
-        self.invite_permissions=data.invite_permissions
+        self.ksoft_client = ksoftapi.Client(data.ksoft_token, self.loop)
         self.discord_rep=data.discord_rep
         self.discord_bots=data.discord_bots
         self.xyz = data.xyz
@@ -67,16 +67,14 @@ class chaotic_bot(commands.Bot):
         self.bots_on_discord = data.bots_on_discord
         self.discord_bots_page = data.discord_bots_page
 
-        #self.db=sqlite3.connect("data/prefixes.db") #Sqlite database for prefixes
-
-        self.first_on_ready=True
+        self.first_on_ready = True
 
         if data.dbl_token:
-            self.dbl_client=dbl.DBLClient(self, data.dbl_token, autopost=True)
+            self.dbl_client = dbl.DBLClient(self, data.dbl_token, autopost=True)
 
         if data.github_token:
-            self.github=Github(data.github_token)
-        self.github_repo=data.github_repo
+            self.github = Github(data.github_token)
+        self.github_repo = data.github_repo
 
     async def on_ready(self):
         await self.change_presence(activity=Game(self.default_prefix+'help'))
@@ -186,59 +184,5 @@ class chaotic_bot(commands.Bot):
 async def command_prefix(bot,message):
     return await bot.get_m_prefix(message)
 
-bot=chaotic_bot(command_prefix=command_prefix,description="A bot for fun",help_command=None,fetch_offline_members=True)
-
-@bot.command(hidden=True,ignore_extra=True)
-async def help(ctx,*command_help):
-    """Sends the help message
-    Trust me, there's nothing to see here. Absolutely nothing."""
-    if len(command_help)==0:
-        #Aide générale
-        embed=Embed(title='Help',description=f'[Everything to know about my glorious self]({discord.utils.oauth_url(str(bot.user.id),permissions=discord.Permissions(data.invite_permissions))} "Invite link")\nThe prefix for this channel is `{discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))}`',colour=data.colors['blue'])
-        embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-        embed.set_footer(text=f"To get more information, use {discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))}help [subject].",icon_url=str(ctx.bot.user.avatar_url))
-        for cog in bot.cogs:
-            if bot.get_cog(cog).get_commands():
-                command_list=[discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.get_cog(cog).get_commands() if not command.hidden]
-                embed.add_field(name=bot.get_cog(cog).qualified_name,value='\n'.join(command_list),inline=False)
-        command_list=[discord.utils.escape_markdown(await bot.get_m_prefix(ctx.message,False))+command.name+' : '+command.short_doc for command in bot.commands if not command.cog and not command.hidden]
-        if command_list:
-            embed.add_field(name='Other commands',value='\n'.join(command_list))
-        await ctx.send(embed=embed)
-    else:
-        for helper in command_help:
-            cog=bot.get_cog(helper)
-            if cog:
-                if cog.get_commands():
-                    #Aide d'un cog
-                    embed=Embed(title=helper,description=cog.description,colour=data.colors['blue'])
-                    embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-                    embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-                    for command in cog.get_commands():
-                        if not command.hidden:
-                            aliases=[command.name]
-                            if command.aliases!=[]:
-                                aliases+=command.aliases
-                            embed.add_field(name='/'.join(aliases),value=command.help,inline=False)
-                    embed.set_footer(text=f"Are you interested in {helper} ?",icon_url=str(ctx.bot.user.avatar_url))
-                    await ctx.send(embed=embed)
-            else:
-                cog=bot.get_command(helper)
-                if cog:
-                    #Aide d'une commande spécifique
-                    embed=Embed(title = await bot.get_m_prefix(ctx.message,False) + helper, description = cog.help, colour = data.colors['blue'])
-                    if cog.aliases!=[]:
-                        embed.add_field(name = "Aliases :", value = "\n".join(cog.aliases))
-                    embed.set_author(name = str(ctx.message.author), icon_url = str(ctx.message.author.avatar_url))
-                    embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
-                    if cog.hidden:
-                        embed.set_footer(text = f"Wow, you found {helper} !", icon_url = str(ctx.bot.user.avatar_url))
-                    else:
-                        embed.set_footer(text = f"Are you interested in {helper} ?", icon_url = str(ctx.bot.user.avatar_url))
-                    await ctx.send(embed = embed)
-                else:
-                    await ctx.bot.httpcat(ctx,404,f"I couldn't find {helper}")
-
-bot.ksoft_client=ksoftapi.Client(bot.ksoft_token,bot.loop)
+bot = chaotic_bot(command_prefix = command_prefix, description = "A bot for fun", fetch_offline_members = True)
 bot.run(data.token)

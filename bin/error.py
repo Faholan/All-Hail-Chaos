@@ -25,6 +25,7 @@ import traceback
 from discord.ext import commands
 import discord
 import datetime
+import sys
 
 from os import path
 
@@ -105,5 +106,19 @@ async def error_manager(ctx,error):
     embed.timestamp = datetime.datetime.utcnow()
     await ctx.bot.log_channel.send(embed=embed)
 
+def generator(bot):
+    async def predictate(event, *args, **kwargs):
+        error_type, value, traceback = sys.exc_info()
+        embed = discord.Embed(color=0xFF0000)
+        embed.title = f"Error in {event} with args {args} {kwargs}"
+        embed.description = f"{error_type.__name} : {value}"
+        tb = "".join(traceback.format_tb(traceback))
+        embed.description += f"```\n{tb}```"
+        embed.set_footer(text=f"{self.user.name} Logging", icon_url=self.user.avatar_url_as(static_format="png"))
+        embed.timestamp = datetime.datetime.utcnow()
+        await bot.log_channel.send(embed=embed)
+    return predictate
+
 def setup(bot):
     bot.add_listener(error_manager,'on_command_error')
+    bot.add_listener(generator(bot), 'on_error')

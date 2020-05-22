@@ -82,7 +82,7 @@ class Music(commands.Cog):
 
     async def cog_check(self,ctx):
         if not ctx.guild:
-            await ctx.send("You must be in a guild to use this command")
+            raise commands.NoPrivateMessage
         return ctx.guild
 
     @tasks.loop(seconds=5.0)

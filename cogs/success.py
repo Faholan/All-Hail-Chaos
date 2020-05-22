@@ -45,7 +45,6 @@ class Success():
     async def checker(self, ctx, data, identifier, db):
         test, data = await self._checker(self, ctx, data)
         await db.execute(f"UPDATE successes SET `{self.column}`=? WHERE id=?", (data, identifier))
-        await db.commit()
         return test
 
     async def advancer(self, ctx, data):
@@ -93,34 +92,6 @@ Success("The secrets of the bot", "Find every single hidden command", hidden_com
 Success("The dark side of the chaos", "Find the hidden prefix", prefix(), "dark", 0, "BOOL", description_is_visible = False)
 ]
 
-async def check_successes(ctx):
-    cur = await ctx.bot.db.execute("SELECT * FROM successes WHERE id=?", (ctx.author.id,))
-    result = await cur.fetchone()
-    if not result:
-        await ctx.bot.db.execute("INSERT INTO successes (id) VALUES (?)", (ctx.author.id,))
-        cur = await ctx.bot.db.execute("SELECT * FROM successes WHERE id=?", (ctx.author.id,))
-        result = await cur.fetchone()
-    embeds = []
-    for s in success_list:
-        if not result[s.state_column]:
-            if await s.checker(ctx, result[s.column], ctx.author.id, ctx.bot.db):
-                embed = Embed(title = "Succes unlocked !", description = s.name, colour = ctx.bot.get_color())
-                embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
-                embed.set_thumbnail(url = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg")
-                embed.add_field(name = s.description, value = "Requirements met")
-                embeds.append(embed)
-                await ctx.bot.db.execute(f"UPDATE successes SET `{s.state_column}`=1 WHERE id=?", (ctx.author.id,))
-    await ctx.bot.db.commit()
-
-    i = 0
-    for embed in embeds:
-        i+=1
-        await ctx.send(embed=embed)
-        if i == 4:
-            await asyncio.sleep(5)
-            i = 0
-    return True
-
 class Successes(commands.Cog):
     """Everything to know about successes"""
     def __init__(self, bot, success_list):
@@ -128,7 +99,7 @@ class Successes(commands.Cog):
         self.success_list = success_list
         self.ensure_database.start()
 
-    @tasks.loop(seconds = 1, count = 1)
+    @tasks.loop(count = 1)
     async def ensure_database(self):
         await self.bot.db.execute("CREATE TABLE IF NOT EXISTS successes (id INT PRIMARY KEY)")
         cur = await self.bot.db.execute("SELECT * FROM pragma_table_info('successes')")
@@ -140,15 +111,14 @@ class Successes(commands.Cog):
             if not s.state_column in columns:
                 await self.bot.db.execute(f"ALTER TABLE successes ADD COLUMN `{s.state_column}` BOOL DEFAULT 0")
 
-
     @commands.command(ignore_extra=True,aliases=["succes", "successes"])
     async def success(self,ctx):
         """Sends back your successes"""
         cur = await self.bot.db.execute("SELECT * FROM successes WHERE id=?",(ctx.author.id,))
         state = await cur.fetchone()
-        embed=Embed(title=f"Success list ({len([s for s in self.success_list if state[s.state_column]])}/{len(self.success_list)})",colour=self.bot.colors["green"])
-        embed.set_author(name=str(ctx.author),icon_url=str(ctx.author.avatar_url))
-        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
+        embed=Embed(title = f"Success list ({len([s for s in self.success_list if state[s.state_column]])}/{len(self.success_list)})",colour=self.bot.colors["green"])
+        embed.set_author(name = str(ctx.author),icon_url=str(ctx.author.avatar_url))
+        embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
         locked = []
         for succ in self.success_list:
             if state[succ.state_column]:
@@ -159,6 +129,32 @@ class Successes(commands.Cog):
             embed.add_field(name = succ.name + await succ.advancer(ctx, state[succ.column]), value = succ.locked, inline = False)
         await ctx.send(embed = embed)
 
+    async def bot_check(self, ctx):
+        cur = await ctx.bot.db.execute("SELECT * FROM successes WHERE id=?", (ctx.author.id,))
+        result = await cur.fetchone()
+        if not result:
+            await ctx.bot.db.execute("INSERT INTO successes (id) VALUES (?)", (ctx.author.id,))
+            cur = await ctx.bot.db.execute("SELECT * FROM successes WHERE id=?", (ctx.author.id,))
+            result = await cur.fetchone()
+        embeds = []
+        for s in success_list:
+            if not result[s.state_column]:
+                if await s.checker(ctx, result[s.column], ctx.author.id, ctx.bot.db):
+                    embed = Embed(title = "Succes unlocked !", description = s.name, colour = ctx.bot.get_color())
+                    embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
+                    embed.set_thumbnail(url = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg")
+                    embed.add_field(name = s.description, value = "Requirements met")
+                    embeds.append(embed)
+                    await ctx.bot.db.execute(f"UPDATE successes SET `{s.state_column}`=1 WHERE id=?", (ctx.author.id,))
+        asyncio.create_task(ctx.bot.db.commit())
+        i = 0
+        for embed in embeds:
+            i+=1
+            await ctx.send(embed=embed)
+            if i == 4:
+                await asyncio.sleep(5)
+                i = 0
+        return True
+
 def setup(bot):
-    bot.add_check(check_successes)
     bot.add_cog(Successes(bot,success_list))

@@ -208,17 +208,16 @@ class Moderation(commands.Cog):
         #embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases = ['roles'])
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role(self, ctx, action):
+    async def role(self, ctx, action = None):
         """This command allows you to automatically give a role to anyone who reacts with a given emoji to a given message. Usage : `€role {action}` The action you select must be one of info, add, remove
         We both need the `manage_roles` permission for that."""
         if action.lower() == 'add':
             await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
             def check(message):
-                print(f"{message.content} : {message.role_mentions}")
                 return message.channel == ctx.channel and message.role_mentions and message.author == ctx.author
 
             try:
@@ -295,7 +294,7 @@ class Moderation(commands.Cog):
                 if output:
                     m = '\n'.join([f'- Rule number {key["rowid"]} : [Message](https://discord.com/channels/{key["guild_id"]}/{key["channel_id"]}/{key["message_id"]} "Link to the original message") | {key["emoji"]} | {", ".join([ctx.guild.get_role(int(ID)).name for ID in key["roleids"].split(",")])}' for key in output])
 
-            embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need to use the rule number to use the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
+            embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need the rule number for the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
             embed.add_field(name = "The rules :", value = m)
             await ctx.send(embed = embed)
         elif action.lower() == 'remove':
@@ -330,7 +329,7 @@ class Moderation(commands.Cog):
                         try:
                             message = await self.bot.wait_for('message', check = check, timeout = 30)
                         except asyncio.TimeoutError:
-                            await self.bot.db.commit()
+                            asyncio.create_task(self.bot.db.commit())
                             return await ctx.send("You didn't answer in time. I'm ignoring this command")
 
                         role_numbers = [int(k) for k in message.content.replace(' ','').split(',')]
@@ -343,7 +342,7 @@ class Moderation(commands.Cog):
                         return self.bot.db.commit()
                 except:
                     await self.bot.db.execute('DELETE FROM roles WHERE message_id=?', (result['message_id'],))
-                    await self.bot.db.commit()
+                    asynco.create_task(self.bot.db.commit())
                     return await ctx.send('The message associated with this rule has been deleted. I thus removed the rule.')
 
             await ctx.send("The rule you're trying to access doesn't exist in this guild")
@@ -402,7 +401,7 @@ class Moderation(commands.Cog):
                 result = await cur.fetchone()
                 if result:
                     await self.bot.db.execute(f"DELETE FROM guild_{ctx.guild.id}_swear_words WHERE swear=?", (word,))
-                    await ctx.send(f"The word {word} was remove from this guild's list of swear words")
+                    await ctx.send(f"The word {word} was removde from this guild's list of swear words")
                 else:
                     await self.bot.db.execute(f"INSERT INTO guild_{ctx.guild.id}_swear_words VALUES (?)", (word,))
                     await ctx.send(f"The word {word} was added to this guild's list of swear words")

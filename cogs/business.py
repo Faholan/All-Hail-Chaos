@@ -24,6 +24,7 @@ from discord.ext import commands
 import discord
 from time import time
 from data import data
+from asyncio import create_task
 
 from os import path
 
@@ -55,7 +56,7 @@ class Business_guy():
 
     async def save(self):
         await self.db.execute("INSERT INTO business VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE money=?, bank=?, bank_max=?, streak=?, last_daily=?, steal_streak=?",(self.id,self.money,self.bank,self.bank_max,self.streak,self.last_daily,self.steal_streak,self.money,self.bank,self.bank_max,self.streak,self.last_daily,self.steal_streak))
-        await self.db.commit()
+        asyncio.create_task(self.db.commit())
 
     async def daily(self):
         if time() < self.last_daily + 172800:
