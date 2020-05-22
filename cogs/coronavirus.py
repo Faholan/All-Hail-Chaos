@@ -7,7 +7,6 @@ import traceback
 #coronatracker
 from collections import namedtuple
 from datetime import datetime
-import requests
 
 TotalStats = namedtuple('TotalStats', 'confirmed deaths recovered')
 Country = namedtuple('Country', 'total_stats id last_updated areas name lat long')

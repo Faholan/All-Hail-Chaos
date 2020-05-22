@@ -21,14 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 from discord.ext import commands
-from discord import Embed,Game
-import discord.utils
+from discord import Embed, Game
 from datetime import datetime
 
-from data import data
 import aiosqlite
-
-import ksoftapi
 
 from asyncio import all_tasks
 import aiohttp
@@ -43,38 +39,15 @@ class chaotic_bot(commands.Bot):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
-        self.colors = data.colors
-
-        self.default_prefix = data.default_prefix
-
-        self.http.user_agent = data.user_agent
-
-        self.nasa = data.nasa
-
-        self.admins = data.admins
-        self.graphic_interface = data.graphic_interface
-        self.invite_permissions = data.invite_permissions
-
-        self.ksoft_client = ksoftapi.Client(data.ksoft_token, self.loop)
-        self.discord_rep=data.discord_rep
-        self.discord_bots=data.discord_bots
-        self.xyz = data.xyz
-        self.discord_bot_list = data.discord_bot_list
-
-        self.support = data.support
-
-        self.top_gg = data.top_gg
-        self.bots_on_discord = data.bots_on_discord
-        self.discord_bots_page = data.discord_bots_page
+        self.load_extension('data.data')
 
         self.first_on_ready = True
 
-        if data.dbl_token:
-            self.dbl_client = dbl.DBLClient(self, data.dbl_token, autopost=True)
+        if self.dbl_token:
+            self.dbl_client = dbl.DBLClient(self, self.dbl_token, autopost=True)
 
-        if data.github_token:
-            self.github = Github(data.github_token)
-        self.github_repo = data.github_repo
+        if self.github_token:
+            self.github = Github(self.github_token)
 
     async def on_ready(self):
         await self.change_presence(activity=Game(self.default_prefix+'help'))
@@ -86,13 +59,13 @@ class chaotic_bot(commands.Bot):
             await self.db.execute('CREATE TABLE IF NOT EXISTS roles (message_id INT, channel_id INT, guild_id INT, emoji TINYTEXT, roleids TEXT)')
             self.aio_session = aiohttp.ClientSession()
             self.last_update = datetime.utcnow()
-            self.log_channel = self.get_channel(data.log_channel)
-            self.suggestion_channel = self.get_channel(data.suggestion_channel)
+            self.log_channel = self.get_channel(self.log_channel_id)
+            self.suggestion_channel = self.get_channel(self.suggestion_channel_id)
             report = []
-            for ext in data.extensions:
-                    if not ext in bot.extensions:
+            for ext in self.extensions_list:
+                    if not ext in self.extensions:
                         try:
-                            bot.load_extension(ext)
+                            self.load_extension(ext)
                             report.append("Extension loaded : "+ext)
                         except commands.ExtensionFailed as e:
                             report.append(e.name+" : " + str(type(e.original)) + " : " + str(e.original))
@@ -119,17 +92,17 @@ class chaotic_bot(commands.Bot):
 
     async def cog_reloader(self, extensions):
         self.last_update=datetime.utcnow()
-        from data import data as D
         report=[]
+        self.reload_extension('data.data')
         if extensions:
             for ext in extensions:
-                if ext in D.extensions:
+                if ext in self.extensions_list:
                     try:
                         try:
                             self.reload_extension(ext)
                             report.append("Extension reloaded : "+ext)
                         except commands.ExtensionNotLoaded:
-                            bot.load_extension(ext)
+                            self.load_extension(ext)
                             report.append("Extension loaded : "+ext)
                     except commands.ExtensionFailed as e:
                         report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
@@ -138,13 +111,13 @@ class chaotic_bot(commands.Bot):
                 else:
                     report.append(f"`{ext}` is not a valid extension")
         else:
-            for ext in D.extensions:
+            for ext in self.extensions_list:
                 try:
                     try:
                         self.reload_extension(ext)
                         report.append("Extension reloaded : "+ext)
                     except commands.ExtensionNotLoaded:
-                        bot.load_extension(ext)
+                        self.load_extension(ext)
                         report.append("Extension loaded : "+ext)
                 except commands.ExtensionFailed as e:
                     report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
@@ -166,8 +139,8 @@ class chaotic_bot(commands.Bot):
             return result['prefix']
         return self.default_prefix
 
-    async def httpcat(self, ctx, code, title = discord.Embed.Empty, description = discord.Embed.Empty):
-        embed=Embed(title = title, color = self.colors['red'], description = description)
+    async def httpcat(self, ctx, code, title = Embed.Empty, description = Embed.Empty):
+        embed = Embed(title = title, color = self.colors['red'], description = description)
         embed.set_image(url = "https://http.cat/"+str(code)+".jpg")
         await ctx.send(embed=embed)
 
@@ -177,12 +150,8 @@ class chaotic_bot(commands.Bot):
             return ctx.guild.id
         return ctx.channel.id
 
-    @staticmethod
-    def get_color():
-        return data.get_color()
-
 async def command_prefix(bot,message):
     return await bot.get_m_prefix(message)
 
 bot = chaotic_bot(command_prefix = command_prefix, description = "A bot for fun", fetch_offline_members = True)
-bot.run(data.token)
+bot.run(bot.token)
