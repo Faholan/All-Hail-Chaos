@@ -212,11 +212,7 @@ class Utility(commands.Cog):
     @check_admin()
     async def reload(self, ctx, *extensions):
         """Owner command"""
-        if extensions:
-            await ctx.send(f"Reloading {len(extensions)} extensions...")
-        else:
-            await ctx.send("Reloading...")
-        await self.bot.cog_reloader(extensions)
+        await self.bot.cog_reloader(ctx, extensions)
 
     @commands.command()
     @commands.cooldown(2,600,commands.BucketType.user)

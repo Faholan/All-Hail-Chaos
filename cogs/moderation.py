@@ -16,8 +16,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],*,reason=None):
-        """Command used to ban users. You can specify members or roles. The bot will then ban all the members you specified, and all the members having the specified role. You can specify at the end a reason for the ban
-        You need the `ban members` permission, and your highest role needs to be higher than the others'. The bot then deletes the banned roles"""
+        """You can specify members or roles, and at the end a reason for the ban.
+        The bot will ban all the members specified, and all the members having the specified roles.
+        You need the `ban members` permission, and your highest role needs to be higher than the others'."""
         banning=[]
         roles=[]
         for banned in who:
@@ -87,8 +88,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self,ctx,who:commands.Greedy[typing.Union[discord.Role,discord.Member]],*,reason=None):
-        """Command used to kick users. You can specify members or roles. The bot will then kick all the members you specified, and all the members having the specified role. You can specify at the end a reason for the kick
-        You need the `kick members` permission, and your highest role needs to be higher than the others'. The bot then deletes the kicked roles"""
+        """You can specify members or roles, and at the end a reason for the kick.
+        The bot will kick all the members specified, and all the members having the specified roles.
+        You need the `kick members` permission, and your highest role needs to be higher than the others'."""
         kicking=[]
         roles=[]
         for kicked in who:
@@ -210,10 +212,10 @@ class Moderation(commands.Cog):
 
     @commands.command(aliases = ['roles'])
     @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
+    @commands.has_permissions(manage_roles = True)
+    @commands.bot_has_permissions(manage_roles = True)
     async def role(self, ctx, action = None):
-        """This command allows you to automatically give a role to anyone who reacts with a given emoji to a given message. Usage : `€role {action}` The action you select must be one of info, add, remove
+        """Automatically gives a role to anyone who reacts with a given emoji to a given message. Usage : `€role {action}` The action you select must be one of `info`, `add`, `remove`
         We both need the `manage_roles` permission for that."""
         if action.lower() == 'add':
             await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
@@ -352,10 +354,10 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.bot_has_permissions(manage_messages=True)
-    @commands.has_permissions(administrator=True)
-    async def swear(self,ctx,word=None):
-        """You can specify a word to add/remove it from the list of forbidden words, or you can also don't specify one to check the swear filter's status. Specify on/off to turn it on/off, auto to turn the autodetection on/off, and notification if you want or not me to DM the guild owner if I can't delete a message (only him can use this).
+    @commands.bot_has_permissions(manage_messages = True)
+    @commands.has_permissions(administrator = True)
+    async def swear(self, ctx, word = None):
+        """The effect of this command depends on the argument passed : `on`/`off` : turns the filter on/off. `auto` : turns autodetection on/off. `notification` : turns DM alert on/off (guild owner only). Anything else adds a word to the list, and nothing means to heck the status
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !"""
         await self.bot.db.execute(f"CREATE TABLE IF NOT EXISTS guild_{ctx.guild.id}_swear_words (swear TINYTEXT)")
         if word:

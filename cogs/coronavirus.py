@@ -14,28 +14,27 @@ SubArea = namedtuple('SubArea', 'total_stats id last_updated areas name lat long
 
 class CoronaTracker:
     ENDPOINT = 'https://api.covid19api.com/summary'
-    def __init__(self,bot):
+    def __init__(self, bot):
         self.bot = bot
-        self.countries = []
-        self.total_stats = None
+        if not hasattr(bot, "covid_database"):
+            bot.covid_database = {'countries':[], 'total_stats':None}
 
     async def fetch_results(self):
         async with self.bot.aio_session.get(self.ENDPOINT) as r:
-            if r.status==200:
-                _data=await r.json()
+            if r.status == 200:
+                _data = await r.json()
 
-                self.total_stats = _data["Global"]
+                self.bot.covid_database['total_stats'] = _data["Global"]
 
-                self.countries = _data["Countries"]
+                self.bot.covid_database['countries'] = _data["Countries"]
             else:
-                embed=Embed(title=f"Error {r.status} in fetch_results() :",description=await r.text(),color=self.bot.colors['red'])
-                await self.bot.log_channel.send(embed=embed)
+                embed = Embed(title=f"Error {r.status} in fetch_results() :",description = await r.text(), color = self.bot.colors['red'])
+                await self.bot.log_channel.send(embed = embed)
 
     def get_country(self,country):
-        return utils.find(lambda c:c["Slug"]==country,self.countries)
+        return utils.find(lambda c:c["Slug"] == country, self.bot.covid_database['countries'])
 
 #coronatracker
-
 
 before_dict={"é":"e","è":"e","ê":"e","ë":"e","à":"a","ç":"c","â":"a","ä":"a","ñ":"n","ì":"i","à":"a","ù":"u"}
 
@@ -213,32 +212,33 @@ country_dict={"usa":"united-states",
 
 class Coronavirus(commands.Cog):
     """Pandemy detected"""
-    def __init__(self,bot):
-        self.bot=bot
-        self.corona=CoronaTracker(bot)
-        self.fetching=False
+    def __init__(self, bot):
+        self.bot = bot
+        self.corona = CoronaTracker(bot)
+        self.fetching = False
         self.corona_update.start()
 
-    @commands.command(aliases=["cv", "corona", "coronavirus"])
-    async def covid(self,ctx,*,country):
+    @commands.command(aliases = ["cv", "corona", "coronavirus"])
+    async def covid(self, ctx, *, country):
         """Displays information regarding COVID-19."""
         if self.fetching:
             return await ctx.send("I'm currently updating my database. Please try again in a few seconds")
-        country_name=country_dict.get(''.join([before_dict.get(i,i) for i in country.lower()]).replace(' ','').replace("'","").replace("-",""),''.join([before_dict.get(i,i) for i in country.lower()]).replace(' ','').replace("'","").replace("-",""))
-        corona_country=self.corona.get_country(country_name)
-        if corona_country==None:
-            return await self.bot.httpcat(ctx,404,"I didn't find this country.")
-        embed=Embed(title=f"Coronavirus stats for {country}",colour=self.bot.colors['blue'])
-        embed.add_field(name="Confirmed cases",value=corona_country.get("TotalRecovered",0))
-        embed.add_field(name="Deaths",value=corona_country.get("TotalDeaths",0))
-        embed.add_field(name="Recovered",value=corona_country.get("TotalRecovered",0))
-        embed.set_author(name=str(ctx.message.author),icon_url=str(ctx.message.author.avatar_url))
-        embed.set_thumbnail(url="https://d3i6fh83elv35t.cloudfront.net/static/2020/01/RTS301GM-1024x576.jpg")
-        await ctx.send(embed=embed)
+        before_name = ''.join([before_dict.get(i, i) for i in country.lower()]).replace(' ', '').replace("'", "").replace("-", "")
+        country_name = country_dict.get(before_name, before_name)
+        corona_country = self.corona.get_country(country_name)
+        if corona_country == None:
+            return await self.bot.httpcat(ctx, 404, "I didn't find this country.")
+        embed = Embed(title = f"Coronavirus stats for {country}", colour = self.bot.colors['blue'])
+        embed.add_field(name = "Confirmed cases", value = corona_country.get("TotalRecovered", 0))
+        embed.add_field(name = "Deaths", value = corona_country.get("TotalDeaths", 0))
+        embed.add_field(name = "Recovered",value = corona_country.get("TotalRecovered", 0))
+        embed.set_author(name = str(ctx.message.author), icon_url = str(ctx.message.author.avatar_url))
+        embed.set_thumbnail(url = "https://d3i6fh83elv35t.cloudfront.net/static/2020/01/RTS301GM-1024x576.jpg")
+        await ctx.send(embed = embed)
 
-    @tasks.loop(hours=1)
+    @tasks.loop(hours = 2)
     async def corona_update(self):
-        self.fetching=True
+        self.fetching = True
         try:
             await self.corona.fetch_results()
         except Exception as error:
@@ -247,10 +247,13 @@ class Coronavirus(commands.Cog):
             embed.description = type(error).__name__+" : "+str(error)
             tb = "".join(traceback.format_tb(error.__traceback__))
             embed.description += f"```\n{tb}```"
-            embed.set_footer(text=f"{self.bot.user.name} Logging", icon_url=self.bot.user.avatar_url_as(static_format="png"))
+            embed.set_footer(text = f"{self.bot.user.name} Logging", icon_url = self.bot.user.avatar_url_as(static_format = "png"))
             embed.timestamp = datetime.utcnow()
-            await self.bot.log_channel.send(embed=embed)
+            await self.bot.log_channel.send(embed = embed)
         self.fetching=False
+
+    def cog_unload(self):
+        self.corona_update.cancel()
 
 def setup(bot):
     bot.add_cog(Coronavirus(bot))

@@ -10,7 +10,7 @@ class Help(commands.HelpCommand):
         embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
         embed.set_footer(text = f"To get more information, use {discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))}help [subject].", icon_url = str(ctx.bot.user.avatar_url))
         for cog in mapping:
-            command_list = [discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False)) + command.name + ' : ' + command.short_doc for command in await self.filter_commands(mapping[cog])]
+            command_list = [f"`{discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))}{command.name}` : {command.short_doc}" for command in await self.filter_commands(mapping[cog])]
             if command_list:
                 if cog:
                     embed.add_field(name = cog.qualified_name, value = '\n'.join(command_list), inline=False)
@@ -20,11 +20,11 @@ class Help(commands.HelpCommand):
 
     async def send_cog_help(self, cog):
         ctx = self.context
-        embed = discord.Embed(title = cog.qualified_name, description = cog.description, colour = ctx.bot.colors['blue'])
+        embed = discord.Embed(title = cog.qualified_name, description = f"The prefix for this channel is `{discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))}`\n{cog.description}", colour = ctx.bot.colors['blue'])
         embed.set_author(name = str(ctx.message.author), icon_url = str(ctx.message.author.avatar_url))
         embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
         for command in await self.filter_commands(cog.get_commands()):
-            embed.add_field(name = '/'.join([command.name] + command.aliases), value = command.help, inline=False)
+            embed.add_field(name = f"**`{'/'.join([command.name] + command.aliases)}`**", value = command.help, inline=False)
         embed.set_footer(text = f"Are you interested in {command.name} ?", icon_url = str(ctx.bot.user.avatar_url))
         await ctx.send(embed = embed)
 

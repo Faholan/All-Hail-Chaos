@@ -62,16 +62,22 @@ class chaotic_bot(commands.Bot):
             self.log_channel = self.get_channel(self.log_channel_id)
             self.suggestion_channel = self.get_channel(self.suggestion_channel_id)
             report = []
+            success = 0
             for ext in self.extensions_list:
                     if not ext in self.extensions:
                         try:
                             self.load_extension(ext)
-                            report.append("Extension loaded : "+ext)
+                            report.append(f"✅ | **Extension loaded** : `{ext}`")
+                            success+=1
                         except commands.ExtensionFailed as e:
-                            report.append(e.name+" : " + str(type(e.original)) + " : " + str(e.original))
-                        except:
-                            report.append("Extension not loaded : "+ext)
-            await self.log_channel.send('\n'.join(report))
+                            report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
+                        except commands.ExtensionNotFound:
+                            report.append(f"❌ | **Extension not found** : `{ext}`")
+                        except commands.NoEntryPointError:
+                            report.append(f"❌ | **setup not defined** : `{ext}`")
+
+            embed = Embed(title = f"{success} extensions were loaded & {len(self.extensions_list) - success} extensions were not loaded", description = '\n'.join(report), color = self.colors['green'])
+            await self.log_channel.send(embed = embed)
         else:
             await self.log_channel.send("on_ready called again")
 
@@ -85,44 +91,56 @@ class chaotic_bot(commands.Bot):
         await self.aio_session.close()
         await self.db.close()
         await self.ksoft_client.close()
-        for task in all_tasks(loop=self.loop):
+        for task in all_tasks(loop = self.loop):
             task.cancel()
         await super().close()
 
-    async def cog_reloader(self, extensions):
-        self.last_update=datetime.utcnow()
-        report=[]
+    async def cog_reloader(self, ctx, extensions):
+        self.last_update = datetime.utcnow()
+        report = []
+        success = 0
         self.reload_extension('data.data')
+        M = len(self.extensions_list)
         if extensions:
+            M = len(extensions)
             for ext in extensions:
                 if ext in self.extensions_list:
                     try:
                         try:
                             self.reload_extension(ext)
-                            report.append("Extension reloaded : "+ext)
+                            success+=1
+                            report.append(f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
-                            report.append("Extension loaded : "+ext)
+                            report.append(f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as e:
-                        report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
-                    except:
-                        report.append("Extension not loaded : "+ext)
+                        report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
+                    except commands.ExtensionNotFound:
+                        report.append(f"❌ | **Extension not found** : `{ext}`")
+                    except commands.NoEntryPointError:
+                        report.append(f"❌ | **setup not defined** : `{ext}`")
                 else:
-                    report.append(f"`{ext}` is not a valid extension")
+                    report.append(f"❌ | `{ext}` is not a valid extension")
         else:
             for ext in self.extensions_list:
                 try:
                     try:
                         self.reload_extension(ext)
-                        report.append("Extension reloaded : "+ext)
+                        success+=1
+                        report.append(f"✔️ | **Extension reloaded** : `{ext}`")
                     except commands.ExtensionNotLoaded:
                         self.load_extension(ext)
-                        report.append("Extension loaded : "+ext)
+                        report.append(f"✔️ | **Extension loaded** : `{ext}`")
                 except commands.ExtensionFailed as e:
-                    report.append(e.name+" : "+str(type(e.original))+" : "+str(e.original))
-                except:
-                    report.append("Extension not loaded : "+ext)
-        await self.log_channel.send('\n'.join(report))
+                    report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
+                except commands.ExtensionNotFound:
+                    report.append(f"❌ | **Extension not found** : `{ext}`")
+                except commands.NoEntryPointError:
+                    report.append(f"❌ | **setup not defined** : `{ext}`")
+
+        embed = Embed(title = f"{success} {'extension was' if success == 1 else 'extensions were'} loaded & {M - success} {'extension was' if M - success == 1 else 'extensions were'} not loaded", description = '\n'.join(report), color = self.colors['green'])
+        await self.log_channel.send(embed = embed)
+        await ctx.send(embed = embed)
 
     async def get_m_prefix(self, message, not_print=True):
         if message.content.startswith("¤") and not_print:
