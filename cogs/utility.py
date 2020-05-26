@@ -87,7 +87,7 @@ class Utility(commands.Cog):
         await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))}")
 
     @commands.command(ignore_extra=True)
-    async def code(self,ctx):
+    async def code(self, ctx):
         '''Returns stats about the bot's code
         Credits to Dutchy#6127 for this command'''
         total = 0
@@ -345,7 +345,7 @@ class Utility(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def discord_bot_list(self):
-        await self.bot.aio_session.post(f"https://discordbotlist.com/api/bots/{self.bot.user.id}/stats",json={"guilds":len(self.bot.guilds),"users":len(self.bot.users)},headers={"Authorization":f"Bot {self.bot.discord_bot_list}"})
+        await self.bot.aio_session.post(f"https://discordbotlist.com/api/bots/{self.bot.user.id}/stats",json={"guilds":len(self.bot.guilds),"users":len([*self.bot.get_all_members()])},headers={"Authorization":f"Bot {self.bot.discord_bot_list}"})
 
 
 def setup(bot):

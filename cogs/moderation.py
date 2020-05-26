@@ -127,7 +127,7 @@ class Moderation(commands.Cog):
         else:
             await ctx.send(f"You're about to kick {len(kicking)} members :\n -{(r+' -').join([member.mention for member in kicking])}\n\nDo you want to proceed ? (y/n)")
         def check(m):
-            return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower.startswith('n')) and m.channel==ctx.channel
+            return m.author==ctx.author and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and m.channel==ctx.channel
         try:
             msg=await self.bot.wait_for('message',check=check,timeout=30.0)
             proceed=msg.content.lower().startswith('y')
@@ -214,8 +214,8 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_roles = True)
     @commands.bot_has_permissions(manage_roles = True)
-    async def role(self, ctx, action = None):
-        """Automatically gives a role to anyone who reacts with a given emoji to a given message. Usage : `€role {action}` The action you select must be one of `info`, `add`, `remove`
+    async def role(self, ctx, action):
+        """Automatically gives a role to anyone who reacts with a given emoji to a given message. The action one of `info`, `add`, `remove`
         We both need the `manage_roles` permission for that."""
         if action.lower() == 'add':
             await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
@@ -357,7 +357,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_messages = True)
     @commands.has_permissions(administrator = True)
     async def swear(self, ctx, word = None):
-        """The effect of this command depends on the argument passed : `on`/`off` : turns the filter on/off. `auto` : turns autodetection on/off. `notification` : turns DM alert on/off (guild owner only). Anything else adds a word to the list, and nothing means to heck the status
+        """The effect of this command depends on the argument passed : `on`/`off` : turns the filter on/off. `auto` : turns autodetection on/off. `notification` : turns DM alert on/off (guild owner only). Anything else adds a word to the list, and nothing means to check the status
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !"""
         await self.bot.db.execute(f"CREATE TABLE IF NOT EXISTS guild_{ctx.guild.id}_swear_words (swear TINYTEXT)")
         if word:
