@@ -449,6 +449,23 @@ class Moderation(commands.Cog):
             except :
                 pass
 
+    @commands.Cog.listener('on_member_join')
+    async def role_saver(self, member):
+        cur = await self.bot.db.execute('SELECT rowid, * FROM roles WHERE guild_id=?', (member.guild.id,))
+        results = await cur.fetchall()
+        for result in results:
+            channel = member.guild.get_channel(result['channel_id'])
+            if channel:
+                message = await channel.fetch_message(result['message_id'])
+                if message:
+                    for reaction in message.reactions:
+                        emoji = reaction.emoji
+                        if not isinstance(emoji, str):
+                            emoji = emoji.name
+                        if emoji == result['emoji']:
+                            roles = (member.guild.get_role(int(r)) for r in result['roleids'].split(','))
+                            await member.add_roles(*(r for r in roles if r), reason = f"Rule n°{result['rowid']}")
+
     @commands.Cog.listener("on_message")
     async def no_swear_words(self,message):
         if message.author == self.bot or not isinstance(message.author, discord.Member):
