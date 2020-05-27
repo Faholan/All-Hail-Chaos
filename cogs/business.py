@@ -27,6 +27,8 @@ from asyncio import create_task
 
 from os import path
 
+from random import randint
+
 p_vol=lambda n:75-(25*0.8**n)
 
 class Business_guy():
@@ -54,8 +56,13 @@ class Business_guy():
         return self.id == other.id
 
     async def save(self):
-        await self.db.execute("INSERT INTO business VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE money=?, bank=?, bank_max=?, streak=?, last_daily=?, steal_streak=?",(self.id,self.money,self.bank,self.bank_max,self.streak,self.last_daily,self.steal_streak,self.money,self.bank,self.bank_max,self.streak,self.last_daily,self.steal_streak))
-        asyncio.create_task(self.db.commit())
+        cur = await self.db.execute("SELECT * FROM business WHERE id=?", (self.id,))
+        result = await cur.fetchone()
+        if result:
+            await self.db.execute("UPDATE business SET money=?, bank=?, bank_max=?, streak=?, last_daily=?, steal_streak=? WHERE id=?", (self.money, self.bank, self.bank_max, self.streak, self.last_daily, self.steal_streak, self.id))
+        else:
+            await self.db.execute("INSERT INTO business VALUES (?, ?, ?, ?, ?, ?, ?)", (self.id, self.money, self.bank, self.bank_max, self.streak, self.last_daily, self.steal_streak))
+        create_task(self.db.commit())
 
     async def daily(self):
         if time() < self.last_daily + 172800:
@@ -134,7 +141,7 @@ class Business(commands.Cog):
     async def gift(self,ctx):
         '''Get the guild's daily gift (500 GP)'''
         fetched = await self._fetcher(ctx.author.id)
-        business = Business_guy(fetched.fetchone(), ctx.author, ctx.bot.db)
+        business = Business_guy(await fetched.fetchone(), ctx.author, ctx.bot.db)
         await ctx.send(await business.gift(ctx.guild.name))
 
     @commands.command(ignore_extra=True)
@@ -162,7 +169,7 @@ class Business(commands.Cog):
             return await ctx.send(f"`{victim.display_name}` doesn't have money on him. What a shame.")
 
         m = p_vol(pickpocket.steal_streak)
-        if victim.state == discord.State.offline:
+        if victim.status == discord.Status.offline:
             m += 10
         if randint(1,100) > m:
             pickpocket.steal_streak = 0
@@ -171,8 +178,7 @@ class Business(commands.Cog):
         else:
             self.steal.reset_cooldown(ctx)
             pickpocket.steal_streak += 1
-            await pickpocket.save()
-            await ctx.send(f"You robbed `{pickpocket.steal(stolen)}` GP from {victim.display_name}")
+            await ctx.send(f"You robbed `{await pickpocket.steal(stolen)}` GP from {victim.display_name}")
 
     @steal.error
     async def steal_error(self, ctx, error):
