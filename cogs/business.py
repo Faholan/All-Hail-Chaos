@@ -171,7 +171,7 @@ class Business(commands.Cog):
         m = p_vol(pickpocket.steal_streak)
         if victim.status == discord.Status.offline:
             m += 10
-        if randint(1,100) > m:
+        if randint(1,100) < m:
             pickpocket.steal_streak = 0
             await pickpocket.save()
             await ctx.send(f"You failed in your attempt to steal {victim.display_name}. He hit you, so you must now wait 10 minutes to regain your usual sneakiness")

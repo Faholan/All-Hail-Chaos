@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks
 import discord
 from random import choice
+from discord.utils import escape_markdown
 
 class NASA(commands.Cog):
     """It's so easy to hack the NASA"""
@@ -60,7 +61,10 @@ class NASA(commands.Cog):
         """Search for an image in the NASA database"""
         async with self.bot.aio_session.get("https://images-api.nasa.gov/search",params={"q":query,"media_type":"image"}) as result:
             jresult=await result.json()
-        data=jresult["collection"]["items"][0]["data"][0]
+        try:
+            data=jresult["collection"]["items"][0]["data"][0]
+        except:
+            return await ctx.send(f"I didn't find anything for your query `{escape_markdown(query)}`")
         embed=discord.Embed(title=data["title"],description=data["description"],colour=self.bot.get_color())
         async with self.bot.aio_session.get("https://images-api.nasa.gov/asset/"+data["nasa_id"]) as imageq:
             imagej=await imageq.json()

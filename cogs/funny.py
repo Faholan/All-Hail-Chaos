@@ -64,7 +64,7 @@ def intervention(attacking,victim,weapons):
     return (('Michel, god of dad jokes, decided to restart the fight : each player now has 1000 HP','',"Michel's intervention",attacking.avatar_url),(victim.hit(choice(weapons).split('|'))))
 def fumble(attacking,victim,weapons):
     m,d,attack,url=attacking.hit(choice(weapons).split('|'))
-    return (('{attacking} just hurt himself !','','Fumble',attacking.avatar_url),(m.format(victim=attacking.display_name,attacking=attacking.display_name),d,attack,url))
+    return (('{attacking} just hurt himself !','','Fumble',attacking.avatar_url),(m.format(defending=attacking.display_name,attacking=attacking.display_name),d,attack,url))
 def armor(attacking,victim,weapons):
     m,d,attack,url=victim.hit(choice(weapons).split('|'))
     attacking.pv-=round(int(d)/2)
@@ -74,7 +74,7 @@ def steal(attacking,victim,weapons):
     attacking.pv+=round(int(d)/2)
     return (('{attacking}, thanks to a demonic ritual to the glory of our lord Satan, steals half the HP lost by {defending}.','',"Life steal",attacking.avatar_url),(m,d,attack,url))
 def depression(attacking,victim,weapons):
-    return (("{defending} thinks he is basically a piec of shit (which isn't totally false, by the way), making him pretty much easier to hit",'','Depression',victim.avatar_url),(victim.hit(choice(weapons).split('|'),10)))
+    return (("{defending} thinks he is basically a piece of shit (which isn't totally false, by the way), making him pretty much easier to hit",'','Depression',victim.avatar_url),(victim.hit(choice(weapons).split('|'),10)))
 def bottle(attacking,victim,weapons):
     return (("{attacking} tried drinking from the hornet-filled bottle. He logically cannot very well aim for {defending}",'','Hornet bottle',attacking.avatar_url),(victim.hit(choice(weapons).split('|'),-10)))
 
@@ -189,8 +189,8 @@ class Funny(commands.Cog):
                 await ctx.send(embed=embed)
                 if next.pv>0 and fight[0].pv>0:
                     def check(m):
-                        return m.author.id==next.id and m.content.lower().startswith('defend '+fight[0].display_name) and m.channel==ctx.channel
-                    await ctx.send(next.mention+", send `defend {attacking}` in the next 30 seconds, or run away like a coward.".format(attacking=fight[0].display_name))
+                        return m.author.id==next.id and m.content.lower().startswith(f"defend {fight[0].display_name.lower()}") and m.channel==ctx.channel
+                    await ctx.send(f"{next.mention}, send `defend {fight[0].display_name}` in the next 30 seconds, or run away like a coward.")
                     try:
                         msg=await self.bot.wait_for('message',check=check,timeout=30.0)
                     except asyncio.TimeoutError:
