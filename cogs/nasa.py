@@ -59,17 +59,21 @@ class NASA(commands.Cog):
     @commands.command()
     async def nasasearch(self,ctx,*,query):
         """Search for an image in the NASA database"""
-        async with self.bot.aio_session.get("https://images-api.nasa.gov/search",params={"q":query,"media_type":"image"}) as result:
+        async with self.bot.aio_session.get("https://images-api.nasa.gov/search", params = {"q":query, "media_type":"image"}) as result:
             jresult=await result.json()
         try:
-            data=jresult["collection"]["items"][0]["data"][0]
+            data = jresult["collection"]["items"][0]["data"][0]
         except:
             return await ctx.send(f"I didn't find anything for your query `{escape_markdown(query)}`")
-        embed=discord.Embed(title=data["title"],description=data["description"],colour=self.bot.get_color())
-        async with self.bot.aio_session.get("https://images-api.nasa.gov/asset/"+data["nasa_id"]) as imageq:
+        converter = self.bot.markdownhtml()
+        description = converter.feed(data["description"])
+        if len(description) > 2048:
+            description = f"{description[:2045].strip()}..."
+        embed = discord.Embed(title = data["title"], description = description, colour = self.bot.get_color(), url = f"https://images.nasa.gov/details-{data['nasa_id']}")
+        async with self.bot.aio_session.get("https://images-api.nasa.gov/asset/" + data["nasa_id"]) as imageq:
             imagej=await imageq.json()
-        embed.set_image(url=imagej["collection"]["items"][0]["href"])
-        await ctx.send(embed=embed)
+        embed.set_image(url = imagej["collection"]["items"][0]["href"])
+        await ctx.send(embed = embed)
 
 def setup(bot):
     bot.add_cog(NASA(bot))

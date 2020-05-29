@@ -3,7 +3,7 @@ from random import choice
 import ksoftapi
 
 def setup(bot):
-    bot.extensions_list = ["cogs.animals","cogs.battleship","cogs.business","cogs.coronavirus","cogs.funny","cogs.image","cogs.moderation","cogs.music","cogs.nasa", "cogs.success","cogs.utility","bin.error", "bin.help"]
+    bot.extensions_list = ["cogs.animals","cogs.battleship","cogs.business","cogs.coronavirus","cogs.funny","cogs.image","cogs.moderation","cogs.music","cogs.nasa", "cogs.success","cogs.utility","bin.error", "bin.help", "bin.markdown"]
     if bot.first_on_ready:
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
         bot.admins = "ALL THE DISCORD ACCOUNTS WHICH HAVE ADMIN RIGHTS FOR THE BOT"

@@ -112,6 +112,7 @@ class chaotic_bot(commands.Bot):
                             report.append(f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
+                            success+=1
                             report.append(f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as e:
                         report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
