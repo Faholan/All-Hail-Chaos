@@ -99,6 +99,20 @@ class Utility(commands.Cog):
         '''Returns a link to add the bot to a new server'''
         await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))}")
 
+    @commands.command(ignore_extra = True)
+    async def block(self, ctx):
+        """Use this command if you don't want me to DM you (except if you DM me commands)"""
+        await self.bot.db.execute("CREATE TABLE IF NOT EXISTS block (id INT)")
+        cur = await self.bot.db.execute('SELECT * FROM block WHERE id=?', (ctx.author.id,))
+        result = await cur.fetchone()
+        if result:
+            await self.bot.db.execute("DELETE FROM block WHERE id=?", (ctx.author.id,))
+            await ctx.send("You unblocked me")
+        else:
+            await self.bot.db.execute("INSERT INTO block VALUES (?)", (ctx.author.id,))
+            await ctx.send("You blocked me")
+        await self.bot.db.commit()
+
     @commands.command(ignore_extra=True)
     async def code(self, ctx):
         '''Returns stats about the bot's code
@@ -127,6 +141,14 @@ class Utility(commands.Cog):
         embed.add_field(name=f"{self.bot.user.name}'s structure",value="\n".join(list_of_files))
         embed.set_footer(text=f'I am made of {total} lines of Python, spread across {file_amount} files !')
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def contact(self, ctx, *, message):
+        embed = discord.Embed(title = "Message from an user", description = message)
+        embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
+        channel = self.bot.get_channel(self.bot.contact_channel_id)
+        await channel.send(embed = embed)
+        await ctx.send("Your message has been successfully sent")
 
     @commands.command(aliases=["convert"])
     async def currency(self,ctx,original,goal,value:float):
@@ -199,33 +221,26 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra = True)
     @commands.guild_only()
     @commands.check_any(check_admin(), commands.has_permissions(administrator = True))
-    async def quit(self,ctx):
+    async def quit(self, ctx):
         '''Makes the bot quit the server
         Only a server admin can use this'''
         await ctx.send("See you soon !")
         await ctx.guild.leave()
 
-    @commands.command(ignore_extra=True)
-    @check_admin()
-    async def logout(self,ctx):
-        '''Owner command'''
-        await ctx.send('Logging out...')
-        await self.bot.close()
-
     @commands.command()
     @check_administrator()
-    async def prefix(self,ctx,*,p=None):
+    async def prefix(self, ctx, *, p = None):
         """Changes the bot's prefix for this guild or private channel"""
         if p:
-            await self.db.execute('INSERT INTO prefixes VALUES (?, ?) ON DUPLICATE KEY UPDATE prefix=?',(self.bot.get_id(ctx),p,p))
+            cur = await self.bot.db.execute("SELECT FROM prefixes * WHERE id=?", (self.bot.get_id(ctx),))
+            result = await cur.fetchone()
+            if result:
+                await self.bot.db.execute("UPDATE prefixes set prefix=? WHERE id=?", (p, self.bot.get_id(ctx)))
+            else:
+                await self.bot.db.execute('INSERT INTO prefixes VALUES (?, ?)', (self.bot.get_id(ctx), p))
+            await self.bot.db.commit()
             return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
-        await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message,False))}`")
-
-    @commands.command(ignore_extra=True)
-    @check_admin()
-    async def reload(self, ctx, *extensions):
-        """Owner command"""
-        await self.bot.cog_reloader(ctx, extensions)
+        await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}`")
 
     @commands.command(ignore_extra = True)
     @commands.guild_only()
@@ -275,7 +290,7 @@ class Utility(commands.Cog):
         if ctx.author.id in self.blacklist_suggestion:
             return await ctx.send("You cannot make suggestions anymore about the bot")
         embed = discord.Embed(title = f"Suggestion for **{subject}**", description = f"Subject of <@{ctx.author.id}>'s suggestion : {subject}", colour = self.bot.colors['yellow'])
-        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avata_url))
+        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
         embed.add_field(name = f"<@{ctx.author.id}>'s idea", value = idea)
         await self.bot.suggestion_channel.send(embed = embed)
         await ctx.send("Thanks for your participation in this project !")

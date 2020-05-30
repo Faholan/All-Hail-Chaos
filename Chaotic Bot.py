@@ -85,7 +85,7 @@ class chaotic_bot(commands.Bot):
         await self.log_channel.send(guild.name+" joined")
 
     async def on_guild_remove(self,guild):
-         await self.log_channel.send(guild.name+" leaved")
+         await self.log_channel.send(guild.name+" left")
 
     async def close(self):
         await self.aio_session.close()

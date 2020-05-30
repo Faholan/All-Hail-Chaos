@@ -12,6 +12,7 @@ def setup(bot):
 
         bot.log_channel_id = 00000000000000000 #Change this to the channel in which you want the logs
         bot.suggestion_channel_id = 00000000000000000 #Change this to the channel in which you want the suggestions
+        bot.contact_channel_id = 00000000000000000
 
         bot.graphic_interface = True #Whether or not to have a Tkinter interface
 
