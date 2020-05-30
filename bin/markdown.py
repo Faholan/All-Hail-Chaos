@@ -23,7 +23,7 @@ class MarkdownParser(HTMLParser):
             self.a_end += ")"
         elif tag == 'b':
             self.output += "**"
-        elif tag == "i":
+        elif tag == "i" or tag == "em":
             self.output += "*"
         elif tag == "script":
             self.output += "```\n"
@@ -35,7 +35,7 @@ class MarkdownParser(HTMLParser):
             self.a_end = ""
         elif tag == 'b':
             self.output += "**"
-        elif tag == "i":
+        elif tag == "i" or tag == "em":
             self.output += "*"
         elif tag == "script":
             self.output += "\n```"

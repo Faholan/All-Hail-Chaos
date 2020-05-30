@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, menus
 import pickle
 import discord
 import typing
@@ -31,6 +31,18 @@ import aiohttp
 import psutil
 
 from os import path
+
+class EmbedSource(menus.ListPageSource):
+    def __init__(self, embeds_dict):
+        super().__init__(embeds_dict, per_page = 1)
+
+    async def format_page(self, menu, embed_dict):
+        embed = discord.Embed(title = embed_dict["title"].format(message_number = menu.current_page + 1, max_number = self.get_max_pages()), color = 0xffff00)
+        embed.set_author(name = embed_dict["author"]["name"], icon_url = embed_dict["author"]["icon_url"])
+        for field in embed_dict["fields"]:
+            embed.add_field(name = field["name"], value = field["value"], inline = False)
+        embed.timestamp = embed_dict["timestamp"]
+        return embed
 
 def check_admin(): #Checks if the user has admin rights on the bot
     async def predictate(ctx):
@@ -63,6 +75,7 @@ class Utility(commands.Cog):
     '''Some functions to manage the bot or get informations about it'''
     def __init__(self,bot):
         self.bot=bot
+        self.snipe_list = {}
         if self.bot.graphic_interface:
             import tkinter
             self.interface.start()
@@ -183,9 +196,9 @@ class Utility(commands.Cog):
         embed.add_field(name = "CPU usage - bot (total)", value = f"{self.process.cpu_percent():.2f} % ({psutil.cpu_percent():.2f} %)")
         await ctx.send(embed=embed)
 
-    @commands.command(ignore_extra=True)
+    @commands.command(ignore_extra = True)
     @commands.guild_only()
-    @commands.check_any(check_admin(),commands.has_permissions(administrator=True))
+    @commands.check_any(check_admin(), commands.has_permissions(administrator = True))
     async def quit(self,ctx):
         '''Makes the bot quit the server
         Only a server admin can use this'''
@@ -214,6 +227,46 @@ class Utility(commands.Cog):
         """Owner command"""
         await self.bot.cog_reloader(ctx, extensions)
 
+    @commands.command(ignore_extra = True)
+    @commands.guild_only()
+    async def snipe(self, ctx):
+        """Returns up to the 20 most recently edited / deleted messages of the channel"""
+        L = self.snipe_list.get(ctx.channel.id)
+        if L:
+            pages = menus.MenuPages(source = EmbedSource(L), clear_reactions_after=True)
+            await pages.start(ctx)
+        else:
+            await ctx.send("I don't have any record for this channel yet")
+
+    @commands.Cog.listener('on_message_edit')
+    async def snipe_edit(self, before, after):
+        if before.content != after.content:
+            L = self.snipe_list.get(before.channel.id, [])
+            E = {"title":"Message edited ({message_number}/{max_number})", "author":{"name":str(before.author), "icon_url":str(before.author.avatar_url)}, "fields":[]}
+            if "`" in before.content:
+                E["fields"] += [{"name":"Original message", "value":before.content}]
+            else:
+                E["fields"] += [{"name":"Original message", "value":f"```\n{before.content}\n```"}]
+            if "`" in after.content:
+                E["fields"] += [{"name":"Edited message", "value":after.content}]
+            else:
+                E["fields"] += [{"name":"Edited message", "value":f"```\n{after.content}\n```"}]
+            E["timestamp"] = datetime.utcnow()
+            L = [E] + L
+            self.snipe_list[before.channel.id] = L[:20]
+
+    @commands.Cog.listener('on_message_delete')
+    async def snipe_delete(self, message):
+        L = self.snipe_list.get(message.channel.id, [])
+        E = {"title":"Message deleted ({message_number}/{max_number})", "author":{"name":str(message.author), "icon_url" : str(message.author.avatar_url)}, "fields":[]}
+        if "`" in message.content:
+            E["fields"] += [{"name":"Original message", "value":message.content}]
+        else:
+            E["fields"] += [{"name":"Original message", "value":f"```\n{message.content}\n```"}]
+        E["timestamp"] = datetime.utcnow()
+        L = [E] + L
+        self.snipe_list[message.channel.id] = L[:20]
+
     @commands.command()
     @commands.cooldown(2,600,commands.BucketType.user)
     async def suggestion(self,ctx,subject,*,idea):
@@ -222,7 +275,7 @@ class Utility(commands.Cog):
         if ctx.author.id in self.blacklist_suggestion:
             return await ctx.send("You cannot make suggestions anymore about the bot")
         embed = discord.Embed(title = f"Suggestion for **{subject}**", description = f"Subject of <@{ctx.author.id}>'s suggestion : {subject}", colour = self.bot.colors['yellow'])
-        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.icon_url))
+        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avata_url))
         embed.add_field(name = f"<@{ctx.author.id}>'s idea", value = idea)
         await self.bot.suggestion_channel.send(embed = embed)
         await ctx.send("Thanks for your participation in this project !")
