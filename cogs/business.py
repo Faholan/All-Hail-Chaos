@@ -20,14 +20,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands
-import discord
-from time import time
 from asyncio import create_task
-
 from os import path
-
 from random import randint
+from time import time
+
+import discord
+from discord.ext import commands
 
 p_vol=lambda n:75-(25*0.8**n)
 

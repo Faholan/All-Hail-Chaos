@@ -20,11 +20,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands
-from random import randint,choice
 import asyncio
-import discord
 from os import path
+from random import randint,choice
+
+import discord
+from discord.ext import commands
 
 #All the data files necessary for the commands
 file=open('data'+path.sep+'deaths.txt','r',encoding='utf-8')

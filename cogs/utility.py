@@ -20,17 +20,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands, tasks, menus
-import pickle
-import discord
-import typing
 import asyncio
-from sys import version
 from datetime import datetime
-import aiohttp
+import pickle
 import psutil
-
 from os import path
+from sys import version
+import typing
+
+import aiohttp
+import discord
+from discord.ext import commands, tasks, menus
 
 class EmbedSource(menus.ListPageSource):
     def __init__(self, embeds_dict):
@@ -144,7 +144,7 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def contact(self, ctx, *, message):
-        embed = discord.Embed(title = "Message from an user", description = message)
+        embed = discord.Embed(title = f"Message from an user ({ctx.author.id})", description = message)
         embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
         channel = self.bot.get_channel(self.bot.contact_channel_id)
         await channel.send(embed = embed)
@@ -272,15 +272,16 @@ class Utility(commands.Cog):
 
     @commands.Cog.listener('on_message_delete')
     async def snipe_delete(self, message):
-        L = self.snipe_list.get(message.channel.id, [])
-        E = {"title":"Message deleted ({message_number}/{max_number})", "author":{"name":str(message.author), "icon_url" : str(message.author.avatar_url)}, "fields":[]}
-        if "`" in message.content:
-            E["fields"] += [{"name":"Original message", "value":message.content}]
-        else:
-            E["fields"] += [{"name":"Original message", "value":f"```\n{message.content}\n```"}]
-        E["timestamp"] = datetime.utcnow()
-        L = [E] + L
-        self.snipe_list[message.channel.id] = L[:20]
+        if message.content:
+            L = self.snipe_list.get(message.channel.id, [])
+            E = {"title":"Message deleted ({message_number}/{max_number})", "author":{"name":str(message.author), "icon_url" : str(message.author.avatar_url)}, "fields":[]}
+            if "`" in message.content:
+                E["fields"] += [{"name":"Original message", "value":message.content}]
+            else:
+                E["fields"] += [{"name":"Original message", "value":f"```\n{message.content}\n```"}]
+            E["timestamp"] = datetime.utcnow()
+            L = [E] + L
+            self.snipe_list[message.channel.id] = L[:20]
 
     @commands.command()
     @commands.cooldown(2,600,commands.BucketType.user)

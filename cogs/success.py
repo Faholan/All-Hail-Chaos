@@ -20,11 +20,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands, tasks
-from os import path
-from discord import Embed
 import asyncio
+from os import path
 import traceback
+
+from discord import Embed
+from discord.ext import commands, tasks
 
 class Success():
     """Class implementation of a Discord success"""

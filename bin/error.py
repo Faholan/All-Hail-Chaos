@@ -20,14 +20,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-import pickle
-import traceback
-from discord.ext import commands
-import discord
 import datetime
-import sys
-
 from os import path
+import pickle
+import sys
+import traceback
+
+import discord
+from discord.ext import commands
 
 def secondes(s):
     r=[]

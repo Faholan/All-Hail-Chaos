@@ -20,18 +20,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-from discord.ext import commands
-from discord import Embed, Game
-from datetime import datetime
-
-import aiosqlite
-
 from asyncio import all_tasks
-import aiohttp
-
+from datetime import datetime
 from os import path
 
+import aiohttp
+import aiosqlite
 import dbl
+from discord import Embed, Game
+from discord.ext import commands
 from github import Github
 
 class chaotic_bot(commands.Bot):
