@@ -155,9 +155,8 @@ class Utility(commands.Cog):
         """Converts money from one currency to another one. Syntax : €currency [Original currency code] [Goal currency code] [value]"""
         if not len(original)==len(goal)==3:
             return await ctx.send("To get currency codes, refer to https://en.wikipedia.org/wiki/ISO_4217#Active_codes")
-        async with aiohttp.ClientSession() as session:
-            async with session.get('https://api.ksoft.si/kumo/currency', params={"from": original, "to": goal, "value" :str(value)}, headers={"Authorization": f"Token {self.bot.ksoft_token}"}) as resp:
-                data = await resp.json()
+        async with self.bot.aio_session.get('https://api.ksoft.si/kumo/currency', params={"from": original, "to": goal, "value" :str(value)}, headers={"Authorization": f"Token {self.bot.ksoft_token}"}) as resp:
+            data = await resp.json()
         if hasattr(data,"error"):
             return await ctx.send(data["message"])
         await ctx.send(f"The value of {value} {original} is {data['pretty']}")
@@ -232,7 +231,7 @@ class Utility(commands.Cog):
     async def prefix(self, ctx, *, p = None):
         """Changes the bot's prefix for this guild or private channel"""
         if p:
-            cur = await self.bot.db.execute("SELECT FROM prefixes * WHERE id=?", (self.bot.get_id(ctx),))
+            cur = await self.bot.db.execute("SELECT * FROM prefixes WHERE id=?", (self.bot.get_id(ctx),))
             result = await cur.fetchone()
             if result:
                 await self.bot.db.execute("UPDATE prefixes set prefix=? WHERE id=?", (p, self.bot.get_id(ctx)))

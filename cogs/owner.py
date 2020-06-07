@@ -53,12 +53,12 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, OwnerError):
-            return await ctx.bot.httpcat(ctx, 401, "Only my owner can use the command" + ctx.invoked_with)
+            return await ctx.bot.httpcat(ctx, 401, "Only my owner can use the command " + ctx.invoked_with)
         raise
 
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
-        """Evaluates a code"""
+        """Evaluates a Python code"""
 
         env = {
             'bot': self.bot,
@@ -105,6 +105,7 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
 
     @commands.command()
     async def system(self, ctx, user:discord.User = None, *, message):
+        """Makes the bot send a message to the specified user"""
         if not user:
             return await ctx.send("I couldn't find this user")
         await self.bot.db.execute("CREATE TABLE IF NOT EXISTS block (id INT)")
@@ -124,13 +125,36 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
 
     @commands.command(ignore_extra = True)
     async def logout(self,ctx):
+        """Kills the bot"""
         await ctx.send('Logging out...')
         await self.bot.close()
 
     @commands.command()
     async def reload(self, ctx, *extensions):
+        """Reloads extensions"""
         await self.bot.cog_reloader(ctx, extensions)
 
+    @commands.command()
+    async def unload(self, ctx, *extensions):
+        """Unloads extensions"""
+        if "cogs.owner" in extensions:
+            return await ctx.send("You shouldn't unload me")
+        if not extensions:
+            return await ctx.send("Please specify at least one extension to unload")
+        M = len(extensions)
+        report = []
+        success = 0
+        for ext in extensions:
+            try:
+                self.bot.unload_extension(ext)
+                success+=1
+                report.append(f"✅ | **Extension unloaded** : `{ext}`")
+            except commands.ExtensionNotLoaded:
+                report.append(f"❌ | **Extension not loaded** : `{ext}`")
+
+        embed = discord.Embed(title = f"{success} {'extension was' if success == 1 else 'extensions were'} unloaded & {M - success} {'extension was' if M - success == 1 else 'extensions were'} not unloaded", description = '\n'.join(report), color = self.bot.colors['green'])
+        await self.bot.log_channel.send(embed = embed)
+        await ctx.send(embed = embed)
 
 def setup(bot):
     bot.add_cog(Owner(bot))
