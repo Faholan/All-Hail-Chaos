@@ -32,6 +32,10 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks, menus
 
+import codecs
+import os
+import pathlib
+
 class EmbedSource(menus.ListPageSource):
     def __init__(self, embeds_dict):
         super().__init__(embeds_dict, per_page = 1)
@@ -76,19 +80,12 @@ class Utility(commands.Cog):
     def __init__(self,bot):
         self.bot=bot
         self.snipe_list = {}
-        if self.bot.graphic_interface:
-            import tkinter
-            self.interface.start()
         if self.bot.discord_bots:
             self.discord_bots.start()
         if self.bot.xyz:
             self.xyz.start()
         if self.bot.discord_bot_list:
             self.discord_bot_list.start()
-        try:
-            self.blacklist_suggestion = pickle.load(open(f'data{path.sep}blacklist_suggestion.DAT',mode='rb'))
-        except:
-            self.blacklist_suggestion = []
 
         self.process=psutil.Process()
         self.process.cpu_percent()
@@ -102,16 +99,14 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra = True)
     async def block(self, ctx):
         """Use this command if you don't want me to DM you (except if you DM me commands)"""
-        await self.bot.db.execute("CREATE TABLE IF NOT EXISTS block (id INT)")
-        cur = await self.bot.db.execute('SELECT * FROM block WHERE id=?', (ctx.author.id,))
-        result = await cur.fetchone()
-        if result:
-            await self.bot.db.execute("DELETE FROM block WHERE id=?", (ctx.author.id,))
-            await ctx.send("You unblocked me")
-        else:
-            await self.bot.db.execute("INSERT INTO block VALUES (?)", (ctx.author.id,))
-            await ctx.send("You blocked me")
-        await self.bot.db.commit()
+        async with self.bot.pool.acquire(timeout=5) as db:
+            result = await db.fetchrow('SELECT * FROM public.block WHERE id=$1', ctx.author.id)
+            if result:
+                await db.execute("DELETE FROM public.block WHERE id=$1", ctx.author.id)
+                await ctx.send("You unblocked me")
+            else:
+                await db.execute("INSERT INTO public.block VALUES ($1)", ctx.author.id)
+                await ctx.send("You blocked me")
 
     @commands.command(ignore_extra=True)
     async def code(self, ctx):
@@ -120,9 +115,6 @@ class Utility(commands.Cog):
         total = 0
         file_amount = 0
         list_of_files=[]
-        import codecs
-        import os
-        import pathlib
         for p, subdirs, files in os.walk('.'):
             for name in files:
                     if name.endswith('.py'):
@@ -137,9 +129,9 @@ class Utility(commands.Cog):
                                     file_lines+=1
                         final_path=p+path.sep+name
                         list_of_files.append(final_path.split('.'+path.sep)[-1]+f" : {file_lines} lines")
-        embed=discord.Embed(colour=self.bot.colors['yellow'])
-        embed.add_field(name=f"{self.bot.user.name}'s structure",value="\n".join(list_of_files))
-        embed.set_footer(text=f'I am made of {total} lines of Python, spread across {file_amount} files !')
+        embed = discord.Embed(colour = self.bot.colors['yellow'])
+        embed.add_field(name = f"{self.bot.user.name}'s structure", value = "\n".join(list_of_files))
+        embed.set_footer(text = f'I am made of {total} lines of Python, spread across {file_amount} files !')
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -153,7 +145,7 @@ class Utility(commands.Cog):
     @commands.command(aliases=["convert"])
     async def currency(self,ctx,original,goal,value:float):
         """Converts money from one currency to another one. Syntax : €currency [Original currency code] [Goal currency code] [value]"""
-        if not len(original)==len(goal)==3:
+        if not len(original) == len(goal) == 3:
             return await ctx.send("To get currency codes, refer to https://en.wikipedia.org/wiki/ISO_4217#Active_codes")
         async with self.bot.aio_session.get('https://api.ksoft.si/kumo/currency', params={"from": original, "to": goal, "value" :str(value)}, headers={"Authorization": f"Token {self.bot.ksoft_token}"}) as resp:
             data = await resp.json()
@@ -231,14 +223,11 @@ class Utility(commands.Cog):
     async def prefix(self, ctx, *, p = None):
         """Changes the bot's prefix for this guild or private channel"""
         if p:
-            cur = await self.bot.db.execute("SELECT * FROM prefixes WHERE id=?", (self.bot.get_id(ctx),))
-            result = await cur.fetchone()
-            if result:
-                await self.bot.db.execute("UPDATE prefixes set prefix=? WHERE id=?", (p, self.bot.get_id(ctx)))
-            else:
-                await self.bot.db.execute('INSERT INTO prefixes VALUES (?, ?)', (self.bot.get_id(ctx), p))
-            await self.bot.db.commit()
-            return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
+            async with self.bot.pool.acquire(timeout = 5) as db:
+                ID = self.bot.get_id(ctx)
+                await db.execute("INSERT INTO public.prefixes VALUES ($1, $2) ON CONFLICT (ctx_id) DO UPDATE SET prefix=$2", ID, p)
+                self.bot.prefix_dict[ID] = p
+                return await ctx.send(f"Prefix changed to `{discord.utils.escape_markdown(p)}`")
         await ctx.send(f"The prefix for this channel is `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}`")
 
     @commands.command(ignore_extra = True)
@@ -287,8 +276,8 @@ class Utility(commands.Cog):
     async def suggestion(self,ctx,subject,*,idea):
         '''Command to make suggestions for the bot. Please note that your Discord name will be recorded and publicly associated to the idea in the support server.
         Syntax : €suggestion [subject] [idea]. If the subject includes whitespaces, surround it with double braces, "like this".'''
-        if ctx.author.id in self.blacklist_suggestion:
-            return await ctx.send("You cannot make suggestions anymore about the bot")
+        #if ctx.author.id in self.blacklist_suggestion:
+            #return await ctx.send("You cannot make suggestions anymore about the bot")
         embed = discord.Embed(title = f"Suggestion for **{subject}**", description = f"Subject of <@{ctx.author.id}>'s suggestion : {subject}", colour = self.bot.colors['yellow'])
         embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
         embed.add_field(name = f"<@{ctx.author.id}>'s idea", value = idea)
@@ -297,111 +286,6 @@ class Utility(commands.Cog):
 
     def cog_unload(self):
         self.interface.cancel()
-
-    #Tkinter graphic interface
-    @tasks.loop(seconds=0.1)
-    async def interface(self):
-        self.fenetre.update_idletasks()
-        self.fenetre.update()
-
-    @interface.before_loop
-    async def before_interface(self):
-        self.fenetre=tkinter.Tk()
-        self.users=tkinter.Listbox(self.fenetre,width=90,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
-        self.commandante=tkinter.Listbox(self.fenetre,width=50,height=40,bd=1,highlightthickness=1,highlightbackground='#a0a0a0',highlightcolor='#a0a0a0')
-        self.fenetre.title(f"{self.bot.user}'s control panel")
-        t_bot=tkinter.Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
-        t_owner=tkinter.Entry(self.fenetre,width=25,relief=FLAT,borderwidth=0,disabledforeground='black')
-
-        app=await self.bot.application_info()
-
-        t_bot.insert(END,f"Bot : {self.bot.user}")
-        t_bot.config(state=DISABLED)
-        t_bot.grid(column=1,row=0,sticky=W)
-
-        t_owner.insert(END,f"Owner : {app.owner}")
-        t_owner.config(state=DISABLED)
-        t_owner.grid(column=2,row=0,sticky=W)
-
-        def deconnection():
-            asyncio.create_task(self.bot.close())
-
-        def reload():
-            asyncio.create_task(self.bot.cog_reloader())
-
-        reloader=tkinter.Button(self.fenetre,text="RELOAD",command=reload,bg="green3",fg="white")
-        reloader.grid(column=3,row=0,sticky=E)
-
-        deco=tkinter.Button(self.fenetre,text='SELF-DESTRUCTION',command=deconnection,bg='red3',fg='white')
-        def update():
-            self.users.delete(0,END)
-            self.users.insert(END,'Guilds the bot is connected to :')
-            for guild in self.bot.guilds:
-                self.users.insert(END,f'Guild {guild.name} ({len(guild.members)})')
-                online,idle,dnd,offline=[],[],[],[]
-                i=0
-                if not guild.large:
-                    for member in guild.members:
-                        if member.bot:
-                            i+=1
-                            m=f'{member} ({member.display_name}) - BOT'
-                            if member.status==discord.Status.online:
-                                online=[m]+online
-                            elif member.status==discord.Status.idle:
-                                idle=[m]+idle
-                            elif member.status==discord.Status.dnd:
-                                dnd=[m]+dnd
-                            elif member.status==discord.Status.offline:
-                                offline=[m]+offline
-                        else:
-                            m=f'{member} ({member.display_name})'
-                            if member==guild.owner:
-                                m+=' - ★'
-                            if member.status==discord.Status.online:
-                                online.append(m)
-                            elif member.status==discord.Status.idle:
-                                idle.append(m)
-                            elif member.status==discord.Status.dnd:
-                                dnd.append(m)
-                            elif member.status==discord.Status.offline:
-                                offline.append(m)
-                def insertor(n,l):
-                    self.users.insert(END,f'   └{n}')
-                    for i in l:
-                        self.users.insert(END,f'        └{i}')
-                if online!=[]:
-                    insertor(f'Online ({len(online)}/{guild.member_count}) :',online)
-                if idle!=[]:
-                    insertor(f'Idle ({len(idle)}/{guild.member_count}) :',idle)
-                if dnd!=[]:
-                    insertor(f'Do Not Disturb ({len(dnd)}/{guild.member_count}) :',dnd)
-                if offline!=[]:
-                    insertor(f'Offline ({len(offline)}/{guild.member_count}) :',offline)
-
-        self.commandante.insert(END,"Bot's commands :")
-        for cog in self.bot.cogs:
-            self.commandante.insert(END,self.bot.get_cog(cog).qualified_name)
-            for command in self.bot.get_cog(cog).get_commands():
-                self.commandante.insert(END,f'   └{command.name}')
-        c=[]
-        for command in self.bot.commands:
-            if command.cog==None:
-                c.append(command)
-        if c!=[]:
-            self.commandante.insert(END,'Unclassified commands :')
-            for command in c:
-                self.commandante.insert(END,f'   └{command.name}')
-        update()
-        updater=Button(self.fenetre,text='REFRESH',command=update,bg='gray30',fg='white')
-        updater.grid(column=0,row=0,sticky=W)
-        deco.grid(column=4,row=0,sticky=E)
-        self.users.grid(column=0,row=1,columnspan=3,rowspan=2)
-        self.commandante.grid(column=3,row=1,columnspan=2,rowspan=2)
-
-    @interface.after_loop
-    async def after_interface(self):
-        if self.interface.is_being_cancelled():
-            self.fenetre.destroy()
 
     @tasks.loop(minutes=30)
     async def discord_bots(self):

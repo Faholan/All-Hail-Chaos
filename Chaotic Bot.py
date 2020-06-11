@@ -25,7 +25,7 @@ from datetime import datetime
 from os import path
 
 import aiohttp
-import aiosqlite
+import asyncpg
 import dbl
 from discord import Embed, Game
 from discord.ext import commands
@@ -45,15 +45,16 @@ class chaotic_bot(commands.Bot):
 
         if self.github_token:
             self.github = Github(self.github_token)
+        self.prefix_dict = {}
 
     async def on_ready(self):
         await self.change_presence(activity=Game(self.default_prefix+'help'))
         if self.first_on_ready:
             self.first_on_ready = False
-            self.db = await aiosqlite.connect('data'+path.sep+'database.db')
-            self.db.row_factory = aiosqlite.Row
-            await self.db.execute("CREATE TABLE IF NOT EXISTS swear (id INT PRIMARY KEY NOT NULL, manual_on BOOL DEFAULT 0, autoswear BOOL DEFAULT 0, notification BOOL DEFAULT 1)")
-            await self.db.execute('CREATE TABLE IF NOT EXISTS roles (message_id INT, channel_id INT, guild_id INT, emoji TINYTEXT, roleids TEXT)')
+            self.pool = await asyncpg.create_pool(database = "chaotic", host = "127.0.0.1", min_size = 20, max_size = 100, **self.postgre_connection)
+            async with self.pool.acquire(timeout = 5) as db:
+                for row in await db.fetch("SELECT * FROM public.prefixes"):
+                    self.prefix_dict[row["ctx_id"]] = row["prefix"]
             self.aio_session = aiohttp.ClientSession()
             self.last_update = datetime.utcnow()
             self.log_channel = self.get_channel(self.log_channel_id)
@@ -86,7 +87,7 @@ class chaotic_bot(commands.Bot):
 
     async def close(self):
         await self.aio_session.close()
-        await self.db.close()
+        await self.pool.close()
         await self.ksoft_client.close()
         for task in all_tasks(loop = self.loop):
             task.cancel()
@@ -143,16 +144,9 @@ class chaotic_bot(commands.Bot):
     async def get_m_prefix(self, message, not_print=True):
         if message.content.startswith("¤") and not_print:
             return '¤'
-        elif message.content.startswith(self.default_prefix+"help") and not_print:
+        elif message.content.startswith(f"{self.default_prefix}help") and not_print:
             return self.default_prefix
-        if not hasattr(self, 'db'):
-            return self.default_prefix
-        await self.db.execute('CREATE TABLE IF NOT EXISTS prefixes (ctx_id INT PRIMARY KEY, prefix TINYTEXT)')
-        cur = await self.db.execute('SELECT * FROM prefixes WHERE ctx_id=?', (self.get_id(message),))
-        result = await cur.fetchone()
-        if result:
-            return result['prefix']
-        return self.default_prefix
+        return self.prefix_dict.get(self.get_id(message), self.default_prefix)
 
     async def httpcat(self, ctx, code, title = Embed.Empty, description = Embed.Empty):
         embed = Embed(title = title, color = self.colors['red'], description = description)

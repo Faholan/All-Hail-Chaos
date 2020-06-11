@@ -109,17 +109,17 @@ async def error_manager(ctx,error):
 
 def generator(bot):
     async def predictate(event, *args, **kwargs):
-        error_type, value, traceback = sys.exc_info()
+        error_type, value, TR = sys.exc_info()
         embed = discord.Embed(color=0xFF0000)
         embed.title = f"Error in {event} with args {args} {kwargs}"
-        embed.description = f"{error_type.__name} : {value}"
-        tb = "".join(traceback.format_tb(traceback))
+        embed.description = f"{error_type.__name__} : {value}"
+        tb = "".join(traceback.format_tb(TR))
         embed.description += f"```\n{tb}```"
-        embed.set_footer(text=f"{self.user.name} Logging", icon_url=self.user.avatar_url_as(static_format="png"))
+        embed.set_footer(text=f"{bot.user.name} Logging", icon_url = bot.user.avatar_url_as(static_format="png"))
         embed.timestamp = datetime.datetime.utcnow()
         await bot.log_channel.send(embed=embed)
     return predictate
 
 def setup(bot):
     bot.add_listener(error_manager,'on_command_error')
-    bot.add_listener(generator(bot), 'on_error')
+    bot.on_error = generator(bot)

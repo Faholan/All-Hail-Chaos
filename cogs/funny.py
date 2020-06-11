@@ -65,7 +65,7 @@ def intervention(attacking,victim,weapons):
     return (('Michel, god of dad jokes, decided to restart the fight : each player now has 1000 HP','',"Michel's intervention",attacking.avatar_url),(victim.hit(choice(weapons).split('|'))))
 def fumble(attacking,victim,weapons):
     m,d,attack,url=attacking.hit(choice(weapons).split('|'))
-    return (('{attacking} just hurt himself !','','Fumble',attacking.avatar_url),(m.format(defending=attacking.display_name,attacking=attacking.display_name),d,attack,url))
+    return (('{attacking} just hurt himself !','','Fumble',attacking.avatar_url),(m.format(defending=attacking.display_name,attacking=attacking.display_name, damage = d),d,attack,url))
 def armor(attacking,victim,weapons):
     m,d,attack,url=victim.hit(choice(weapons).split('|'))
     attacking.pv-=round(int(d)/2)

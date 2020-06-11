@@ -452,7 +452,7 @@ class Battleship(commands.Cog):
                                 if i == 4:
                                     dist = 3
                                     enemy_fire = self.grille_de_tir(dist, not_possible)
-                                if dist == 3 and player_state[3] == player[2] == 0:
+                                if dist == 3 and player_state[3] == player_state[2] == 0:
                                     dist = 4
                                     enemy_fire = self.grille_de_tir(dist, not_possible)
                                 if dist == 4 and not player_state[1]:

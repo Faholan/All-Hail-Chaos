@@ -42,8 +42,8 @@ class Moderation(commands.Cog):
         """You can specify members or roles, and at the end a reason for the ban.
         The bot will ban all the members specified, and all the members having the specified roles.
         You need the `ban members` permission, and your highest role needs to be higher than the others'."""
-        banning=[]
-        roles=[]
+        banning = []
+        roles = []
         for banned in who:
             if isinstance(banned,discord.Role):
                 if banned.is_default():
@@ -54,18 +54,18 @@ class Moderation(commands.Cog):
                     if not banned in roles:
                         roles.append(banned)
                         for member in banned.members:
-                            if member==ctx.guild.owner:
-                                await self.bot.httpcat(ctx,403,"I cannot ban the guild owner")
-                            elif member!=ctx.me:
+                            if member == ctx.guild.owner:
+                                await self.bot.httpcat(ctx, 403, "I cannot ban the guild owner")
+                            elif member != ctx.me:
                                 if not member in banning:
                                     banning.append(member)
                             else:
-                                await self.bot.httpcat(ctx,403,"I cannot ban myself")
+                                await self.bot.httpcat(ctx, 403, "I cannot ban myself")
                 else:
-                    await self.bot.httpcat(ctx,401,f"You cannot ban the role {banned.name} : it is higher than your highest role")
+                    await self.bot.httpcat(ctx, 401, f"You cannot ban the role {banned.name} : it is higher than your highest role")
             else:
                 if banned==ctx.me:
-                    await self.bot.httpcat(ctx,403,"I cannot ban myself")
+                    await self.bot.httpcat(ctx, 403, "I cannot ban myself")
                 elif ctx.me.roles[-1]<=banned.roles[-1]:
                     await self.bot.httpcat(ctx,403,f"I cannot ban {banned.name} : he has a higher role than me")
                 elif banned==ctx.guild.owner:
@@ -184,7 +184,7 @@ class Moderation(commands.Cog):
         """Checks the reputation of an user.
         You can refer to him if he's in the same server, or just paste his ID"""
         if type(other)==int:
-            ID=str(other)
+            ID = str(other)
             name="User "+ID
             url=ctx.bot.user.avatar_url
         else:
@@ -240,108 +240,108 @@ class Moderation(commands.Cog):
     async def role(self, ctx, action):
         """Automatically gives a role to anyone who reacts with a given emoji to a given message. The action one of `info`, `add`, `remove`
         We both need the `manage_roles` permission for that."""
-        if action.lower() == 'add':
-            await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
-            def check(message):
-                return message.channel == ctx.channel and message.role_mentions and message.author == ctx.author
-
-            try:
-                message = await self.bot.wait_for('message', check = check, timeout = 30)
-            except asyncio.TimeoutError:
-                return await ctx.send("You didn't answer in time, I'm giving up on this")
-
-            roles = message.role_mentions
-
-            await ctx.send(f'React with an emoji in the next 30 seconds to a message to set up the assignation !')
-            def check(payload):
-                return payload.guild_id == ctx.guild.id and payload.member == ctx.author
-
-            try:
-                payload = await self.bot.wait_for('raw_reaction_add', check = check, timeout = 30)
-            except asyncio.TimeoutError:
-                return await ctx.send("You didn't react in time, I'm giving up on this.")
-
-            message = await self.bot.get_guild(payload.guild_id).get_channel(payload.channel_id).fetch_message(payload.message_id)
-            emoji = payload.emoji.name
-
-            cur = await self.bot.db.execute('SELECT * FROM roles WHERE message_id=? AND emoji=?', (payload.message_id, emoji))
-            result = await cur.fetchone()
-
-            if result:
-                ini_roles = []
-                total = 0
-                removed = 0
-                for role_id in result['roleids'].split(','):
-                    total+=1
-                    Role = ctx.guild.get_role(int(role_id))
-                    if Role:
-                        ini_roles.append(Role)
-                    else:
-                        removed+=1
-                removal = ' Those roles are :'
-                if removed:
-                    removal=f" {removed} of them didn't exist anymore, so I deleted them from my database. The remaining roles are :"
-                joiner = '\n - '
-                await ctx.send(f"{total} roles are already linked to this message and emoji.{removal}\n - {joiner.join([r.name for r in ini_roles])}\n\nDo you want me to replace them with the new ones, or add the new ones to the list. Send `replace` or `add` in the next 30 seconds to indicate your choice please.")
+        async with self.bot.pool.acquire() as db:
+            if action.lower() == 'add':
+                await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
                 def check(message):
-                    return message.author == ctx.author and message.channel == ctx.channel and (message.content.lower().startswith('add') or message.content.lower().startswith('replace'))
-                try:
-                    answer = await self.bot.wait_for('message', check = check, timeout = 30)
-                except asyncio.TimeoutError:
-                    return await ctx.send("Cancelling the command...")
-                if answer.content.lower().startswith('add'):
-                    roles+=ini_roles
-                await self.bot.db.execute('UPDATE roles SET roleids=? WHERE message_id=? AND emoji=?', (','.join([str(r.id) for r in roles]), payload.message_id, emoji))
-            else:
-                await self.bot.db.execute('INSERT INTO roles (message_id, channel_id, guild_id, emoji, roleids) VALUES (?, ?, ?, ?, ?)', (payload.message_id, payload.channel_id, payload.guild_id, emoji, ','.join([str(r.id) for r in roles])))
-            try:
-                await message.add_reaction(emoji)
-            except:
-                pass
-            await ctx.send('The rule has been successfully updated')
-        elif action.lower() == 'info':
-            cur = await self.bot.db.execute('SELECT rowid, * FROM roles WHERE guild_id=?', (ctx.guild.id,))
-            result = await cur.fetchall()
-            deleted = 0
-            m = f"No rules are currently defined for this guidl. Create the first one with `{ctx.prefix}role add`"
-            if result:
-                output = []
-                for key in result:
-                    try:
-                        channel = self.bot.get_guild(key['guild_id']).get_channel(key['channel_id'])
-                        await channel.fetch_message(key['message_id'])
-                        output.append(dict(key))
-                        output[-1]['roleids'] = ','.join([ID for ID in output[-1]['roleids'].split(',') if ctx.guild.get_role(int(ID))])
-                        await self.bot.db.execute('UPDATE roles SET roleids=? WHERE message_id=?', (output[-1]['roleids'], key['message_id']))
-                    except:
-                        deleted+=1
-                        await self.bot.db.execute('DELETE FROM roles WHERE message_id=?', (key['message_id'],))
-                if output:
-                    m = '\n'.join([f'- Rule number {key["rowid"]} : [Message](https://discord.com/channels/{key["guild_id"]}/{key["channel_id"]}/{key["message_id"]} "Link to the original message") | {key["emoji"]} | {", ".join([ctx.guild.get_role(int(ID)).name for ID in key["roleids"].split(",")])}' for key in output])
+                    return message.channel == ctx.channel and message.role_mentions and message.author == ctx.author
 
-            embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need the rule number for the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
-            embed.add_field(name = "The rules :", value = m)
-            await ctx.send(embed = embed)
-        elif action.lower() == 'remove':
-            await ctx.send('Please enter the number associated to the rule you want to remove (partially or totally) in less than 30 seconds')
-            def check(message):
-                return message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit()
-            try:
-                message = await self.bot.wait_for('message', check = check, timeout = 30)
-            except asyncio.TimeoutError:
-                return await ctx.send("You didn't answer in time. I'm ignoring this command")
-            cur = await self.bot.db.execute('SELECT * FROM roles WHERE rowid=?', (int(message.content),))
-            result = await cur.fetchone()
-            if result:
                 try:
-                    await self.bot.get_guild(result['guild_id']).get_channel(result['channel_id']).fetch_message(result['message_id'])
-                    if result['guild_id'] == ctx.guild.id:
+                    message = await self.bot.wait_for('message', check = check, timeout = 30)
+                except asyncio.TimeoutError:
+                    return await ctx.send("You didn't answer in time, I'm giving up on this")
+
+                roles = message.role_mentions
+
+                await ctx.send(f'React with an emoji in the next 30 seconds to a message to set up the assignation !')
+                def check(payload):
+                    return payload.guild_id == ctx.guild.id and payload.member == ctx.author
+
+                try:
+                    payload = await self.bot.wait_for('raw_reaction_add', check = check, timeout = 30)
+                except asyncio.TimeoutError:
+                    return await ctx.send("You didn't react in time, I'm giving up on this.")
+
+                message = await self.bot.get_guild(payload.guild_id).get_channel(payload.channel_id).fetch_message(payload.message_id)
+                emoji = payload.emoji.name
+
+                result = await db.fetchrow('SELECT * FROM public.roles WHERE message_id=$1 AND emoji=$2', payload.message_id, emoji)
+
+                if result:
+                    ini_roles = []
+                    total = 0
+                    removed = 0
+                    for role_id in result['roleids']:
+                        total+=1
+                        Role = ctx.guild.get_role(role_id)
+                        if Role:
+                            ini_roles.append(Role)
+                        else:
+                            removed += 1
+                    removal = ' Those roles are :'
+                    if removed:
+                        removal = f" {removed} of them didn't exist anymore, so I deleted them from my database. The remaining roles are :"
+                    joiner = '\n - '
+                    await ctx.send(f"{total} roles are already linked to this message and emoji.{removal}\n - {joiner.join([r.name for r in ini_roles])}\n\nDo you want me to replace them with the new ones, or add the new ones to the list. Send `replace` or `add` in the next 30 seconds to indicate your choice please.")
+                    def check(message):
+                        return message.author == ctx.author and message.channel == ctx.channel and (message.content.lower().startswith('add') or message.content.lower().startswith('replace'))
+                    try:
+                        answer = await self.bot.wait_for('message', check = check, timeout = 30)
+                    except asyncio.TimeoutError:
+                        return await ctx.send("Cancelling the command...")
+                    if answer.content.lower().startswith('add'):
+                        roles += ini_roles
+                    await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2 AND emoji=$3', [r.id for r in roles], payload.message_id, emoji)
+                else:
+                    await db.execute('INSERT INTO public.roles VALUES ($1, $2, $3, $5, $4)', payload.message_id, payload.channel_id, payload.guild_id, emoji, [r.id for r in roles])
+                try:
+                    await message.add_reaction(emoji)
+                except:
+                    pass
+                await ctx.send('The rule has been successfully updated')
+            elif action.lower() == 'info':
+                result = await db.execute('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id)
+                deleted = 0
+                m = f"No rules are currently defined for this guild. Create the first one with `{ctx.prefix}role add`"
+                if result:
+                    output = []
+                    for key in result:
+                        try:
+                            channel = self.bot.get_guild(key['guild_id']).get_channel(key['channel_id'])
+                            await channel.fetch_message(key['message_id'])
+                            output.append(dict(key))
+                            output[-1]['roleids'] = [ID for ID in output[-1]['roleids'] if ctx.guild.get_role(ID)]
+                            await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', output[-1]['roleids'], key['message_id'])
+                        except:
+                            deleted += 1
+                            await db.execute('DELETE FROM public.roles WHERE message_id=$1', key['message_id'])
+                    if output:
+                        m = '\n'.join([f'- Rule number {i + 1} : [Message](https://discord.com/channels/{output[i]["guild_id"]}/{output[i]["channel_id"]}/{output[i]["message_id"]} "Link to the original message") | {output[i]["emoji"]} | {", ".join([ctx.guild.get_role(ID).name for ID in output[i]["roleids"]])}' for i in range(len(output))])
+
+                embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need the rule number for the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
+                embed.add_field(name = "The rules :", value = m)
+                await ctx.send(embed = embed)
+            elif action.lower() == 'remove':
+                await ctx.send('Please enter the number associated to the rule you want to remove (partially or totally) in less than 30 seconds')
+                def check(message):
+                    return message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit()
+                try:
+                    message = await self.bot.wait_for('message', check = check, timeout = 30)
+                except asyncio.TimeoutError:
+                    return await ctx.send("You didn't answer in time. I'm ignoring this command")
+                try:
+                    result = (await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id))[int(message.content) - 1]
+                except IndexError:
+                    result = False
+                if result:
+                    try:
+                        await self.bot.get_guild(result['guild_id']).get_channel(result['channel_id']).fetch_message(result['message_id'])
                         roles = []
-                        for role_id in result['roleids'].split(','):
-                            R = ctx.guild.get_role(int(role_id))
+                        for role_id in result['roleids']:
+                            R = ctx.guild.get_role(role_id)
                             if R:
                                 roles.append((role_id, R.name))
-                        await self.bot.db.execute('UPDATE roles SET roleids=? WHERE message_id=?',(','.join([str(r[0]) for r in roles]), result['message_id']))
+                        await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', [r[0] for r in roles], result['message_id'])
                         embed = discord.Embed(title = f"Informations about rule number {message.content}")
                         embed.add_field(name = "Message :", value = f'[Click here](https://discord.com/channels/{result["guild_id"]}/{result["channel_id"]}/{result["message_id"]} "Link to the original message")')
                         embed.add_field(name = "Emoji :", value = result['emoji'])
@@ -354,7 +354,6 @@ class Moderation(commands.Cog):
                         try:
                             message = await self.bot.wait_for('message', check = check, timeout = 30)
                         except asyncio.TimeoutError:
-                            asyncio.create_task(self.bot.db.commit())
                             return await ctx.send("You didn't answer in time. I'm ignoring this command")
 
                         role_numbers = [int(k) for k in message.content.replace(' ','').split(',')]
@@ -362,18 +361,15 @@ class Moderation(commands.Cog):
                         if not all([0 < k <= len(roles) for k in role_numbers]):
                             await ctx.send('You entered wrong values for the indexes. Please re-run the command with correct values.')
                         else:
-                            await self.bot.db.execute("UPDATE roles set roleids=? WHERE message_id=?", (','.join([roles[i][0] for i in range(len(roles)) if not i+1 in role_numbers]), result['message_id']))
+                            await db.execute("UPDATE public.roles set roleids=$1 WHERE message_id=$2", [roles[i][0] for i in range(len(roles)) if not i + 1 in role_numbers], result['message_id'])
                             await ctx.send(f'I successfully removed those {len(role_numbers)} roles from the rule')
-                        return self.bot.db.commit()
-                except:
-                    await self.bot.db.execute('DELETE FROM roles WHERE message_id=?', (result['message_id'],))
-                    asynco.create_task(self.bot.db.commit())
-                    return await ctx.send('The message associated with this rule has been deleted. I thus removed the rule.')
-
-            await ctx.send("The rule you're trying to access doesn't exist in this guild")
-        else:
-            await ctx.send('The action must be one of `add`, `info` and `remove`')
-        await self.bot.db.commit()
+                    except:
+                        await db.execute('DELETE FROM public.roles WHERE message_id=$1', result['message_id'])
+                        return await ctx.send('The message associated with this rule has been deleted. I thus removed the rule.')
+                else:
+                    await ctx.send("The rule you're trying to delete doesn't exist")
+            else:
+                await ctx.send('The action must be one of `add`, `info` and `remove`')
 
     @commands.command()
     @commands.guild_only()
@@ -382,143 +378,157 @@ class Moderation(commands.Cog):
     async def swear(self, ctx, word = None):
         """The effect of this command depends on the argument passed : `on`/`off` : turns the filter on/off. `auto` : turns autodetection on/off. `notification` : turns DM alert on/off (guild owner only). Anything else adds a word to the list, and nothing means to check the status
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !"""
-        await self.bot.db.execute(f"CREATE TABLE IF NOT EXISTS guild_{ctx.guild.id}_swear_words (swear TINYTEXT)")
-        if word:
-            word=word.lower()
-            if word == "on":
-                await self.bot.db.execute('INSERT INTO swear (id, manual_on) VALUES (?, 1) ON DUPLICATE UPDATE manual_on=1', (ctx.guild.id,))
-                await ctx.send("Swear filter turned on")
-            elif word == "off":
-                await self.bot.db.execute('INSERT INTO swear (id, manual_on) VALUES (?, 0) ON DUPLICATE UPDATE manual_on=0', (ctx.guild.id,))
-                await ctx.send("Swear filter turned off")
-            elif word == "auto":
-                cur = await self.bot.db.execute('SELECT * FROM swear WHERE id=?', (ctx.guild.id,))
-                result = await cur.fetchone()
-                if result:
-                    if result.get('notification'):
-                        await self.bot.db.execute('UPDATE swear SET notification=0 WHERE id=?', (ctx.guild.id,))
-                        await ctx.send('Autodetection turned off')
+        async with self.bot.pool.acquire() as db:
+            if word:
+                word = word.lower()
+                if word == "on":
+                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 1) ON CONFLICT (id) DO UPDATE SET manual_on=1', ctx.guild.id)
+                    await ctx.send("Swear filter turned on")
+                elif word == "off":
+                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 0) ON CONFLICT (id) DO UPDATE SET manual_on=0', ctx.guild.id)
+                    await ctx.send("Swear filter turned off")
+                elif word == "auto":
+                    result = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
+                    if result:
+                        if result.get('notification'):
+                            await db.execute('UPDATE public.swear SET notification=0 WHERE id=$1', ctx.guild.id)
+                            await ctx.send('Autodetection turned off')
+                        else:
+                            await db.execute('UPDATE public.swear SET autoswear=1 WHERE id=$1', ctx.guild.id)
+                            await ctx.send('Autodetection turned on')
                     else:
-                        await self.bot.db.execute('UPDATE swear SET autoswear=1 WHERE id=?', (ctx.guild.id,))
+                        await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 1)', ctx.guild.id)
                         await ctx.send('Autodetection turned on')
-                else:
-                    await self.bot.db.execute('INSERT INTO swear (id, manual_on) VALUES (?, 1)', (ctx.guild.id,))
-                    await ctx.send('Autodetection turned on')
-            elif word == "notification":
-                if not ctx.guild.owner == ctx.author:
-                    return await ctx.send('As he is the one alerted, only the guild owner can change this setting')
-                cur = await self.bot.db.execute('SELECT * FROM swear WHERE id=?', (ctx.guild.id,))
-                result = await cur.fetchone()
-                if result:
-                    if result.get('autoswear'):
-                        await self.bot.db.execute('UPDATE swear SET notification=0 WHERE id=?', (ctx.guild.id,))
-                        await ctx.send('The alert has been disabled')
+                elif word == "notification":
+                    if not ctx.guild.owner == ctx.author:
+                        return await ctx.send('As he is the one alerted, only the guild owner can change this setting')
+                    result = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
+                    if result:
+                        if result.get('notification'):
+                            await db.execute('UPDATE public.swear SET notification=0 WHERE id=$1', ctx.guild.id,)
+                            await ctx.send('The alert has been disabled')
+                        else:
+                            await db.execute('UPDATE public.swear SET notification=1 WHERE id=$1', ctx.guild.id)
+                            await ctx.send('The alert has been enabled')
                     else:
-                        await self.bot.db.execute('UPDATE swear SET notification=1 WHERE id=?', (ctx.guild.id,))
-                        await ctx.send('The alert has been enabled')
+                        await db.execute("INSERT INTO public.swear (id, notification) VALUES ($1, 0)", ctx.guild.id)
+                        await ctx.send('The alert has been disabled')
                 else:
-                    await self.bot.db.execute("INSERT INTO swear (id, notification) VALUES (?, 0)", (ctx.guild.id,))
-                    await ctx.send('The alert has been disabled')
+                    result = await db.fetchrow(f"SELECT * FROM public.swear WHERE id", ctx.guild.id)
+                    if result:
+                        L = result["words"]
+                        if word in L:
+                            L.remove(word)
+                            await ctx.send(f"The word {word} was removed from this guild's list of swear words")
+                        else:
+                            L.append(word)
+                            await ctx.send(f"The word {word} was added to this guild's list of swear words")
+                    else:
+                        L = [word]
+                        await ctx.send(f"The word {word} was added to this guild's list of swear words")
+                    await db.execute("INSERT INTO public.swear (id, words) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE UPDATE words=$2", ctx.guild.id, L)
             else:
-                if len(word)>255:
-                    return await ctx.send("The swear words can't have a length of more than 255")
-                cur = await self.bot.db.execute(f"SELECT * FROM guild_{ctx.guild.id}_swear_words WHERE swear=?", (word,))
-                result = await cur.fetchone()
-                if result:
-                    await self.bot.db.execute(f"DELETE FROM guild_{ctx.guild.id}_swear_words WHERE swear=?", (word,))
-                    await ctx.send(f"The word {word} was removde from this guild's list of swear words")
-                else:
-                    await self.bot.db.execute(f"INSERT INTO guild_{ctx.guild.id}_swear_words VALUES (?)", (word,))
-                    await ctx.send(f"The word {word} was added to this guild's list of swear words")
-            await self.bot.db.commit()
-        else:
-            cur = await self.bot.db.execute('SELECT * FROM swear WHERE id=?',(ctx.guild.id,))
-            status = await cur.fetchone()
-            if status is None:
-                status = {'manual_on':0, 'autoswear':0, 'notification':1}
+                status = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
+                if not status:
+                    status = {'manual_on':0, 'autoswear':0, 'notification':1, 'swear_words':[]}
 
-            cur = await self.bot.db.execute(f'SELECT * from guild_{ctx.guild.id}_swear_words')
-            swear_words = tuple(await cur.fetchall())
 
-            embed = discord.Embed(title = f"Swear words in {ctx.guild.name}", colour=self.bot.colors['yellow'])
-            embed.add_field(name = "Manual filter status", value = "Offline" if status['manual_on'] else "Online")
-            embed.add_field(name = "Auto filter status", value = "Online" if status['autoswear'] else "Offline")
-            embed.add_field(name = "Alert message status (in case I cannot delete a message)", value = "Enabled" if status['notification'] else "Disabled")
-            embed.add_field(name = "Guild-specific swear words",value = " - " + "\n - ".join(swear_words) if swear_words else "No swear words are defined for this guild", inline=False)
-            await ctx.send(embed = embed)
+                embed = discord.Embed(title = f"Swear words in {ctx.guild.name}", colour=self.bot.colors['yellow'])
+                embed.add_field(name = "Manual filter status", value = "Offline" if status['manual_on'] else "Online")
+                embed.add_field(name = "Auto filter status", value = "Online" if status['autoswear'] else "Offline")
+                embed.add_field(name = "Alert message status (in case I cannot delete a message)", value = "Enabled" if status['notification'] else "Disabled")
+                embed.add_field(name = "Guild-specific swear words",value = " - " + "\n - ".join(status["words"]) if swear_words else "No swear words are defined for this guild", inline=False)
+                await ctx.send(embed = embed)
 
     @commands.Cog.listener('on_raw_reaction_add')
-    async def role_adder(self,payload):
-        cur = await self.bot.db.execute('SELECT rowid, * FROM roles WHERE message_id=? AND emoji=?', (payload.message_id, payload.emoji.name))
-        result = await cur.fetchone()
-        if result:
-            guild = self.bot.get_guild(payload.guild_id)
-            roles = (guild.get_role(int(r)) for r in result['roleids'].split(','))
-            try:
-                await payload.member.add_roles(*(r for r in roles if r), reason = f"Rule n°{result['rowid']}")
-            except :
-                pass
+    async def role_adder(self, payload):
+        if not hasattr(self, "_role_add"):
+            self._role_add = await self.bot.pool.acquire()
+            self._role_add_lock = asyncio.Lock()
+        async with self._role_add_lock:
+            result = await self._role_add.fetchrow('SELECT * FROM public.roles WHERE message_id=$1 AND emoji=$2', payload.message_id, payload.emoji.name)
+            if result:
+                guild = self.bot.get_guild(payload.guild_id)
+                roles = (guild.get_role(r) for r in result['roleids'])
+                try:
+                    await payload.member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {payload.emoji.name}")
+                except :
+                    pass
 
     @commands.Cog.listener('on_raw_reaction_remove')
     async def role_remover(self,payload):
-        cur = await self.bot.db.execute('SELECT rowid, * FROM roles WHERE message_id=? AND emoji=?', (payload.message_id, payload.emoji.name))
-        result = await cur.fetchone()
-        if result:
-            guild = self.bot.get_guild(payload.guild_id)
-            member = guild.get_member(payload.user_id)
-            roles = (guild.get_role(int(r)) for r in result['roleids'].split(','))
-            try:
-                await member.remove_roles(*(r for r in roles if r), reason = f"Rule n°{result['rowid']}")
-            except :
-                pass
+        if not hasattr(self, "_role_remove"):
+            self._role_remove = await self.bot.pool.acquire()
+            self._role_remove_lock = asyncio.Lock()
+        async with self._role_remove_lock:
+            result = await self._role_remove.fetchrow('SELECT * FROM public.roles WHERE message_id=$1 AND emoji=$2', payload.message_id, payload.emoji.name)
+            if result:
+                guild = self.bot.get_guild(payload.guild_id)
+                member = guild.get_member(payload.user_id)
+                roles = (guild.get_role(r) for r in result['roleids'])
+                try:
+                    await member.remove_roles(*(r for r in roles if r), reason = f"Rule for emoji {payload.emoji.name}")
+                except :
+                    pass
 
     @commands.Cog.listener('on_member_join')
     async def role_saver(self, member):
-        cur = await self.bot.db.execute('SELECT rowid, * FROM roles WHERE guild_id=?', (member.guild.id,))
-        results = await cur.fetchall()
-        for result in results:
-            channel = member.guild.get_channel(result['channel_id'])
-            if channel:
-                message = await channel.fetch_message(result['message_id'])
-                if message:
-                    for reaction in message.reactions:
-                        emoji = reaction.emoji
-                        if not isinstance(emoji, str):
-                            emoji = emoji.name
-                        if emoji == result['emoji']:
-                            roles = (member.guild.get_role(int(r)) for r in result['roleids'].split(','))
-                            await member.add_roles(*(r for r in roles if r), reason = f"Rule n°{result['rowid']}")
+        if not hasattr(self, "_role_save"):
+            self._role_save = await self.bot.pool.acquire()
+            self._role_save_lock = asyncio.Lock()
+        async with self._role_save_lock:
+            results = await self._role_save.fetch('SELECT * FROM public.roles WHERE guild_id=$1', member.guild.id)
+            for result in results:
+                channel = member.guild.get_channel(result['channel_id'])
+                if channel:
+                    message = await channel.fetch_message(result['message_id'])
+                    if message:
+                        for reaction in message.reactions:
+                            emoji = reaction.emoji
+                            if not isinstance(emoji, str):
+                                emoji = emoji.name
+                            if emoji == result['emoji']:
+                                roles = (member.guild.get_role(r) for r in result['roleids'])
+                                await member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {payload.emoji.name}")
 
     @commands.Cog.listener("on_message")
-    async def no_swear_words(self,message):
+    async def no_swear_words(self, message):
         if message.author == self.bot or not isinstance(message.author, discord.Member):
             return
         if message.channel.is_nsfw() or message.author.guild_permissions.manage_messages:
             return
-        try:
-            cur = await self.bot.db.execute('SELECT * FROM swear WHERE id=?',(message.guild.id,))
-            status = await cur.fetchone()
-            if status['autoswear']:
-                for s in auto_swear_detection:
-                    if s in message.content.lower().split(' '):
-                        try:
-                            await message.delete()
-                        except discord.Forbidden:
-                            await message.guild.owner.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me. You can use `€swear notification` to turn this alert off.")
-                        return
-            if status['manual_on']:
-                cur = await self.bot.db.execute(f"SELECT * FROM guild_{ctx.guild.id}_swear_words")
-                swear_words = tuple(await cur.fetchall())
-                for s in swear_words:
-                    if s in message.content.lower().split(' '):
-                        try:
-                            await message.delete()
-                        except discord.Forbidden:
-                            if status['notification']:
-                                await message.guild.owner.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me. You can use `€swear notification` to turn this alert off.")
-                        break
-        except:
-            pass
+        if not hasattr(self, "_swear_conn"):
+            self._swear_conn = await self.bot.pool.acquire()
+            self._swear_conn_lock = asyncio.Lock()
+        async with self._swear_conn_lock:
+            try:
+                status = await self._swear_conn.fetchrow('SELECT * FROM public.swear WHERE id=$1', message.guild.id)
+                if status['autoswear']:
+                    for s in auto_swear_detection:
+                        if s in message.content.lower().split(' '):
+                            try:
+                                await message.delete()
+                            except discord.Forbidden:
+                                if status["notification"]:
+                                    await message.guild.owner.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me. You can use `€swear notification` to turn this alert off.")
+                            return
+                if status['manual_on']:
+                    for s in status["words"]:
+                        if s in message.content.lower().split(' '):
+                            try:
+                                await message.delete()
+                            except discord.Forbidden:
+                                if status['notification']:
+                                    await message.guild.owner.send(f"{message.author} used a swear word : `{s}`, but I lack the permissions to delete the message. Please give them back to me. You can use `€swear notification` to turn this alert off.")
+                            break
+            except:
+                pass
+
+    def cog_unload(self):
+        for name in ("_swear_conn", "_role_save", "_role_add", "_role_remove"):
+            conn = getattr(self, name, False)
+            if conn:
+                asyncio.create_task(self.bot.pool.release(conn))
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

@@ -108,20 +108,19 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
         """Makes the bot send a message to the specified user"""
         if not user:
             return await ctx.send("I couldn't find this user")
-        await self.bot.db.execute("CREATE TABLE IF NOT EXISTS block (id INT)")
-        cur = await self.bot.db.execute('SELECT * FROM block WHERE id=?', (user.id,))
-        result = await cur.fetchone()
-        if result:
-            return await ctx.send("This user blocked me. Sorry")
-        embed = discord.Embed(title = "Message from my owner", description = message, url = discord.utils.oauth_url(str(self.bot.user.id), permissions = discord.Permissions(self.bot.invite_permissions)))
-        embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
-        embed.set_footer(text = f"Use the command `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}block` if you don't want me to DM you anymore")
-        try:
-            await user.send(f"Use `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}contact` to answer this message, or click on the title to go to my support server", embed = embed)
-        except discord.Forbidden:
-            await ctx.send("This user blocked his DM. I can't message him")
-        else:
-            await ctx.send("DM successfully sent !")
+        async with self.bot.pool.acquire() as db:
+            result = await db.fetchrow('SELECT * FROM block WHERE id=$1', user.id)
+            if result:
+                return await ctx.send("This user blocked me. Sorry")
+            embed = discord.Embed(title = "Message from my owner", description = message, url = discord.utils.oauth_url(str(self.bot.user.id), permissions = discord.Permissions(self.bot.invite_permissions)))
+            embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
+            embed.set_footer(text = f"Use the command `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}block` if you don't want me to DM you anymore")
+            try:
+                await user.send(f"Use `{discord.utils.escape_markdown(await self.bot.get_m_prefix(ctx.message, False))}contact` to answer this message, or click on the title to go to my support server", embed = embed)
+            except discord.Forbidden:
+                await ctx.send("This user blocked his DM. I can't message him")
+            else:
+                await ctx.send("DM successfully sent !")
 
     @commands.command(ignore_extra = True)
     async def logout(self,ctx):
