@@ -284,9 +284,6 @@ class Utility(commands.Cog):
         await self.bot.suggestion_channel.send(embed = embed)
         await ctx.send("Thanks for your participation in this project !")
 
-    def cog_unload(self):
-        self.interface.cancel()
-
     @tasks.loop(minutes=30)
     async def discord_bots(self):
         await self.bot.aio_session.post(f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",json={"guildCount":len(self.bot.guilds)},headers={"authorization":self.bot.discord_bots})

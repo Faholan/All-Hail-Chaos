@@ -22,6 +22,7 @@ SOFTWARE."""
 
 from contextlib import redirect_stdout
 import io
+import os
 import textwrap
 import traceback
 
@@ -127,6 +128,13 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
         """Kills the bot"""
         await ctx.send('Logging out...')
         await self.bot.close()
+
+    @commands.command(ignore_extra = True)
+    async def reboot(self, ctx):
+        """Just like logout + start"""
+        await ctx.send("Rebooting...")
+        await self.bot.close()
+        os.system('python3 "Chaotic Bot.py"')
 
     @commands.command()
     async def reload(self, ctx, *extensions):

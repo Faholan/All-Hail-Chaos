@@ -2,6 +2,10 @@
 A bot I developed during quarantine
 
 ## Setting up
+### Database
+
+This bot uses PostgreSQL for the database. You must have installed PostgreSQL on your machine, and then edit the credentials in `data.py`
+
 ### data.py
 
 You need to rename the file `data/data_example.py` into `data/data.py`, and then change some values :

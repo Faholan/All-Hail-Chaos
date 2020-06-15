@@ -87,10 +87,12 @@ class chaotic_bot(commands.Bot):
 
     async def close(self):
         await self.aio_session.close()
-        await self.pool.close()
         await self.ksoft_client.close()
         for task in all_tasks(loop = self.loop):
             task.cancel()
+        for ext in tuple(self.extensions):
+            self.unload_extension(ext)
+        await self.pool.close()
         await super().close()
 
     async def cog_reloader(self, ctx, extensions):

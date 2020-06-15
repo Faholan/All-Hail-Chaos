@@ -41,7 +41,7 @@ def setup(bot):
 
         bot.graphic_interface = True #Whether or not to have a Tkinter interface
 
-        bot.invite_permissions = None #Permissions to require when someone invites the bot in a server
+        bot.invite_permissions = 808527942 #Permissions to require when someone invites the bot in a server
         bot.support = "https://discord.gg/eFfjdyZ"
 
         bot.ksoft_client = ksoftapi.Client("MY KSOFT.SI TOKEN", bot.loop)

@@ -121,6 +121,8 @@ class Successes(commands.Cog):
     @commands.Cog.listener("on_command_completion")
     async def succ_sender(self, ctx):
         """Checks and sends the successes"""
+        if ctx.invoked_with in ("logout", "reboot"):
+            return
         if not hasattr(self, "_succ_conn"):
             self._succ_conn = await self.bot.pool.acquire()
             self._succ_con_lock = asyncio.Lock()

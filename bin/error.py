@@ -84,10 +84,17 @@ async def error_manager(ctx,error):
         await ctx.bot.httpcat(ctx,400,"I expected a closing quote")
     elif isinstance(error,commands.CheckFailure):
         await ctx.bot.httpcat(ctx,401,"You don't have the rights to use this command")
+    elif isinstance(error, discord.Forbidden):
+        try:
+            await ctx.bot.httpcat(ctx.author, 500, "Hey, you must give me permissions to send messages if you want me to answer you")
+        except:
+            pass
+        finally:
+            await ctx.bot.log_channel.send(f"{ctx.author} ({ctx.author.id}) tried to use a command without giving me permissions to answer")
     else:
         await ctx.bot.httpcat(ctx,500,'The command raised an error',description="Thank you. My owner is now aware of this bug, which'll be fixed shortly. (typically, a few minutes from when he sees it)")
 
-    if isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached):
+    if isinstance(error, commands.UserInputError) or isinstance(error, commands.CheckFailure) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.MaxConcurrencyReached) or isinstance(error, discord.Forbidden):
         return
     if isinstance(error,commands.CommandInvokeError):
         error=error.original
@@ -105,10 +112,17 @@ async def error_manager(ctx,error):
     embed.description += f"```\n{tb}```"
     embed.set_footer(text=f"{ctx.bot.user.name} Logging", icon_url=ctx.me.avatar_url_as(static_format="png"))
     embed.timestamp = datetime.datetime.utcnow()
-    await ctx.bot.log_channel.send(embed=embed)
+    try:
+        return await ctx.bot.log_channel.send(embed = embed)
+    except:
+        pass
+    await ctx.bot.log_channel.send("Please check the Python logs")
+    raise
 
 def generator(bot):
     async def predictate(event, *args, **kwargs):
+        if event == "on_command_error":
+            raise
         error_type, value, TR = sys.exc_info()
         embed = discord.Embed(color=0xFF0000)
         embed.title = f"Error in {event} with args {args} {kwargs}"
@@ -117,7 +131,12 @@ def generator(bot):
         embed.description += f"```\n{tb}```"
         embed.set_footer(text=f"{bot.user.name} Logging", icon_url = bot.user.avatar_url_as(static_format="png"))
         embed.timestamp = datetime.datetime.utcnow()
-        await bot.log_channel.send(embed=embed)
+        try:
+            return await bot.log_channel.send(embed=embed)
+        except:
+            pass
+        await bot.log_channel.send("Please check the Python logs")
+        raise
     return predictate
 
 def setup(bot):

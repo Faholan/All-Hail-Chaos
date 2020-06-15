@@ -300,7 +300,7 @@ class Moderation(commands.Cog):
                     pass
                 await ctx.send('The rule has been successfully updated')
             elif action.lower() == 'info':
-                result = await db.execute('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id)
+                result = await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id)
                 deleted = 0
                 m = f"No rules are currently defined for this guild. Create the first one with `{ctx.prefix}role add`"
                 if result:
@@ -489,7 +489,7 @@ class Moderation(commands.Cog):
                                 emoji = emoji.name
                             if emoji == result['emoji']:
                                 roles = (member.guild.get_role(r) for r in result['roleids'])
-                                await member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {payload.emoji.name}")
+                                await member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {emoji}")
 
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message):
