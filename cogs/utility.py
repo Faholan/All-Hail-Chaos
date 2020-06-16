@@ -136,6 +136,7 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def contact(self, ctx, *, message):
+        """Contact my staff for anything you think requires their attention"""
         embed = discord.Embed(title = f"Message from an user ({ctx.author.id})", description = message)
         embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
         channel = self.bot.get_channel(self.bot.contact_channel_id)
@@ -196,7 +197,7 @@ class Utility(commands.Cog):
         embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
         embed.set_footer(text = f"Discord.py version {discord.__version__}, Python version {version.split(' ')[0]}")
         embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
-        embed.add_field(name = "My owner (please respect him a lil bit) :", value = str(app.owner), inline=False)
+        embed.add_field(name = f"My owner{'s' if app.team else ''} :", value = ", ".join([str(member) for member in app.team.members]) if app.team else str(app.owner), inline = False)
         artist = self.bot.get_user(372336190919147522)
         if artist:
             embed.add_field(name = "Credits for the superb profile pic :", value = str(artist), inline = False)
@@ -207,7 +208,7 @@ class Utility(commands.Cog):
         embed.add_field(name = "Libraries used :", value = '[KSoft.si](https://ksoft.si) : Whole Images Cog, currency, reputation\n[DiscordRep](https://discordrep.com/) : Reputation\n[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank chr1sBot for learning about this") : Whole Music Cog\n[discord.py](https://discordapp.com/ "More exactly discord.ext.commands") : Basically this whole bot\n[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : Whole NASA Cog', inline = False)
         embed.add_field(name = "Time since last update :",value=secondes(delta.seconds+86400*delta.days))
         embed.add_field(name = "CPU usage - bot (total)", value = f"{self.process.cpu_percent():.2f} % ({psutil.cpu_percent():.2f} %)")
-        await ctx.send(embed=embed)
+        await ctx.send(embed = embed)
 
     @commands.command(ignore_extra = True)
     @commands.guild_only()
