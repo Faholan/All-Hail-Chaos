@@ -382,22 +382,22 @@ class Moderation(commands.Cog):
             if word:
                 word = word.lower()
                 if word == "on":
-                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 1) ON CONFLICT (id) DO UPDATE SET manual_on=1', ctx.guild.id)
+                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, True) ON CONFLICT (id) DO UPDATE SET manual_on=True', ctx.guild.id)
                     await ctx.send("Swear filter turned on")
                 elif word == "off":
-                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 0) ON CONFLICT (id) DO UPDATE SET manual_on=0', ctx.guild.id)
+                    await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, False) ON CONFLICT (id) DO UPDATE SET manual_on=False', ctx.guild.id)
                     await ctx.send("Swear filter turned off")
                 elif word == "auto":
                     result = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
                     if result:
-                        if result.get('notification'):
-                            await db.execute('UPDATE public.swear SET notification=0 WHERE id=$1', ctx.guild.id)
+                        if result.get('auto'):
+                            await db.execute('UPDATE public.swear SET autoswear=False WHERE id=$1', ctx.guild.id)
                             await ctx.send('Autodetection turned off')
                         else:
-                            await db.execute('UPDATE public.swear SET autoswear=1 WHERE id=$1', ctx.guild.id)
+                            await db.execute('UPDATE public.swear SET autoswear=True WHERE id=$1', ctx.guild.id)
                             await ctx.send('Autodetection turned on')
                     else:
-                        await db.execute('INSERT INTO public.swear (id, manual_on) VALUES ($1, 1)', ctx.guild.id)
+                        await db.execute('INSERT INTO public.swear (id, autoswear) VALUES ($1, True)', ctx.guild.id)
                         await ctx.send('Autodetection turned on')
                 elif word == "notification":
                     if not ctx.guild.owner == ctx.author:
@@ -405,39 +405,39 @@ class Moderation(commands.Cog):
                     result = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
                     if result:
                         if result.get('notification'):
-                            await db.execute('UPDATE public.swear SET notification=0 WHERE id=$1', ctx.guild.id,)
+                            await db.execute('UPDATE public.swear SET notification=False WHERE id=$1', ctx.guild.id,)
                             await ctx.send('The alert has been disabled')
                         else:
-                            await db.execute('UPDATE public.swear SET notification=1 WHERE id=$1', ctx.guild.id)
+                            await db.execute('UPDATE public.swear SET notification=True WHERE id=$1', ctx.guild.id)
                             await ctx.send('The alert has been enabled')
                     else:
-                        await db.execute("INSERT INTO public.swear (id, notification) VALUES ($1, 0)", ctx.guild.id)
+                        await db.execute("INSERT INTO public.swear (id, notification) VALUES ($1, False)", ctx.guild.id)
                         await ctx.send('The alert has been disabled')
                 else:
-                    result = await db.fetchrow(f"SELECT * FROM public.swear WHERE id", ctx.guild.id)
+                    result = await db.fetchrow(f"SELECT * FROM public.swear WHERE id=$1", ctx.guild.id)
                     if result:
                         L = result["words"]
                         if word in L:
                             L.remove(word)
-                            await ctx.send(f"The word {word} was removed from this guild's list of swear words")
+                            await ctx.send(f"The word `{word}` was removed from this guild's list of swear words")
                         else:
                             L.append(word)
-                            await ctx.send(f"The word {word} was added to this guild's list of swear words")
+                            await ctx.send(f"The word `{word}` was added to this guild's list of swear words")
                     else:
                         L = [word]
-                        await ctx.send(f"The word {word} was added to this guild's list of swear words")
-                    await db.execute("INSERT INTO public.swear (id, words) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE UPDATE words=$2", ctx.guild.id, L)
+                        await ctx.send(f"The word `{word}` was added to this guild's list of swear words")
+                    await db.execute("INSERT INTO public.swear (id, words) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE set words=$2", ctx.guild.id, L)
             else:
                 status = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
                 if not status:
-                    status = {'manual_on':0, 'autoswear':0, 'notification':1, 'swear_words':[]}
+                    status = {'manual_on':False, 'autoswear':False, 'notification':True, 'words':[]}
 
 
                 embed = discord.Embed(title = f"Swear words in {ctx.guild.name}", colour=self.bot.colors['yellow'])
                 embed.add_field(name = "Manual filter status", value = "Offline" if status['manual_on'] else "Online")
                 embed.add_field(name = "Auto filter status", value = "Online" if status['autoswear'] else "Offline")
                 embed.add_field(name = "Alert message status (in case I cannot delete a message)", value = "Enabled" if status['notification'] else "Disabled")
-                embed.add_field(name = "Guild-specific swear words",value = " - " + "\n - ".join(status["words"]) if swear_words else "No swear words are defined for this guild", inline=False)
+                embed.add_field(name = "Guild-specific swear words", value = " - " + "\n - ".join(status["words"]) if status["words"] else "No swear words are defined for this guild", inline=False)
                 await ctx.send(embed = embed)
 
     @commands.Cog.listener('on_raw_reaction_add')

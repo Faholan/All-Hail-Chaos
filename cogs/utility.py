@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import pickle
 import psutil
 from os import path
@@ -30,7 +30,8 @@ import typing
 
 import aiohttp
 import discord
-from discord.ext import commands, tasks, menus
+from discord.ext import commands, menus, tasks
+from discord.utils import escape_mentions, get, sleep_until
 
 import codecs
 import os
@@ -77,8 +78,8 @@ def secondes(s):
 
 class Utility(commands.Cog):
     '''Some functions to manage the bot or get informations about it'''
-    def __init__(self,bot):
-        self.bot=bot
+    def __init__(self, bot):
+        self.bot = bot
         self.snipe_list = {}
         if self.bot.discord_bots:
             self.discord_bots.start()
@@ -87,9 +88,16 @@ class Utility(commands.Cog):
         if self.bot.discord_bot_list:
             self.discord_bot_list.start()
 
-        self.process=psutil.Process()
+        self.process = psutil.Process()
         self.process.cpu_percent()
         psutil.cpu_percent()
+        self.poll_tasks = []
+        asyncio.create_task(self.poll_initial())
+
+    def cog_unload(self):
+        for task in self.poll_tasks:
+            if not task.done():
+                task.cancel()
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
@@ -99,7 +107,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra = True)
     async def block(self, ctx):
         """Use this command if you don't want me to DM you (except if you DM me commands)"""
-        async with self.bot.pool.acquire(timeout=5) as db:
+        async with self.bot.pool.acquire(timeout = 5) as db:
             result = await db.fetchrow('SELECT * FROM public.block WHERE id=$1', ctx.author.id)
             if result:
                 await db.execute("DELETE FROM public.block WHERE id=$1", ctx.author.id)
@@ -108,7 +116,7 @@ class Utility(commands.Cog):
                 await db.execute("INSERT INTO public.block VALUES ($1)", ctx.author.id)
                 await ctx.send("You blocked me")
 
-    @commands.command(ignore_extra=True)
+    @commands.command(ignore_extra = True)
     async def code(self, ctx):
         '''Returns stats about the bot's code
         Credits to Dutchy#6127 for this command'''
@@ -218,6 +226,152 @@ class Utility(commands.Cog):
         Only a server admin can use this'''
         await ctx.send("See you soon !")
         await ctx.guild.leave()
+
+    @commands.command(ignore_extra = True, aliases = ["polls"])
+    @commands.guild_only()
+    async def poll(self, ctx):
+        messages_to_delete = [await ctx.send("Welcome to the poll creation tool !\nPlease tell me what this poll will be about")]
+        def check(message):
+            return message.author == ctx.author and message.channel == ctx.channel
+        try:
+            subj_message = await self.bot.wait_for("message", check = check, timeout = 120)
+        except asyncio.TimeoutError:
+            return await ctx.send("You didn't answer in time. I'm so sad !")
+        subject = subj_message.content
+        messages_to_delete.append(subj_message)
+        messages_to_delete.append(await ctx.send("Now, how many possibilities does your poll have (2-10) ?"))
+        def check2(message):
+            return message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit()
+        try:
+            num_message = await self.bot.wait_for("message", check = check2, timeout = 120)
+        except asyncio.TimeoutError:
+            return await ctx.send("You didn't answer in time. I'm so sad !")
+        num = int(num_message.content)
+        if not 1 < num < 11:
+            return await ctx.send("Invalid number passed !")
+        messages_to_delete.append(num_message)
+        answers = []
+        for i in range(num):
+            messages_to_delete.append(await ctx.send(f"What will be the content of option {i+1} ?"))
+            try:
+                message_subj = await self.bot.wait_for("message", check = check, timeout = 120)
+            except asyncio.TimeoutError:
+                return await ctx.send("You didn't answer in time. I'm so sad !")
+            answers.append(message_subj.content)
+            messages_to_delete.append(message_subj)
+        messages_to_delete.append(await ctx.send("And now, for the final touch, how much time will this poll last ? Send it in the format <days>d <hours>h <minutes>m (only one of these is required)"))
+
+        def converter(content):
+            content = content.replace(" ", "")
+            if not any(i in content for i in "dhm"):
+                return False
+
+            days, hours, minutes = 0, 0, 0
+
+            if "m" in content:
+                minutes, content = content.split("m", maxsplit = 1)
+                if not minutes.isdigit():
+                    return False
+                minutes = int(minutes)
+                hours += minutes // 60
+                minutes %= 60
+
+            if "h" in content:
+                hours, content = content.split("h", masplit = 1)
+                if not hours.isdigit():
+                    return False
+                hours += int(hours)
+                days += hours//24
+                hours %= 24
+
+            if "d" in content:
+                days, content = content.split("d", maxsplit = 1)
+                if not days.isdigit():
+                    return False
+                days += int(days)
+
+            if content:
+                return False
+            return (days, hours, minutes)
+
+        def check3(message):
+            return message.author == ctx.author and message.channel == ctx.channel and converter(message.content)
+
+        try:
+            message_time = await self.bot.wait_for("message", check = check3, timeout = 120)
+        except asyncio.TimeoutError:
+            return await ctx.send("You didn't answer in time. I'm so sad !")
+
+        days, hours, minutes = converter(message_time.content)
+        if days == hours == minutes == 0:
+            return await ctx.send("A poll must last at least 1 minute")
+        messages_to_delete.append(message_time)
+
+        timestamp = datetime.utcnow() + timedelta(days = days, hours = hours, minutes = minutes)
+
+        embed = discord.Embed(title = f"Poll lasting for{' ' + str(days) + 'days' if days else ''}{' ' + str(hours) + 'hours' if hours or days else ''} {minutes} minutes", description = escape_mentions(subject), colour = self.bot.get_color())
+        embed.set_author(name = ctx.author.display_name, icon_url = ctx.author.avatar_url_as(format = "jpg"))
+        embed.timestamp = timestamp
+        for i, j in enumerate(answers):
+            embed.add_field(name = f"Answer {i + 1}", value = escape_mentions(j), inline = False)
+
+        message = await ctx.send(embed = embed)
+        for i in range(1, min(10, len(answers) + 1)):
+            await message.add_reaction(str(i) + "\N{variation selector-16}\N{combining enclosing keycap}")
+        if len(answers) == 10:
+            await message.add_reaction("\N{keycap ten}")
+
+        async with self.bot.pool.acquire(timeout = 5) as db:
+            await db.execute("INSERT INTO public.polls VALUES ($1, $2, $3, $4, $5, $6, $7)", message.id, ctx.channel.id, ctx.guild.id, ctx.author.id, timestamp, answers, subject)
+
+        task = asyncio.create_task(self.poll_generator(message.id, ctx.channel.id, ctx.guild.id, ctx.author.id, timestamp, answers, subject)())
+        self.poll_tasks.append(task)
+        for M in messages_to_delete:
+            try:
+                await M.delete()
+            except:
+                continue
+
+    async def poll_initial(self):
+        async with self.bot.pool.acquire() as db:
+            for D in await db.fetch("SELECT * FROM public.polls"):
+                task = asyncio.create_task(self.poll_generator(**dict(D))())
+                self.poll_tasks.append(task)
+
+    def poll_generator(self, message_id, channel_id, guild_id, author_id, timestamp, answers, subject):
+        async def predictate():
+            await sleep_until(timestamp)
+            async with self.bot.pool.acquire(timeout = 5) as db:
+                await db.execute("DELETE FROM public.polls WHERE message_id=$1", message_id)
+            channel = self.bot.get_guild(guild_id).get_channel(channel_id)
+            try:
+                message = await channel.fetch_message(message_id)
+            except:
+                return
+            final = []
+            for i, j in enumerate(answers):
+                if i != 9:
+                    reaction = get(message.reactions, emoji = str(i + 1) + "\N{variation selector-16}\N{combining enclosing keycap}")
+                    if reaction:
+                        final.append((reaction.count - 1 if reaction.me else reaction.count, j))
+                    else:
+                        final.append((0, j))
+                else:
+                    reaction = get(message.reactions, emoji = "\N{keycap ten}")
+                    if reaction:
+                        final.append((reaction.count - 1 if reaction.me else reaction.count, j))
+                    else:
+                        final.append((0, j))
+            final = sorted(final, key = lambda two:two[0], reverse = True)
+            embed = discord.Embed(title = f'The poll "{escape_mentions(subject)}" is finished !', description = f"*Vox populi, vox dei !*\n\nThe winner is : {final[0][1]}", colour = self.bot.get_color())
+            embed.timestamp = timestamp
+            author = channel.guild.get_member(author_id)
+            if author:
+                embed.set_author(name = author.display_name, icon_url = author.avatar_url_as(format = "jpg"))
+            for i, j in final:
+                embed.add_field(name = j, value = f"{i} people voted for that option !", inline = False)
+            await channel.send(embed = embed)
+        return predictate
 
     @commands.command()
     @check_administrator()
