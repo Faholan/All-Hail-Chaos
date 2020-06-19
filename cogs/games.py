@@ -11,24 +11,28 @@ class connect4(menus.Menu):
         self.ids = cycle(list(self.id_dict))
         self.players = players
         self.next = next(self.ids)
-        self.status = [":black_large_square:", ":green_circle:", ":red_circle"]
+        self.status = [":black_large_square:", ":green_circle:", ":red_circle:"]
         self.state = [[0 for _ in range(6)] for __ in range(7)]
 
+    def reaction_check(self, payload):
+        if payload.message_id != self.message.id:
+            return False
+
+        return payload.user_id == self.next and payload.emoji in self.buttons
+
     def get_embed(self):
-        return discord.Embed(description = "\n".join(["".join([self.status[column[i]] for column in self.state]) for i in range(6)]))
+        return discord.Embed(description = "\n".join(["".join([self.status[column[5 - i]] for column in self.state]) for i in range(6)]))
 
     async def send_initial_message(self, ctx, channel):
         return await ctx.send(embed = self.get_embed())
 
     async def action(self, n, payload):
-        if payload.user_id != self.next:
-            return
         if not 0 in self.state[n]:
             return
         self.next = next(self.ids)
-        ID = self.id_dict(payload.user_id)
+        ID = self.id_dict[payload.user_id]
         self.state[n][self.state[n].index(0)] = ID
-        await self.update()
+        await self.embed_updating()
         check = self.check(ID)
         if check:
             self.winner = self.players[ID - 1]
@@ -39,20 +43,20 @@ class connect4(menus.Menu):
         if any(S in str(x) for x in self.state):
             return True
         for i in range(6):
-            if any(S in str([column[i] for column in self.state])):
+            if S in str([column[i] for column in self.state]):
                 return True
         for i in range(3):
             L, L2, L3, L4 = [], [], [], []
             for c in range(4 + i):
                 L.append(self.state[3 + i - c][c])
-                L2.append(self.state[3 + i - c][6 - c])
-                L3.append(self.state[4 - i + c][c])
-                L4.append(self.state[4 - i + c][6 - c])
-            if any(s in str(column) for column in (L, L2, L3, L4)):
+                L2.append(self.state[3 + i - c][5 - c])
+                L3.append(self.state[3 - i + c][c])
+                L4.append(self.state[3 - i + c][5 - c])
+            if any(S in str(column) for column in (L, L2, L3, L4)):
                 return True
         return False
 
-    async def update(self):
+    async def embed_updating(self):
         await self.message.edit(embed = self.get_embed())
 
     @menus.button("1\N{variation selector-16}\N{combining enclosing keycap}")
@@ -97,7 +101,7 @@ class Games(commands.Cog):
 
     @commands.command(aliases = ["c4"])
     async def connect4(self, ctx, member : discord.Member):
-        winner = await connect4(ctx.author, member).prompt(ctx)
+        winner = await connect4(ctx.author, member, clear_reactions_after = True).prompt(ctx)
         if winner:
             await ctx.send(f"{winner.mention} won !")
         else:
