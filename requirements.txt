@@ -1,8 +1,8 @@
-aiosqlite3
 git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice]
+git+https://github.com/Rapptz/discord-ext-menus.git
 ksoftapi
 git+https://github.com/Devoxin/Lavalink.py@dev
 dblpy
 pygithub
 psutil
-aiosqlite
+asyncpg
