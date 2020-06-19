@@ -38,7 +38,11 @@ class chaotic_bot(commands.Bot):
 
         self.first_on_ready = True
 
-        self.load_extension('data.data')
+        try:
+            self.load_extension('data.data')
+        except:
+            print("No data.py file provided....")
+            self.load_extension("data.data_example")
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(self, self.dbl_token, autopost=True)
