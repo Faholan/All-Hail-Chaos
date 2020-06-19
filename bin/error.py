@@ -94,6 +94,9 @@ async def error_manager(ctx,error):
     else:
         await ctx.bot.httpcat(ctx, 500, 'The command raised an error', description = "Thank you. My owner is now aware of this bug, which'll be fixed shortly. (typically, a few minutes from when he sees it)")
 
+    if not bot.log_channel:
+        raise
+
     if isinstance(error, commands.CommandInvokeError):
         error = error.original
     embed = discord.Embed(color=0xFF0000)
@@ -119,7 +122,7 @@ async def error_manager(ctx,error):
 
 def generator(bot):
     async def predictate(event, *args, **kwargs):
-        if event == "on_command_error":
+        if event == "on_command_error" or not bot.log_channel:
             raise
         error_type, value, TR = sys.exc_info()
         embed = discord.Embed(color=0xFF0000)

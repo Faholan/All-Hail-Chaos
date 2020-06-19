@@ -27,7 +27,7 @@ from random import choice
 import ksoftapi
 
 def setup(bot):
-    bot.extensions_list = ["cogs.animals","cogs.battleship","cogs.business","cogs.coronavirus","cogs.funny","cogs.image","cogs.moderation","cogs.music","cogs.nasa", "cogs.success","cogs.utility","bin.error", "bin.help", "bin.markdown"]
+    bot.extensions_list = ["cogs.animals", "cogs.battleship", "cogs.business", "cogs.coronavirus", "cogs.funny", "cogs.image", "cogs.moderation", "cogs.music", "cogs.nasa", "cogs.success", "cogs.utility", "bin.error", "bin.help", "bin.markdown"]
     if bot.first_on_ready:
         bot.postgre_connection = {"user":"user", "password":"password"}
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
@@ -38,8 +38,6 @@ def setup(bot):
         bot.log_channel_id = 00000000000000000 #Change this to the channel in which you want the logs
         bot.suggestion_channel_id = 00000000000000000 #Change this to the channel in which you want the suggestions
         bot.contact_channel_id = 00000000000000000
-
-        bot.graphic_interface = True #Whether or not to have a Tkinter interface
 
         bot.invite_permissions = 808527942 #Permissions to require when someone invites the bot in a server
         bot.support = "https://discord.gg/eFfjdyZ"

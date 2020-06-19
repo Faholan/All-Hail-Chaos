@@ -183,6 +183,8 @@ class Moderation(commands.Cog):
     async def reputation(self,ctx,*,other:typing.Union[discord.Member,int]):
         """Checks the reputation of an user.
         You can refer to him if he's in the same server, or just paste his ID"""
+        if not self.bot.ksoft_client or not self.bot.discord_rep:
+            return await ctx.send("Soeey, but my owner hasn't correctly configured this command")
         if type(other)==int:
             ID = str(other)
             name="User "+ID

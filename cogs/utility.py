@@ -148,8 +148,11 @@ class Utility(commands.Cog):
         embed = discord.Embed(title = f"Message from an user ({ctx.author.id})", description = message)
         embed.set_author(name = f"{ctx.author.name}#{ctx.author.discriminator}", icon_url = str(ctx.author.avatar_url))
         channel = self.bot.get_channel(self.bot.contact_channel_id)
-        await channel.send(embed = embed)
-        await ctx.send("Your message has been successfully sent")
+        if channel:
+            await channel.send(embed = embed)
+            await ctx.send("Your message has been successfully sent")
+        else:
+            await ctx.send("Sorry but my owner hasn't correctly configured this")
 
     @commands.command(aliases=["convert"])
     async def currency(self,ctx,original,goal,value:float):
@@ -168,7 +171,7 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_webhooks=True)
     async def github(self,ctx):
         """Creates or deletes a webhook to get updates about the bot's development"""
-        if not hasattr(self.bot,"github") or not self.bot.github_repo:
+        if not hasattr(self.bot, "github") or not self.bot.github_repo:
             return await ctx.send("This command hasn't been configured by the developer yet")
         for hook in await ctx.channel.webhooks():
             if hook.user==self.bot.user:
@@ -436,8 +439,11 @@ class Utility(commands.Cog):
         embed = discord.Embed(title = f"Suggestion for **{subject}**", description = f"Subject of <@{ctx.author.id}>'s suggestion : {subject}", colour = self.bot.colors['yellow'])
         embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
         embed.add_field(name = f"<@{ctx.author.id}>'s idea", value = idea)
-        await self.bot.suggestion_channel.send(embed = embed)
-        await ctx.send("Thanks for your participation in this project !")
+        if bot.suggestion_channel:
+            await self.bot.suggestion_channel.send(embed = embed)
+            await ctx.send("Thanks for your participation in this project !")
+        else:
+            await ctx.send("Sorry but my owner hasn't correctly configured this command")
 
     @tasks.loop(minutes=30)
     async def discord_bots(self):
