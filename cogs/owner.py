@@ -136,6 +136,33 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
         await self.bot.close()
         os.system('python3 "Chaotic Bot.py"')
 
+    @commands.command(ignore_extra = True)
+    async def load(self, ctx, *extensions):
+        if not extensions:
+            return await ctx.send("Please specify at least one extension to unload")
+        M = len(extensions)
+        report = []
+        success = 0
+        for ext in extensions:
+            try:
+                try:
+                    self.bot.reload_extension(ext)
+                    report.append(f"✅ | **Extension reloaded** : `{ext}`")
+                except commands.ExtensionNotLoaded:
+                    self.bot.load_extension(ext)
+                    report.append(f"✅ | **Extension loaded** : `{ext}`")
+                success+=1
+            except commands.ExtensionFailed as e:
+                report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
+            except commands.ExtensionNotFound:
+                report.append(f"❌ | **Extension not found** : `{ext}`")
+            except commands.NoEntryPointError:
+                report.append(f"❌ | **setup not defined** : `{ext}`")
+
+        embed = discord.Embed(title = f"{success} {'extension was' if success == 1 else 'extensions were'} loaded & {M - success} {'extension was' if M - success == 1 else 'extensions were'} not loaded", description = '\n'.join(report), color = self.bot.colors['green'])
+        await self.bot.log_channel.send(embed = embed)
+        await ctx.send(embed = embed)
+
     @commands.command()
     async def reload(self, ctx, *extensions):
         """Reloads extensions"""
