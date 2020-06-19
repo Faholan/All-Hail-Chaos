@@ -33,7 +33,7 @@ from github import Github
 
 class chaotic_bot(commands.Bot):
     """The subclassed bot class"""
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.first_on_ready = True
@@ -48,11 +48,11 @@ class chaotic_bot(commands.Bot):
         self.prefix_dict = {}
 
     async def on_ready(self):
-        await self.change_presence(activity=Game(self.default_prefix+'help'))
+        await self.change_presence(activity=Game(f"{self.default_prefix}help"))
         if self.first_on_ready:
             self.first_on_ready = False
-            self.pool = await asyncpg.create_pool(database = "chaotic", host = "127.0.0.1", min_size = 20, max_size = 100, **self.postgre_connection)
-            async with self.pool.acquire(timeout = 5) as db:
+            self.pool = await asyncpg.create_pool(database="chaotic", host="127.0.0.1", min_size=20, max_size=100, **self.postgre_connection)
+            async with self.pool.acquire(timeout=5) as db:
                 for row in await db.fetch("SELECT * FROM public.prefixes"):
                     self.prefix_dict[row["ctx_id"]] = row["prefix"]
             self.aio_session = aiohttp.ClientSession()
@@ -165,4 +165,6 @@ async def command_prefix(bot,message):
     return await bot.get_m_prefix(message)
 
 bot = chaotic_bot(command_prefix = command_prefix, description = "A bot for fun", fetch_offline_members = True)
-bot.run(bot.token)
+
+if __name__ == "__main__":
+    bot.run(bot.token)
