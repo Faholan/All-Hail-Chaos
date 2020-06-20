@@ -131,7 +131,7 @@ f"""from random import choice
 import ksoftapi
 
 def setup(bot):
-    bot.extensions_list = ["cogs.animals", "cogs.battleship", "cogs.business", "cogs.funny"{', "cogs.image"' if ksoft else ''}, "cogs.moderation", "cogs.music"{', "cogs.nasa"' if nasa else ''}, "cogs.owner", "cogs.success", "cogs.utility", "bin.error", "bin.help", "bin.markdown"]
+    bot.extensions_list = ["cogs.animals", "cogs.battleship", "cogs.business", "cogs.funny", "cogs.games"{', "cogs.image"' if ksoft else ''}, "cogs.moderation", "cogs.music"{', "cogs.nasa"' if nasa else ''}, "cogs.owner", "cogs.success", "cogs.utility", "bin.error", "bin.help", "bin.markdown"]
     if bot.first_on_ready:
         bot.postgre_connection = {o}"user":"{user}", "password":"{password}"{c}
         bot.token = "{token}"

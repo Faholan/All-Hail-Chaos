@@ -280,7 +280,7 @@ class Utility(commands.Cog):
                 minutes %= 60
 
             if "h" in content:
-                hours, content = content.split("h", masplit = 1)
+                hours, content = content.split("h", maxsplit = 1)
                 if not hours.isdigit():
                     return False
                 hours += int(hours)
