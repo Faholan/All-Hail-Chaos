@@ -126,7 +126,7 @@ class BCard():
         return (self._value, self.colour)
 
     def __eq__(self, other):
-        return self.value == other.value
+        return self._value == other._value
 
     def min(self):
         if self.is_ace:
@@ -142,7 +142,10 @@ class BRow(list):
 
     def value(self):
         V = self.value_min()
-        c = self.count(BCard(11, 0))
+        c = 0
+        for card in self:
+            if card.is_ace:
+                c += 1
         while c:
             if V <= 11:
                 V+=10
@@ -167,18 +170,52 @@ class Deck():
     def isvalid(self):
         return any(column.isvalid() for column in self.cards) and self.money > 0
 
-    def add(self, card, id):
-        if len(self.cards) == 0:
-            id = 0
-        if not self.cards[id].isvalid():
-            raise IndexError("You cannot play here")
+    async def add(self, card, ctx, ini = False):
+        if card in self and self.cost < self.money and not ini:
+            def check(message):
+                return message.author == ctx.author and message.channel == ctx.channel and message.content.lower() in ["y", "yes", "n", "no"]
+            m1 = await ctx.send(f"You have a {card.name}. Do you want to split ? (y/n)")
+            try:
+                message = await ctx.bot.wait_for("message", check = check, timeout = 30)
+                if message.content.lower().startswith("y"):
+                    answer = True
+                else:
+                    answer = False
+            except:
+                answer = False
+            try:
+                await m1.delete()
+                await message.delete()
+            except:
+                pass
+            if answer:
+                return self.split(card)
+        L = [i for i in range(len(self.cards)) if self.cards[i].isvalid()]
+        if len(L) == 1:
+            id = L[0]
+        else:
+            m1 = await ctx.send(f"You have {len(L)} rows available. In which one do you want to play ?")
+            def check(message):
+                if message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit():
+                    try:
+                        return self.cards[int(message.content)-1].isvalid()
+                    except:
+                        pass
+                return False
+            try:
+                message = await ctx.bot.wait_for("message", check = check, timeout = 30)
+                id = int(message.content) - 1
+            except:
+                id = L[0]
+                await ctx.send(f"Defaulting to row {id+1}", delete_after = 3)
+            try:
+                await m1.delete()
+                await message.delete()
+            except:
+                pass
         self.cards[id].append(card)
 
     def split(self, card):
-        if not card in self:
-            raise ValueError("You don't have this card yet")
-        if self.cost > self.money:
-            raise ValueError("You don't have enough money to split")
         self.money -= self.cost
         self.cards.append(BRow([card]))
 
@@ -192,7 +229,6 @@ class Blackjack(menus.Menu):
 
         self.player_dict = {player.id : player for player in players}
         self.money_dict = {player.id : 100 for player in players}
-        self.new_game()
 
     def reaction_check(self, payload):
         if payload.message_id != self.message.id:
@@ -205,14 +241,14 @@ class Blackjack(menus.Menu):
         shuffle(self.cards)
         return self.cards.pop()
 
-    def new_game(self):
+    async def new_game(self):
         self.cards = [BCard(i+1, j) for i in range(13) for j in range(4) for _ in range(6)]
         self.players = [Deck(self.money_dict[i], 5, i) for i in self.money_dict]
         self.dealer = BRow()
         self.dealer.append(self.card)
         for i in range(len(self.players)):
             for _ in range(2):
-                self.players[i].add(self.card, 0)
+                await self.players[i].add(self.card, None, True)
         self.next_card = self.card
 
     def generate_embed(self):
@@ -250,11 +286,12 @@ class Blackjack(menus.Menu):
         else:
             V = self.dealer.value()
             n = f"{V} points"
-        embed.add_field(name = "Dealer", value = n)
+        n += f" : {', '.join([card.name for card in self.dealer])}"
+        embed.add_field(name = "Dealer", value = n, inline = False)
         for player in self.players:
             n = []
-            if player.cards[0].value == 21 and len(player.cards) == 1 and len(player.cards[0]) == 2:
-                n.append("Blackjack")
+            if player.cards[0].value() == 21 and len(player.cards) == 1 and len(player.cards[0]) == 2:
+                n.append(f"Blackjack : {', '.join([card.name for card in player.cards[0]])}")
                 if V == 22:
                     player.money += 5
                 else:
@@ -262,47 +299,29 @@ class Blackjack(menus.Menu):
             else:
                 for row in player.cards:
                     if row.isvalid():
-                        n.append(f"{row.value()} points")
+                        n.append(f"{row.value()} points : {', '.join([card.name for card in row])}")
                         if row.value() == V:
                             player.money += 5
                         elif row.value() > V:
                             player.money += 2 * 5
                     else:
-                        n.append("Busted")
-            embed.add_field(name = f"{self.player_dict[player.player_id]} : {player.money} $", value = ", ".join(n))
-        await self.message.edit(embed = embed)
+                        n.append(f"Busted : {', '.join([card.name for card in row])}")
+            embed.add_field(name = f"{self.player_dict[player.player_id]} : {player.money} $", value = "\n".join(n), inline = False)
+        await self.message.edit(content = None, embed = embed)
         self.stop()
 
-    @menus.button("\U0001f1f8")
-    async def split(self, payload):
-        try:
-            self.players[self.next_index].split(self.next_card)
-        except Exception as e:
-            return await self.message.edit(content = str(e), embed = self.embed)
-        await self.update_embed()
-
-    async def action(self, index, payload):
-        try:
-            self.players[self.next_index].add(self.next_card, index)
-        except:
-            return await self.message.edit(content = "You can't add a card there", embed = self.embed)
-        await self.update_embed()
-
-    @menus.button("1\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_1(self, payload):
-        await self.action(0, payload)
-
-    @menus.button("2\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_2(self, payload):
-        await self.action(1, payload)
-
-    @menus.button("3\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_3(self, payload):
-        await self.action(2, payload)
+    @menus.button("\U00002795")
+    async def action(self, payload):
+        await self.players[self.next_index].add(self.next_card, self.ctx)
+        await self.update_embed(not self.players[self.next_index].isvalid())
 
     @menus.button("\U0000274c")
     async def next_turn(self, payload):
         await self.update_embed(True)
+
+    async def prompt(self, ctx):
+        await self.new_game()
+        await self.start(ctx, wait = True)
 
 class Blackjack_players(menus.Menu):
     def __init__(self, author, **kwargs):
@@ -374,7 +393,7 @@ class Games(commands.Cog):
         To win, you must score more than the dealer, but no more than 21 (each card's value is its pip value, except faces, which are worth 10 points, and the Ace, which is worth either 1 or 11).
         An Ace plus a face is called a blackjack, and beats a 21"""
         players = await Blackjack_players(ctx.author, clear_reactions_after = True).prompt(ctx)
-        await Blackjack(players, clear_reactions_after = True).start(ctx)
+        await Blackjack(players, clear_reactions_after = True).prompt(ctx)
 
 def setup(bot):
     bot.add_cog(Games(bot))
