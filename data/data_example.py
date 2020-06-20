@@ -52,10 +52,12 @@ def setup(bot):
 
         bot.github_token = None #Github token
         bot.github_repo = None #Github repo for webhooks
+        bot.github_link = "https://github.com/Faholan/All-Hail-Chaos"
 
         bot.top_gg = "https://top.gg/bot/636359675943583775" #top.gg page
         bot.bots_on_discord = "https://bots.ondiscord.xyz/bots/636359675943583775" #bots.ondiscord.xyz page
         bot.discord_bots_page = "https://discord.bots.gg/bots/636359675943583775" #discord.bot.gg page
+        bot.discord_bot_list_page = "https://discordbotlist.com/bots/chaotic-bot"
 
         bot.colors = {'red':0xff0000, 'green':0x006400, 'yellow':0xffff00, 'blue':0x00008b}
 

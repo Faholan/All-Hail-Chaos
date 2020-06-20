@@ -118,7 +118,10 @@ values corresponding to my bot, or no value at all (default indicated in parenth
 admins = input("Discord tags you want to have some control over your bot (default Empty) :")
 user_agent = input("User agent to use in your internet connection (Default chaotic_bot) :")
 default_prefix = input("Prefix of the bot (default €) :")
-support = input("Support server invite (default https://discord.gg/eFfjdyZ) :")
+support = input(f"Support server invite (default {blue}https://discord.gg/eFfjdyZ{white}) :")
+github_link = input("Link to the GitHub repository (default https://github.com/Faholan/All-Hail-Chaos) :")
+discord_bot_list_page = input(f"Link to your bot's page on {blue}discordbotlist.com{white} :")
+user_id = input("User id of your bot. Default value is my bot's user ID (used for the bot lists)")
 
 clear()
 print("Nice ! You've completed the configuration !\n\nCreating data/data.py")
@@ -157,10 +160,12 @@ def setup(bot):
 
         bot.github_token = "{github_token}"
         bot.github_repo = {github_repo}
+        bot.github_link = "{github_link if github_link else 'https://github.com/Faholan/All-Hail-Chaos'}"
 
-        bot.top_gg = f"https://top.gg/bot/{o}bot.user.id{c}" #top.gg page
-        bot.bots_on_discord = "https://bots.ondiscord.xyz/bots/{o}bot.user.id{c}" #bots.ondiscord.xyz page
-        bot.discord_bots_page = "https://discord.bots.gg/bots/{o}bot.user.id{c}" #discord.bot.gg page
+        bot.top_gg = f"https://top.gg/bot/{user_id}" #top.gg page
+        bot.bots_on_discord = f"https://bots.ondiscord.xyz/bots/{user_id}" #bots.ondiscord.xyz page
+        bot.discord_bots_page = f"https://discord.bots.gg/bots/{user_id}" #discord.bot.gg page
+        bot.discord_bot_list_page = "{discord_bot_list_page if discord_bot_list_page else 'https://discordbotlist.com/bots/chaotic-bot'}"
 
         bot.colors = {o}'red':0xff0000, 'green':0x006400, 'yellow':0xffff00, 'blue':0x00008b{c}
 
