@@ -115,7 +115,6 @@ values corresponding to my bot, or no value at all (default indicated in parenth
 """
 )
 
-admins = input("Discord tags you want to have some control over your bot (default Empty) :")
 user_agent = input("User agent to use in your internet connection (Default chaotic_bot) :")
 default_prefix = input("Prefix of the bot (default €) :")
 support = input(f"Support server invite (default {blue}https://discord.gg/eFfjdyZ{white}) :")
@@ -138,7 +137,6 @@ def setup(bot):
     if bot.first_on_ready:
         bot.postgre_connection = {o}"user":"{user}", "password":"{password}"{c}
         bot.token = "{token}"
-        bot.admins = "{admins}"
         bot.user_agent = "{user_agent if user_agent else 'chaotic_bot'}"
         bot.default_prefix = "{default_prefix if default_prefix else '€'}"
 

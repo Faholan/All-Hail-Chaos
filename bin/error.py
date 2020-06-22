@@ -29,7 +29,7 @@ import traceback
 import discord
 from discord.ext import commands
 
-def secondes(s):
+def secondes(s: int) -> str:
     r = []
     if s >= 86400:
         r.append(f"{s//86400} days")
@@ -44,7 +44,7 @@ def secondes(s):
         r.append(f"{s} seconds")
     return ', '.join(r)
 
-async def error_manager(ctx,error):
+async def error_manager(ctx: commands.Context, error: discord.DiscordException):
     '''Error manager'''
     if isinstance(error, commands.CheckAnyFailure):
         return await ctx.bot.httpcat(ctx, 401, f"You don't have the rights to send use the command {ctx.invoked_with}")
@@ -120,8 +120,8 @@ async def error_manager(ctx,error):
     await ctx.bot.log_channel.send("Please check the Python logs")
     raise
 
-def generator(bot):
-    async def predictate(event, *args, **kwargs):
+def generator(bot: commands.Bot):
+    async def predictate(event: str, *args, **kwargs) -> None:
         if event == "on_command_error" or not bot.log_channel:
             raise
         error_type, value, TR = sys.exc_info()
@@ -130,7 +130,7 @@ def generator(bot):
         embed.description = f"{error_type.__name__} : {value}"
         tb = "".join(traceback.format_tb(TR))
         embed.description += f"```\n{tb}```"
-        embed.set_footer(text = f"{bot.user.name} Logging", icon_url = bot.user.avatar_url_as(static_format="png"))
+        embed.set_footer(text=f"{bot.user.name} Logging", icon_url=bot.user.avatar_url_as(static_format="png"))
         embed.timestamp = datetime.datetime.utcnow()
         try:
             return await bot.log_channel.send(embed=embed)
@@ -140,6 +140,6 @@ def generator(bot):
         raise
     return predictate
 
-def setup(bot):
-    bot.add_listener(error_manager,'on_command_error')
+def setup(bot: commands.Bot) -> None:
+    bot.add_listener(error_manager, 'on_command_error')
     bot.on_error = generator(bot)

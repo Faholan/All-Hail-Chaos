@@ -49,35 +49,30 @@ class EmbedSource(menus.ListPageSource):
         embed.timestamp = embed_dict["timestamp"]
         return embed
 
-def check_admin(): #Checks if the user has admin rights on the bot
-    async def predictate(ctx):
-        return str(ctx.author) in ctx.bot.admins or await ctx.bot.is_owner(ctx.author)
-    return commands.check(predictate)
-
 def check_administrator():
     def predictate(ctx):
-        if isinstance(ctx.channel,discord.TextChannel):
+        if isinstance(ctx.channel, discord.TextChannel):
             return ctx.channel.permissions_for(ctx.author).administrator
         return True
     return commands.check(predictate)
 
 def secondes(s):
-    r=[]
-    if s>=86400:
-        r.append(f'{s//86400} days')
-        s%=86400
-    if s>=3600:
-        r.append(f'{s//3600} hours')
-        s%=3600
-    if s>=60:
-        r.append(f'{s//60} minutes')
-        s%=60
-    if s>0:
-        r.append(f'{s} seconds')
-    return ', '.join(r)
+    r = []
+    if s >= 86400:
+        r.append(f"{s // 86400} days")
+        s %= 86400
+    if s >= 3600:
+        r.append(f"{s // 3600} hours")
+        s %= 3600
+    if s >= 60:
+        r.append(f"{s // 60} minutes")
+        s %= 60
+    if s > 0:
+        r.append(f"{s} seconds")
+    return ", ".join(r)
 
 class Utility(commands.Cog):
-    '''Some functions to manage the bot or get informations about it'''
+    """Some functions to manage the bot or get informations about it"""
     def __init__(self, bot):
         self.bot = bot
         self.snipe_list = {}
@@ -101,14 +96,14 @@ class Utility(commands.Cog):
 
     @commands.command(ignore_extra=True)
     async def add(self,ctx):
-        '''Returns a link to add the bot to a new server'''
+        """Returns a link to add the bot to a new server"""
         await ctx.send(f"You can add me using this link : {discord.utils.oauth_url(str(self.bot.user.id),permissions=discord.Permissions(self.bot.invite_permissions))}")
 
     @commands.command(ignore_extra = True)
     async def block(self, ctx):
         """Use this command if you don't want me to DM you (except if you DM me commands)"""
         async with self.bot.pool.acquire(timeout = 5) as db:
-            result = await db.fetchrow('SELECT * FROM public.block WHERE id=$1', ctx.author.id)
+            result = await db.fetchrow("SELECT * FROM public.block WHERE id=$1", ctx.author.id)
             if result:
                 await db.execute("DELETE FROM public.block WHERE id=$1", ctx.author.id)
                 await ctx.send("You unblocked me")
@@ -118,8 +113,8 @@ class Utility(commands.Cog):
 
     @commands.command(ignore_extra = True)
     async def code(self, ctx):
-        '''Returns stats about the bot's code
-        Credits to Dutchy#6127 for this command'''
+        """Returns stats about the bot's code
+        Credits to Dutchy#6127 for this command"""
         total = 0
         file_amount = 0
         list_of_files=[]
@@ -224,7 +219,7 @@ class Utility(commands.Cog):
 
     @commands.command(ignore_extra = True)
     @commands.guild_only()
-    @commands.check_any(check_admin(), commands.has_permissions(administrator = True))
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def quit(self, ctx):
         '''Makes the bot quit the server
         Only a server admin can use this'''

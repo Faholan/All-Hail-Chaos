@@ -25,14 +25,14 @@ from discord.utils import find
 from html.parser import HTMLParser
 
 class MarkdownParser(HTMLParser):
-    def feed(self, input):
+    def feed(self, input: str) -> str:
         """Feeds text to the process"""
         self.output = ""
         self.a_end = ""
         super().feed(input)
         return self.output
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list) -> None:
         """Converts the opening tag to markdown."""
         if tag == 'a':
             href = find(lambda h:h[0] == 'href', attrs)
@@ -51,7 +51,7 @@ class MarkdownParser(HTMLParser):
         elif tag == "script":
             self.output += "```\n"
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag: str) -> None:
         """Converts the closing tag to markdown"""
         if tag == "a":
             self.output += self.a_end
@@ -63,7 +63,7 @@ class MarkdownParser(HTMLParser):
         elif tag == "script":
             self.output += "\n```"
 
-    def handle_startendtag(self, tag, attrs):
+    def handle_startendtag(self, tag: str, attrs: list) -> None:
         """Converts an empty tag to markdown"""
         if tag == "img":
             src = find(lambda h:h[0] == 'src', attrs)
@@ -77,9 +77,9 @@ class MarkdownParser(HTMLParser):
         elif tag == "br":
             self.output += "\n"
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         """Just a stupid ass copy-paste"""
         self.output += data
 
-def setup(bot):
+def setup(bot) -> None:
     bot.markdownhtml = MarkdownParser

@@ -28,7 +28,7 @@ from time import time
 import discord
 from discord.ext import commands
 
-p_vol=lambda n:75-(25*0.8**n)
+p_vol = lambda n:75-(25*0.8**n)
 
 class Business_guy():
     def __init__(self, sql, user, db):

@@ -27,7 +27,7 @@ from os import path
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Game
+from discord import Embed, Game, Guild, Message
 from discord.ext import commands
 from github import Github
 
@@ -38,7 +38,7 @@ class chaotic_bot(commands.Bot):
 
         self.first_on_ready = True
 
-        self.load_extension('data.data')
+        self.load_extension("data.data")
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(self, self.dbl_token, autopost=True)
@@ -47,7 +47,7 @@ class chaotic_bot(commands.Bot):
             self.github = Github(self.github_token)
         self.prefix_dict = {}
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         await self.change_presence(activity=Game(f"{self.default_prefix}help"))
         if self.first_on_ready:
             self.first_on_ready = False
@@ -74,32 +74,32 @@ class chaotic_bot(commands.Bot):
                         except commands.NoEntryPointError:
                             report.append(f"❌ | **setup not defined** : `{ext}`")
 
-            embed = Embed(title = f"{success} extensions were loaded & {len(self.extensions_list) - success} extensions were not loaded", description = '\n'.join(report), color = self.colors['green'])
-            await self.log_channel.send(embed = embed)
+            embed = Embed(title=f"{success} extensions were loaded & {len(self.extensions_list) - success} extensions were not loaded", description="\n".join(report), color=self.colors["green"])
+            await self.log_channel.send(embed=embed)
         else:
             await self.log_channel.send("on_ready called again")
 
-    async def on_guild_join(self,guild):
-        await self.log_channel.send(guild.name+" joined")
+    async def on_guild_join(self, guild: Guild) -> None:
+        await self.log_channel.send(f"{guild.name} joined")
 
-    async def on_guild_remove(self,guild):
-         await self.log_channel.send(guild.name+" left")
+    async def on_guild_remove(self, guild: Guild) -> None:
+         await self.log_channel.send(f"{guild.name} left")
 
-    async def close(self):
+    async def close(self) -> None:
         await self.aio_session.close()
         await self.ksoft_client.close()
-        for task in all_tasks(loop = self.loop):
+        for task in all_tasks(loop=self.loop):
             task.cancel()
         for ext in tuple(self.extensions):
             self.unload_extension(ext)
         await self.pool.close()
         await super().close()
 
-    async def cog_reloader(self, ctx, extensions):
+    async def cog_reloader(self, ctx: commands.Context, extensions: list) -> None:
         self.last_update = datetime.utcnow()
         report = []
         success = 0
-        self.reload_extension('data.data')
+        self.reload_extension("data.data")
         M = len(self.extensions_list)
         if extensions:
             M = len(extensions)
@@ -108,11 +108,11 @@ class chaotic_bot(commands.Bot):
                     try:
                         try:
                             self.reload_extension(ext)
-                            success+=1
+                            success += 1
                             report.append(f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
-                            success+=1
+                            success += 1
                             report.append(f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as e:
                         report.append(f"❌ | **Extension error** : `{ext}` ({type(e.original)} : {e.original})")
@@ -139,32 +139,32 @@ class chaotic_bot(commands.Bot):
                 except commands.NoEntryPointError:
                     report.append(f"❌ | **setup not defined** : `{ext}`")
 
-        embed = Embed(title = f"{success} {'extension was' if success == 1 else 'extensions were'} loaded & {M - success} {'extension was' if M - success == 1 else 'extensions were'} not loaded", description = '\n'.join(report), color = self.colors['green'])
-        await self.log_channel.send(embed = embed)
-        await ctx.send(embed = embed)
+        embed = Embed(title=f"{success} {'extension was' if success == 1 else 'extensions were'} loaded & {M - success} {'extension was' if M - success == 1 else 'extensions were'} not loaded", description="\n".join(report), color=self.colors["green"])
+        await self.log_channel.send(embed=embed)
+        await ctx.send(embed=embed)
 
-    async def get_m_prefix(self, message, not_print=True):
+    async def get_m_prefix(self, message: Message, not_print: bool=True) -> str:
         if message.content.startswith("¤") and not_print:
             return '¤'
         elif message.content.startswith(f"{self.default_prefix}help") and not_print:
             return self.default_prefix
         return self.prefix_dict.get(self.get_id(message), self.default_prefix)
 
-    async def httpcat(self, ctx, code, title = Embed.Empty, description = Embed.Empty):
-        embed = Embed(title = title, color = self.colors['red'], description = description)
-        embed.set_image(url = "https://http.cat/"+str(code)+".jpg")
+    async def httpcat(self, ctx: commands.Context, code: int, title: str=Embed.Empty, description: str=Embed.Empty) -> None:
+        embed = Embed(title=title, color=self.colors["red"], description=description)
+        embed.set_image(url=f"https://http.cat/{code}.jpg")
         await ctx.send(embed=embed)
 
     @staticmethod
-    def get_id(ctx):
+    def get_id(ctx: commands.Context) -> int:
         if ctx.guild:
             return ctx.guild.id
         return ctx.channel.id
 
-async def command_prefix(bot,message):
+async def command_prefix(bot: chaotic_bot, message: Message) -> str:
     return await bot.get_m_prefix(message)
 
-bot = chaotic_bot(command_prefix = command_prefix, description = "A bot for fun", fetch_offline_members = True)
+bot = chaotic_bot(command_prefix=command_prefix, description="A bot for fun", fetch_offline_members=True)
 
 if __name__ == "__main__":
     bot.run(bot.token)

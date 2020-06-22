@@ -31,7 +31,6 @@ def setup(bot):
     if bot.first_on_ready:
         bot.postgre_connection = {"user":"user", "password":"password"}
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
-        bot.admins = "ALL THE DISCORD ACCOUNTS WHICH HAVE ADMIN RIGHTS FOR THE BOT"
         bot.http.user_agent = "chaotic_bot"
         bot.default_prefix = "€"
 

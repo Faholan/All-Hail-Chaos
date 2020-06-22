@@ -1,14 +1,13 @@
 import asyncio
 from datetime import datetime
 from itertools import cycle
-from math import inf
 from random import shuffle
 import traceback
 
 import discord
 from discord.ext import commands, menus, tasks
 
-class connect4(menus.Menu):
+class Connect4(menus.Menu):
     def __init__(self, *players, **kwargs):
         super().__init__(**kwargs)
         self.winner = None
@@ -135,7 +134,7 @@ class connect4(menus.Menu):
 
 class BCard():
     def __init__(self, value, colour):
-        self._value = value
+        self._value=value
         self.is_ace = value == 1
         self.colour = colour
 
@@ -271,6 +270,39 @@ class Blackjack(menus.Menu):
         self.money_dict = money_dict
         self.cost = cost
 
+    async def update(self, payload):
+        button = self.buttons[payload.emoji]
+        if not self._running:
+            return
+
+        try:
+            if button.lock:
+                async with self._lock:
+                    if self._running:
+                        await button(self, payload)
+            else:
+                await button(self, payload)
+        except Exception as error:
+            embed = discord.Embed(color=0xFF0000)
+            embed.set_author(name = str(self.ctx.author), icon_url = str(self.ctx.author.avatar_url))
+            embed.title = f"{self.ctx.author.id} caused an error in connect 4"
+            embed.description = f"{type(error).__name__} : {error}"
+            if self.ctx.guild:
+                embed.description += f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in {self.ctx.channel.name} ({self.ctx.channel.id})"
+            elif isinstance(ctx.channel,discord.DMChannel):
+                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
+            else:
+                embed.description += f"\nin the Group {self.ctx.channel.name} ({self.ctx.channel.id})"
+            tb = "".join(traceback.format_tb(error.__traceback__))
+            embed.description += f"```\n{tb}```"
+            embed.set_footer(text = f"{self.bot.user.name} Logging", icon_url = self.ctx.me.avatar_url_as(static_format="png"))
+            embed.timestamp = datetime.utcnow()
+            try:
+                await self.bot.log_channel.send(embed = embed)
+            except:
+                await self.bot.log_channel.send("Please check the logs for connect 4")
+                raise error
+
     def reaction_check(self, payload):
         if payload.message_id != self.message.id:
             return False
@@ -294,9 +326,9 @@ class Blackjack(menus.Menu):
 
     def generate_embed(self):
         embed = discord.Embed(title = f"The bet is fixed at {self.cost} GP")
-        embed.add_field(name = "Dealer :", value = ", ".join([card.name for card in self.dealer]), inline = False)
+        embed.add_field(name = "Dealer :", value=", ".join([card.name for card in self.dealer]), inline = False)
         for player in self.players:
-            embed.add_field(name = f"{self.player_dict[player.player_id].display_name} ({player.money} GP)", value = "\n".join([", ".join([card.name for card in row]) for row in player.cards]), inline = False)
+            embed.add_field(name = f"{self.player_dict[player.player_id].display_name} ({player.money} GP)", value="\n".join([", ".join([card.name for card in row]) for row in player.cards]), inline = False)
         return embed
 
     async def send_initial_message(self, ctx, channel):
@@ -328,7 +360,7 @@ class Blackjack(menus.Menu):
             V = self.dealer.value()
             n = f"{V} points"
         n += f" : {', '.join([card.name for card in self.dealer])}"
-        embed.add_field(name = "Dealer", value = n, inline = False)
+        embed.add_field(name = "Dealer", value=n, inline = False)
         for player in self.players:
             n = []
             if player.cards[0].value() == 21 and len(player.cards) == 1 and len(player.cards[0]) == 2:
@@ -347,7 +379,7 @@ class Blackjack(menus.Menu):
                             player.balance += 2 * self.cost
                     else:
                         n.append(f"Busted : {', '.join([card.name for card in row])}")
-            embed.add_field(name = f"{self.player_dict[player.player_id]} : {player.money} GP", value = "\n".join(n), inline = False)
+            embed.add_field(name = f"{self.player_dict[player.player_id]} : {player.money} GP", value="\n".join(n), inline = False)
         await self.message.edit(content = None, embed = embed)
         self.stop()
 
@@ -373,6 +405,7 @@ class Blackjack_players(menus.Menu):
         self.lock = asyncio.Lock()
         self.db = db
         self.cost = cost
+        self.current_state = 0
 
     def reaction_check(self, payload):
         return payload.message_id == self.message.id and payload.user_id != self.bot.user.id
@@ -412,19 +445,14 @@ class Blackjack_players(menus.Menu):
 
     async def send_initial_message(self, ctx, channel):
         self.time = 120
-        self.updater.start()
+        self.current_state = 1
         return await ctx.send(embed = self.get_embed())
 
-    @tasks.loop(seconds = 5)
     async def updater(self):
         self.time -= 5
         await self.message.edit(embed = self.get_embed())
-        if self.time == 0:
+        if self.time <= 0:
             self.stop()
-
-    @updater.before_loop
-    async def waiter(self):
-        await asyncio.sleep(5)
 
     def get_embed(self):
         r = "\n -"
@@ -452,34 +480,32 @@ class Blackjack_players(menus.Menu):
 
     @menus.button("\U000023ed\N{variation selector-16}")
     async def skipper(self, payload):
-        self.stop()
+        self.time = 5
+        self.current_state = -1
+        await self.updater()
 
     async def prompt(self, ctx):
         await self.start(ctx, wait = True)
         return self.players, self.money_dict
 
     def stop(self):
-        self.updater.stop()
+        self.current_state = -1
         super().stop()
 
 class Games(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.blackjack_list = []
+        self.blackjack_updater.start()
 
-    @commands.command(aliases = ["c4"])
-    async def connect4(self, ctx, member : discord.Member):
-        """Play connect 4 with a friend"""
-        winner = await connect4(ctx.author, member, clear_reactions_after = True).prompt(ctx)
-        if winner:
-            await ctx.send(f"{winner.mention} won !")
-        else:
-            await ctx.send("Game cancelled")
+    def cog_unload(self):
+        self.blackjack_updater.cancel()
 
     @commands.command(ignore_extra = True)
     async def blackjack(self, ctx, cost : int = 5):
         """Please see the detailed help
-        Rules : if it's your turn, press the button corresponding to the column in which you wana place the card.
-        If you want to split (play on one more column, up to a max of 3, press :regional_indicator_3:). If you want to stop, press :x:.
+        Rules : if it's your turn, press the \U00002795 button to get a card.
+        If you want to stop, press \U0000274c, and the next player will play.
         To win, you must score more than the dealer, but no more than 21 (each card's value is its pip value, except faces, which are worth 10 points, and the Ace, which is worth either 1 or 11).
         An Ace plus a face is called a blackjack, and beats a 21"""
         if cost < 0:
@@ -493,7 +519,9 @@ class Games(commands.Cog):
         if money < cost:
             await ctx.send(f"Sorry, but you don't have enough money to come to this table")
             return await self.bot.pool.release(db)
-        players, money_dict = await Blackjack_players(ctx.author, money, cost, db, delete_message_after = True).prompt(ctx)
+        new_players = Blackjack_players(ctx.author, money, cost, db, delete_message_after = True)
+        self.blackjack_list.append(new_players)
+        players, money_dict = await new_players.prompt(ctx)
         await self.bot.pool.release(db)
         if not players:
             return await ctx.send("Nobody wants to play")
@@ -508,6 +536,26 @@ class Games(commands.Cog):
                         await db.execute("UPDATE public.business SET money=money+$2 WHERE id=$1", id, balance_dict[id])
                     else:
                         await db.execute("UPDATE public.business SET money=0, bank=bank+$2 WHERE id=$1", id, row["money"]+balance_dict[id])
+
+    @tasks.loop(seconds = 5)
+    async def blackjack_updater(self):
+        new = []
+        for black in self.blackjack_list:
+            if black.current_state == 1:
+                await black.updater()
+            elif black.current_state == -1:
+                continue
+            new.append(black)
+        self.blackjack_list = new
+
+    @commands.command(aliases = ["c4"])
+    async def connect4(self, ctx, member : discord.Member):
+        """Play connect 4 with a friend"""
+        winner = await Connect4(ctx.author, member, clear_reactions_after = True).prompt(ctx)
+        if winner:
+            await ctx.send(f"{winner.mention} won !")
+        else:
+            await ctx.send("Game cancelled")
 
 def setup(bot):
     bot.add_cog(Games(bot))
