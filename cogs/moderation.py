@@ -490,8 +490,11 @@ class Moderation(commands.Cog):
                             if not isinstance(emoji, str):
                                 emoji = emoji.name
                             if emoji == result['emoji']:
-                                roles = (member.guild.get_role(r) for r in result['roleids'])
-                                await member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {emoji}")
+                                async for user in reaction.users():
+                                    if user == member:
+                                        roles = (member.guild.get_role(r) for r in result['roleids'])
+                                        await member.add_roles(*(r for r in roles if r), reason = f"Rule for emoji {emoji}")
+                                        break
 
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message):
