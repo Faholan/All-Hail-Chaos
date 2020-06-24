@@ -1,0 +1,4 @@
+# This owner is the default owner for everything in the repo.
+# Unless a later match takes precedence,
+# This owner will be requested for review when someone opens a pull request.
+* @Faholan

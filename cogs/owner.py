@@ -48,7 +48,7 @@ class Owner(commands.Cog, command_attrs = dict(help = "Owner command")):
         return content.strip('` \n')
 
     async def cog_check(self, ctx):
-        if str(ctx.author) in ctx.bot.admins or await ctx.bot.is_owner(ctx.author):
+        if await ctx.bot.is_owner(ctx.author):
             return True
         raise OwnerError()
 
