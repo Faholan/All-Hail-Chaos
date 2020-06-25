@@ -26,6 +26,7 @@ import typing
 
 import discord
 from discord.ext import commands
+from discord.utils import find
 
 auto_swear_detection=["4r5e", "5h1t", "5hit", "a55", "anal", "anus", "ar5e", "arrse", "arse", "ass", "ass-fucker", "asses", "assfucker", "assfukka", "asshole", "assholes", "asswhole", "a_s_s", "b!tch", "b00bs", "b17ch", "b1tch", "ballbag", "balls", "ballsack", "bastard", "beastial", "beastiality", "bellend", "bestial", "bestiality", "bi+ch", "biatch", "bitch", "bitcher", "bitchers", "bitches", "bitchin", "bitching", "bloody", "blow job", "blowjob", "blowjobs", "boiolas", "bollock", "bollok", "boner", "boob", "boobs", "booobs", "boooobs", "booooobs", "booooooobs", "breasts", "buceta", "bugger", "bum", "bunny fucker", "butt", "butthole", "buttmuch", "buttplug", "c0ck", "c0cksucker", "carpet muncher", "cawk", "chink", "cipa", "cl1t", "clit", "clitoris", "clits", "cnut", "cock", "cock-sucker", "cockface", "cockhead", "cockmunch", "cockmuncher", "cocks", "cocksuck", "cocksucked", "cocksucker", "cocksucking", "cocksucks", "cocksuka", "cocksukka", "cok", "cokmuncher", "coksucka", "coon", "cox", "crap", "cum", "cummer", "cumming", "cums", "cumshot", "cunilingus", "cunillingus", "cunnilingus", "cunt", "cuntlick", "cuntlicker", "cuntlicking", "cunts", "cyalis", "cyberfuc", "cyberfuck", "cyberfucked", "cyberfucker", "cyberfuckers", "cyberfucking", "d1ck", "damn", "dick", "dickhead", "dildo", "dildos", "dink", "dinks", "dirsa", "dlck", "dog-fucker", "doggin", "dogging", "donkeyribber", "doosh", "duche", "dyke", "ejaculate", "ejaculated", "ejaculates", "ejaculating", "ejaculatings", "ejaculation", "ejakulate", "f u c k", "f u c k e r", "f4nny", "fag", "fagging", "faggitt", "faggot", "faggs", "fagot", "fagots", "fags", "fanny", "fannyflaps", "fannyfucker", "fanyy", "fatass", "fcuk", "fcuker", "fcuking", "feck", "fecker", "felching", "fellate", "fellatio", "fingerfuck", "fingerfucked", "fingerfucker", "fingerfuckers", "fingerfucking", "fingerfucks", "fistfuck", "fistfucked", "fistfucker", "fistfuckers", "fistfucking", "fistfuckings", "fistfucks", "flange", "fook", "fooker", "fuck", "fucka", "fucked", "fucker", "fuckers", "fuckhead", "fuckheads", "fuckin", "fucking", "fuckings", "fuckingshitmotherfucker", "fuckme", "fucks", "fuckwhit", "fuckwit", "fudge packer", "fudgepacker", "fuk", "fuker", "fukker", "fukkin", "fuks", "fukwhit", "fukwit", "fux", "fux0r", "f_u_c_k", "gangbang", "gangbanged", "gangbangs", "gaylord", "gaysex", "goatse", "God", "god-dam", "god-damned", "goddamn", "goddamned", "hardcoresex", "hell", "heshe", "hoar", "hoare", "hoer", "homo", "hore", "horniest", "horny", "hotsex", "jack-off", "jackoff", "jap", "jerk-off", "jism", "jiz", "jizm", "jizz", "kawk", "knob", "knobead", "knobed", "knobend", "knobhead", "knobjocky", "knobjokey", "kock", "kondum", "kondums", "kum", "kummer", "kumming", "kums", "kunilingus", "l3i+ch", "l3itch", "labia", "lmfao", "lust", "lusting", "m0f0", "m0fo", "m45terbate", "ma5terb8", "ma5terbate", "masochist", "master-bate", "masterb8", "masterbat*", "masterbat3", "masterbate", "masterbation", "masterbations", "masturbate", "mo-fo", "mof0", "mofo", "mothafuck", "mothafucka", "mothafuckas", "mothafuckaz", "mothafucked", "mothafucker", "mothafuckers", "mothafuckin", "mothafucking", "mothafuckings", "mothafucks", "mother fucker", "motherfuck", "motherfucked", "motherfucker", "motherfuckers", "motherfuckin", "motherfucking", "motherfuckings", "motherfuckka", "motherfucks", "muff", "mutha", "muthafecker", "muthafuckker", "muther", "mutherfucker", "n1gga", "n1gger", "nazi", "nigg3r", "nigg4h", "nigga", "niggah", "niggas", "niggaz", "nigger", "niggers", "nob", "nob jokey", "nobhead", "nobjocky", "nobjokey", "numbnuts", "nutsack", "orgasim", "orgasims", "orgasm", "orgasms", "p0rn", "pawn", "pecker", "penis", "penisfucker", "phonesex", "phuck", "phuk", "phuked", "phuking", "phukked", "phukking", "phuks", "phuq", "pigfucker", "pimpis", "piss", "pissed", "pisser", "pissers", "pisses", "pissflaps", "pissin", "pissing", "pissoff", "poop", "porn", "porno", "pornography", "pornos", "prick", "pricks", "pron", "pube", "pusse", "pussi", "pussies", "pussy", "pussys", "rectum", "retard", "rimjaw", "rimming", "s hit", "s.o.b.", "sadist", "schlong", "screwing", "scroat", "scrote", "scrotum", "semen", "sex", "sh!+", "sh!t", "sh1t", "shag", "shagger", "shaggin", "shagging", "shemale", "shi+", "shit", "shitdick", "shite", "shited", "shitey", "shitfuck", "shitfull", "shithead", "shiting", "shitings", "shits", "shitted", "shitter", "shitters", "shitting", "shittings", "shitty", "skank", "slut", "sluts", "smegma", "smut", "snatch", "son-of-a-bitch", "spac", "spunk", "s_h_i_t", "t1tt1e5", "t1tties", "teets", "teez", "testical", "testicle", "tit", "titfuck", "tits", "titt", "tittie5", "tittiefucker", "titties", "tittyfuck", "tittywank", "titwank", "tosser", "turd", "tw4t", "twat", "twathead", "twatty", "twunt", "twunter", "v14gra", "v1gra", "vagina", "viagra", "vulva", "w00se", "wang", "wank", "wanker", "wanky", "whoar", "whore", "willies", "willy", "xrated", "xxx"]
 
@@ -235,15 +236,20 @@ class Moderation(commands.Cog):
         #embed.add_field(name="Bio on DiscordRep",value="```"+user["bio"]+"```",inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(aliases = ['roles'])
+    @commands.group(aliases = ['roles'], invoke_without_command = True, case_insensitive = True)
     @commands.guild_only()
     @commands.has_permissions(manage_roles = True)
     @commands.bot_has_permissions(manage_roles = True)
-    async def role(self, ctx, action):
-        """Automatically gives a role to anyone who reacts with a given emoji to a given message. The action one of `info`, `add`, `remove`
+    async def role(self, ctx):
+        """Automatically gives a role to anyone who reacts with a given emoji to a given message. The action must be one of `info`, `add`, `remove`
         We both need the `manage_roles` permission for that."""
+        await ctx.send('The action must be one of `add`, `info` and `remove`')
+
+    @role.command()
+    async def add(self, ctx, roles: commands.Greedy[discord.Role]):
+        """Add a new rule for this server"""
         async with self.bot.pool.acquire() as db:
-            if action.lower() == 'add':
+            if not roles:
                 await ctx.send('Ping one or more roles in the next 30 seconds to select which ones you want to add')
                 def check(message):
                     return message.channel == ctx.channel and message.role_mentions and message.author == ctx.author
@@ -255,123 +261,127 @@ class Moderation(commands.Cog):
 
                 roles = message.role_mentions
 
-                await ctx.send(f'React with an emoji in the next 30 seconds to a message to set up the assignation !')
-                def check(payload):
-                    return payload.guild_id == ctx.guild.id and payload.member == ctx.author
+            await ctx.send(f'React with an emoji in the next 30 seconds to a message to set up the assignation !')
+            def check(payload):
+                return payload.guild_id == ctx.guild.id and payload.member == ctx.author
 
+            try:
+                payload = await self.bot.wait_for('raw_reaction_add', check = check, timeout = 30)
+            except asyncio.TimeoutError:
+                return await ctx.send("You didn't react in time, I'm giving up on this.")
+
+            message = await self.bot.get_guild(payload.guild_id).get_channel(payload.channel_id).fetch_message(payload.message_id)
+            emoji = payload.emoji.name
+
+            result = await db.fetchrow('SELECT * FROM public.roles WHERE message_id=$1 AND emoji=$2', payload.message_id, emoji)
+
+            if result:
+                ini_roles = []
+                total = 0
+                removed = 0
+                for role_id in result['roleids']:
+                    total+=1
+                    Role = ctx.guild.get_role(role_id)
+                    if Role:
+                        ini_roles.append(Role)
+                    else:
+                        removed += 1
+                removal = ' Those roles are :'
+                if removed:
+                    removal = f" {removed} of them didn't exist anymore, so I deleted them from my database. The remaining roles are :"
+                joiner = '\n - '
+                await ctx.send(f"{total} roles are already linked to this message and emoji.{removal}\n - {joiner.join([r.name for r in ini_roles])}\n\nDo you want me to replace them with the new ones, or add the new ones to the list. Send `replace` or `add` in the next 30 seconds to indicate your choice please.")
+                def check(message):
+                    return message.author == ctx.author and message.channel == ctx.channel and (message.content.lower().startswith('add') or message.content.lower().startswith('replace'))
                 try:
-                    payload = await self.bot.wait_for('raw_reaction_add', check = check, timeout = 30)
+                    answer = await self.bot.wait_for('message', check = check, timeout = 30)
                 except asyncio.TimeoutError:
-                    return await ctx.send("You didn't react in time, I'm giving up on this.")
-
-                message = await self.bot.get_guild(payload.guild_id).get_channel(payload.channel_id).fetch_message(payload.message_id)
-                emoji = payload.emoji.name
-
-                result = await db.fetchrow('SELECT * FROM public.roles WHERE message_id=$1 AND emoji=$2', payload.message_id, emoji)
-
-                if result:
-                    ini_roles = []
-                    total = 0
-                    removed = 0
-                    for role_id in result['roleids']:
-                        total+=1
-                        Role = ctx.guild.get_role(role_id)
-                        if Role:
-                            ini_roles.append(Role)
-                        else:
-                            removed += 1
-                    removal = ' Those roles are :'
-                    if removed:
-                        removal = f" {removed} of them didn't exist anymore, so I deleted them from my database. The remaining roles are :"
-                    joiner = '\n - '
-                    await ctx.send(f"{total} roles are already linked to this message and emoji.{removal}\n - {joiner.join([r.name for r in ini_roles])}\n\nDo you want me to replace them with the new ones, or add the new ones to the list. Send `replace` or `add` in the next 30 seconds to indicate your choice please.")
-                    def check(message):
-                        return message.author == ctx.author and message.channel == ctx.channel and (message.content.lower().startswith('add') or message.content.lower().startswith('replace'))
-                    try:
-                        answer = await self.bot.wait_for('message', check = check, timeout = 30)
-                    except asyncio.TimeoutError:
-                        return await ctx.send("Cancelling the command...")
-                    if answer.content.lower().startswith('add'):
-                        roles += ini_roles
-                    await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2 AND emoji=$3', [r.id for r in roles], payload.message_id, emoji)
-                else:
-                    await db.execute('INSERT INTO public.roles VALUES ($1, $2, $3, $5, $4)', payload.message_id, payload.channel_id, payload.guild_id, emoji, [r.id for r in roles])
+                    return await ctx.send("Cancelling the command...")
+                if answer.content.lower().startswith('add'):
+                    roles += ini_roles
+                await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2 AND emoji=$3', [r.id for r in roles], payload.message_id, emoji)
+            else:
+                await db.execute('INSERT INTO public.roles VALUES ($1, $2, $3, $5, $4)', payload.message_id, payload.channel_id, payload.guild_id, emoji, [r.id for r in roles])
+            try:
+                await message.add_reaction(emoji)
+            except:
+                pass
+            counter = -1
+            Reaction = find(message.reactions, lambda reaction: getattr(reaction.emoji, "name", reaction.emoji) == emoji)
+            async for user in Reaction.users():
+                counter += 1
                 try:
-                    await message.add_reaction(emoji)
+                    await user.add_roles(*roles)
                 except:
                     pass
-                await ctx.send('The rule has been successfully updated')
-            elif action.lower() == 'info':
-                result = await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id)
-                deleted = 0
-                m = f"No rules are currently defined for this guild. Create the first one with `{ctx.prefix}role add`"
-                if result:
-                    output = []
-                    for key in result:
-                        try:
-                            channel = self.bot.get_guild(key['guild_id']).get_channel(key['channel_id'])
-                            await channel.fetch_message(key['message_id'])
-                            output.append(dict(key))
-                            output[-1]['roleids'] = [ID for ID in output[-1]['roleids'] if ctx.guild.get_role(ID)]
-                            await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', output[-1]['roleids'], key['message_id'])
-                        except:
-                            deleted += 1
-                            await db.execute('DELETE FROM public.roles WHERE message_id=$1', key['message_id'])
-                    if output:
-                        m = '\n'.join([f'- Rule number {i + 1} : [Message](https://discord.com/channels/{output[i]["guild_id"]}/{output[i]["channel_id"]}/{output[i]["message_id"]} "Link to the original message") | {output[i]["emoji"]} | {", ".join([ctx.guild.get_role(ID).name for ID in output[i]["roleids"]])}' for i in range(len(output))])
+            await ctx.send(f"The rule has been successfully updated{' and applied to ' + str(counter) + ' users' if counter > 0 else ''}")
 
-                embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need the rule number for the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
-                embed.add_field(name = "The rules :", value = m)
+    @role.command()
+    async def info(self, ctx):
+        """Get a list of all rules defined for this guild"""
+        async with self.bot.pool.acquire() as db:
+            result = await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id)
+            deleted = 0
+            m = f"No rules are currently defined for this guild. Create the first one with `{ctx.prefix}role add`"
+            if result:
+                output = []
+                for key in result:
+                    try:
+                        channel = self.bot.get_guild(key['guild_id']).get_channel(key['channel_id'])
+                        await channel.fetch_message(key['message_id'])
+                        output.append(dict(key))
+                        output[-1]['roleids'] = [ID for ID in output[-1]['roleids'] if ctx.guild.get_role(ID)]
+                        await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', output[-1]['roleids'], key['message_id'])
+                    except:
+                        deleted += 1
+                        await db.execute('DELETE FROM public.roles WHERE message_id=$1', key['message_id'])
+                if output:
+                    m = '\n'.join([f'- Rule number {i + 1} : [Message](https://discord.com/channels/{output[i]["guild_id"]}/{output[i]["channel_id"]}/{output[i]["message_id"]} "Link to the original message") | {output[i]["emoji"]} | {", ".join([ctx.guild.get_role(ID).name for ID in output[i]["roleids"]])}' for i in range(len(output))])
+
+            embed = discord.Embed(title = f'Rules for guild {ctx.guild.name}', color = self.bot.colors['blue'], description = "List of all the rules defined. You need the rule number for the `delete` action." + (f" {deleted} rules were deleted because the original message didn't exist anymore" if deleted else ''))
+            embed.add_field(name = "The rules :", value = m)
+            await ctx.send(embed = embed)
+
+    @role.command()
+    async def remove(self, ctx, number: int):
+        """Remove the rule associated with the number specified"""
+        async with self.bot.pool.acquire() as db:
+            try:
+                result = (await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id))[number - 1]
+            except IndexError:
+                return await ctx.send("The rule you are trying to delete doesn't exist")
+            try:
+                await self.bot.get_guild(result['guild_id']).get_channel(result['channel_id']).fetch_message(result['message_id'])
+                roles = []
+                for role_id in result['roleids']:
+                    R = ctx.guild.get_role(role_id)
+                    if R:
+                        roles.append((role_id, R.name))
+                await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', [r[0] for r in roles], result['message_id'])
+                embed = discord.Embed(title = f"Informations about rule number {message.content}")
+                embed.add_field(name = "Message :", value = f'[Click here](https://discord.com/channels/{result["guild_id"]}/{result["channel_id"]}/{result["message_id"]} "Link to the original message")')
+                embed.add_field(name = "Emoji :", value = result['emoji'])
+                embed.add_field(name = "Roles :", value = ' - '+'\n - '.join([f"Role n°{i+1} : {roles[i][1]}" for i in range(len(roles))]))
                 await ctx.send(embed = embed)
-            elif action.lower() == 'remove':
-                await ctx.send('Please enter the number associated to the rule you want to remove (partially or totally) in less than 30 seconds')
+                await ctx.send('Please enter a comma-separated list of the numbers of the roles you want to remove in less than 30 seconds')
+
                 def check(message):
-                    return message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit()
+                    return message.author == ctx.author and message.channel == ctx.channel and all([k.isdigit() for k in message.content.replace(' ','').split(',')])
                 try:
                     message = await self.bot.wait_for('message', check = check, timeout = 30)
                 except asyncio.TimeoutError:
                     return await ctx.send("You didn't answer in time. I'm ignoring this command")
-                try:
-                    result = (await db.fetch('SELECT * FROM public.roles WHERE guild_id=$1', ctx.guild.id))[int(message.content) - 1]
-                except IndexError:
-                    result = False
-                if result:
-                    try:
-                        await self.bot.get_guild(result['guild_id']).get_channel(result['channel_id']).fetch_message(result['message_id'])
-                        roles = []
-                        for role_id in result['roleids']:
-                            R = ctx.guild.get_role(role_id)
-                            if R:
-                                roles.append((role_id, R.name))
-                        await db.execute('UPDATE public.roles SET roleids=$1 WHERE message_id=$2', [r[0] for r in roles], result['message_id'])
-                        embed = discord.Embed(title = f"Informations about rule number {message.content}")
-                        embed.add_field(name = "Message :", value = f'[Click here](https://discord.com/channels/{result["guild_id"]}/{result["channel_id"]}/{result["message_id"]} "Link to the original message")')
-                        embed.add_field(name = "Emoji :", value = result['emoji'])
-                        embed.add_field(name = "Roles :", value = ' - '+'\n - '.join([f"Role n°{i+1} : {roles[i][1]}" for i in range(len(roles))]))
-                        await ctx.send(embed = embed)
-                        await ctx.send('Please enter a comma-separated list of the numbers of the roles you want to remove in less than 30 seconds')
 
-                        def check(message):
-                            return message.author == ctx.author and message.channel == ctx.channel and all([k.isdigit() for k in message.content.replace(' ','').split(',')])
-                        try:
-                            message = await self.bot.wait_for('message', check = check, timeout = 30)
-                        except asyncio.TimeoutError:
-                            return await ctx.send("You didn't answer in time. I'm ignoring this command")
+                role_numbers = [int(k) for k in message.content.replace(' ','').split(',')]
 
-                        role_numbers = [int(k) for k in message.content.replace(' ','').split(',')]
-
-                        if not all([0 < k <= len(roles) for k in role_numbers]):
-                            await ctx.send('You entered wrong values for the indexes. Please re-run the command with correct values.')
-                        else:
-                            await db.execute("UPDATE public.roles set roleids=$1 WHERE message_id=$2", [roles[i][0] for i in range(len(roles)) if not i + 1 in role_numbers], result['message_id'])
-                            await ctx.send(f'I successfully removed those {len(role_numbers)} roles from the rule')
-                    except:
-                        await db.execute('DELETE FROM public.roles WHERE message_id=$1', result['message_id'])
-                        return await ctx.send('The message associated with this rule has been deleted. I thus removed the rule.')
+                if not all([0 < k <= len(roles) for k in role_numbers]):
+                    await ctx.send('You entered wrong values for the indexes. Please re-run the command with correct values.')
                 else:
-                    await ctx.send("The rule you're trying to delete doesn't exist")
-            else:
-                await ctx.send('The action must be one of `add`, `info` and `remove`')
+                    await db.execute("UPDATE public.roles set roleids=$1 WHERE message_id=$2", [roles[i][0] for i in range(len(roles)) if not i + 1 in role_numbers], result['message_id'])
+                    await ctx.send(f'I successfully removed those {len(role_numbers)} roles from the rule')
+            except discord.NotFound:
+                await db.execute('DELETE FROM public.roles WHERE message_id=$1', result['message_id'])
+                return await ctx.send('The message associated with this rule has been deleted. I thus removed the rule.')
 
     @commands.command()
     @commands.guild_only()
@@ -432,11 +442,11 @@ class Moderation(commands.Cog):
             else:
                 status = await db.fetchrow('SELECT * FROM public.swear WHERE id=$1', ctx.guild.id)
                 if not status:
-                    status = {'manual_on':False, 'autoswear':False, 'notification':True, 'words':[]}
+                    status = {'manual_on':True, 'autoswear':False, 'notification':True, 'words':[]}
 
 
                 embed = discord.Embed(title = f"Swear words in {ctx.guild.name}", colour=self.bot.colors['yellow'])
-                embed.add_field(name = "Manual filter status", value = "Offline" if status['manual_on'] else "Online")
+                embed.add_field(name = "Manual filter status", value = "Online" if status['manual_on'] else "Offline")
                 embed.add_field(name = "Auto filter status", value = "Online" if status['autoswear'] else "Offline")
                 embed.add_field(name = "Alert message status (in case I cannot delete a message)", value = "Enabled" if status['notification'] else "Disabled")
                 embed.add_field(name = "Guild-specific swear words", value = " - " + "\n - ".join(status["words"]) if status["words"] else "No swear words are defined for this guild", inline=False)
