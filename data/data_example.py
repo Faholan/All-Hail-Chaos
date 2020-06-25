@@ -27,7 +27,7 @@ from random import choice
 import ksoftapi
 
 def setup(bot):
-    bot.extensions_list = ["cogs.animals", "cogs.battleship", "cogs.business", "cogs.coronavirus", "cogs.funny", "cogs.games", "cogs.image", "cogs.moderation", "cogs.music", "cogs.nasa", "cogs.success", "cogs.utility", "bin.error", "bin.help", "bin.markdown"]
+    bot.extensions_list = ["cogs.animals", "cogs.battleship", "cogs.business", "cogs.coronavirus", "cogs.funny", "cogs.games", "cogs.image", "cogs.moderation", "cogs.music", "cogs.nasa", "cogs.success", "cogs.tags", "cogs.utility", "bin.error", "bin.help", "bin.markdown"]
     if bot.first_on_ready:
         bot.postgre_connection = {"user":"user", "password":"password"}
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
