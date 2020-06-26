@@ -128,11 +128,11 @@ class Utility(commands.Cog):
                                     pass
                                 else:
                                     total += 1
-                                    file_lines+=1
-                        final_path=p+path.sep+name
-                        list_of_files.append(final_path.split('.'+path.sep)[-1]+f" : {file_lines} lines")
+                                    file_lines += 1
+                        final_path = p + path.sep + name
+                        list_of_files.append(final_path.split('.' + path.sep)[-1] + f" : {file_lines} lines")
         embed = discord.Embed(colour = self.bot.colors['yellow'])
-        embed.add_field(name = f"{self.bot.user.name}'s structure", value = "\n".join(list_of_files))
+        embed.add_field(name = f"{self.bot.user.name}'s structure", value = "\n".join(sorted(list_of_files)))
         embed.set_footer(text = f'I am made of {total} lines of Python, spread across {file_amount} files !')
         await ctx.send(embed=embed)
 

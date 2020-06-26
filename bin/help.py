@@ -24,8 +24,27 @@ from inspect import Parameter
 from typing import Optional
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
 import discord.utils
+
+class HelpSource(menus.ListPageSource):
+    def __init__(self, signature, filter_commands, prefix, author, ID, perms, cogs):
+        self.get_command_signature = signature
+        self.filter_commands = filter_commands
+        self.prefix = prefix
+        self.menu_author = author
+        self.bot_id = ID
+        self.bot_perms = perms
+        super().__init__([(cog, cogs[cog]) for cog in cogs], per_page = 1)
+
+    async def format_page(self, menu, cog_tuple):
+        cog, commands = cog_tuple
+        embed = discord.Embed(title=f"Help for {cog.qualified_name if cog else 'unclassified commands'}", description=f'Command syntax : `<Those arguments are required>`. `[Those aren\'t]`\n[Everything to know about my glorious self]({discord.utils.oauth_url(str(self.bot_id), permissions=discord.Permissions(self.bot_perms))} "Invite link")\nThe prefix for this channel is `{self.prefix}`\n{cog.description if cog else ""}', color = 0xffff00)
+        embed.set_author(name = self.menu_author.display_name, icon_url = str(self.menu_author.avatar_url))
+        for command in await self.filter_commands(commands):
+            embed.add_field(name = f"{self.prefix}{self.get_command_signature(command)}", value = command.help, inline = False)
+        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
+        return embed
 
 class Help(commands.HelpCommand):
     def get_command_signature(self, command: commands.Command) -> str:
@@ -45,19 +64,8 @@ class Help(commands.HelpCommand):
 
     async def send_bot_help(self, mapping: dict) -> None:
         ctx = self.context
-        prefix = discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))
-        embed = discord.Embed(title="List of all the commands", description=f'Command syntax : `<Those arguments are required>`. `[Those aren\'t]`\n[Everything to know about my glorious self]({discord.utils.oauth_url(str(ctx.bot.user.id), permissions=discord.Permissions(ctx.bot.invite_permissions))} "Invite link")\nThe prefix for this channel is `{prefix}`', colour=ctx.bot.colors["blue"])
-        embed.set_author(name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url))
-        embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-        embed.set_footer(text=f"To get more information, use {prefix}help [subject].", icon_url = str(ctx.bot.user.avatar_url))
-        for cog in sorted(mapping, key=lambda cog: cog.qualified_name if cog else "ZZZ"):
-            command_list = [f"`{prefix}{self.get_command_signature(command)}` : {command.short_doc}" for command in await self.filter_commands(mapping[cog])]
-            if command_list:
-                if cog:
-                    embed.add_field(name=cog.qualified_name, value="\n".join(command_list), inline=False)
-                else:
-                    embed.add_field(name="Other commands", value="\n".join(command_list))
-        await ctx.send(embed=embed)
+        pages = menus.MenuPages(source = HelpSource(self.get_command_signature, self.filter_commands, ctx.prefix, ctx.author, ctx.bot.user.id, ctx.bot.invite_permissions, sorted(mapping, key=lambda cog: cog.qualified_name if cog else "ZZ")), clear_reactions_after=True)
+        await pages.start(ctx)
 
     async def send_cog_help(self, cog: commands.Cog) -> None:
         ctx = self.context
