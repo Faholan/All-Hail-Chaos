@@ -1,4 +1,4 @@
-"""MIT License
+"""MIT License.
 
 Copyright (c) 2020 Faholan
 
@@ -18,29 +18,40 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
+SOFTWARE.
+"""
 
 import asyncio
 from datetime import datetime
 from itertools import cycle
-from random import shuffle
+from random import randint, shuffle
 import traceback
+from typing import Iterator
 
 import discord
 from discord.ext import commands, menus, tasks
 
+
 class Connect4(menus.Menu):
-    def __init__(self, *players, **kwargs):
+    """How to play connect4."""
+
+    def __init__(self, *players, **kwargs) -> None:
+        """Initialize the game."""
         super().__init__(**kwargs)
         self.winner = None
-        self.id_dict = {players[i].id : i+1 for i in range(len(players))}
+        self.id_dict = {players[i].id: i + 1 for i in range(len(players))}
         self.ids = cycle(list(self.id_dict))
         self.players = players
         self.next = next(self.ids)
-        self.status = [":black_large_square:", ":green_circle:", ":red_circle:"]
+        self.status = [
+            ":black_large_square:",
+            ":green_circle:",
+            ":red_circle:"
+        ]
         self.state = [[0 for _ in range(6)] for __ in range(7)]
 
-    async def update(self, payload):
+    async def update(self, payload: discord.RawReactionActionEvent) -> None:
+        """On payload, do that."""
         button = self.buttons[payload.emoji]
         if not self._running:
             return
@@ -54,164 +65,232 @@ class Connect4(menus.Menu):
                 await button(self, payload)
         except Exception as error:
             embed = discord.Embed(color=0xFF0000)
-            embed.set_author(name = str(self.ctx.author), icon_url = str(self.ctx.author.avatar_url))
+            embed.set_author(
+                name=str(self.ctx.author),
+                icon_url=str(self.ctx.author.avatar_url)
+            )
             embed.title = f"{self.ctx.author.id} caused an error in connect 4"
             embed.description = f"{type(error).__name__} : {error}"
             if self.ctx.guild:
-                embed.description += f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in {self.ctx.channel.name} ({self.ctx.channel.id})"
-            elif isinstance(ctx.channel,discord.DMChannel):
-                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
+                embed.description += (
+                    f"\nin {self.ctx.guild} "
+                    f"({self.ctx.guild.id})\n   in {self.ctx.channel.name} "
+                    f"({self.ctx.channel.id})"
+                )
+            elif isinstance(self.ctx.channel, discord.DMChannel):
+                embed.description += (
+                    f"\nin a Private Channel ({self.ctx.channel.id})"
+                )
             else:
-                embed.description += f"\nin the Group {self.ctx.channel.name} ({self.ctx.channel.id})"
-            tb = "".join(traceback.format_tb(error.__traceback__))
-            embed.description += f"```\n{tb}```"
-            embed.set_footer(text = f"{self.bot.user.name} Logging", icon_url = self.ctx.me.avatar_url_as(static_format="png"))
+                embed.description += (
+                    f"\nin the Group {self.ctx.channel.name} "
+                    f"({self.ctx.channel.id})"
+                )
+            formatted_tb = "".join(traceback.format_tb(error.__traceback__))
+            embed.description += f"```\n{formatted_tb}```"
+            embed.set_footer(
+                text=f"{self.bot.user.name} Logging",
+                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+            )
             embed.timestamp = datetime.utcnow()
             try:
-                await self.bot.log_channel.send(embed = embed)
-            except:
-                await self.bot.log_channel.send("Please check the logs for connect 4")
+                await self.bot.log_channel.send(embed=embed)
+            except Exception:
+                await self.bot.log_channel.send(
+                    "Please check the logs for connect 4"
+                )
                 raise error
 
-    def reaction_check(self, payload):
+    def reaction_check(self, payload: discord.RawReactionActionEvent) -> None:
+        """Whether or not to process the payload."""
         if payload.message_id != self.message.id:
             return False
 
         return payload.user_id == self.next and payload.emoji in self.buttons
 
-    def get_embed(self):
-        return discord.Embed(description = "\n".join(["".join([self.status[column[5 - i]] for column in self.state]) for i in range(6)]))
+    def get_embed(self) -> discord.Embed:
+        """Generate the next embed."""
+        return discord.Embed(
+            description="\n".join(
+                ["".join(
+                    [self.status[column[5 - i]] for column in self.state]
+                ) for i in range(6)])
+            )
 
-    async def send_initial_message(self, ctx, channel):
-        return await ctx.send(embed = self.get_embed())
+    async def send_initial_message(
+            self,
+            ctx: commands.Context,
+            channel: discord.TextChannel) -> discord.Message:
+        """Send the first message."""
+        return await ctx.send(embed=self.get_embed())
 
-    async def action(self, n, payload):
-        if not 0 in self.state[n]:
+    async def action(
+            self,
+            number: int,
+            payload: discord.RawReactionActionEvent) -> None:
+        """Do something."""
+        if 0 not in self.state[number]:
             return
         self.next = next(self.ids)
-        ID = self.id_dict[payload.user_id]
-        self.state[n][self.state[n].index(0)] = ID
+        next_id = self.id_dict[payload.user_id]
+        self.state[number][self.state[number].index(0)] = next_id
         await self.embed_updating()
-        check = self.check(ID)
+        check = self.check(next_id)
         if check:
-            self.winner = self.players[ID - 1]
+            self.winner = self.players[next_id - 1]
             return self.stop()
 
-    def check(self, id):
-        S = str(id) + 3*f", {id}"
-        if any(S in str(x) for x in self.state):
+    def check(self, user_id: int) -> bool:
+        """Did you win."""
+        schema = str(user_id) + 3 * f", {user_id}"
+        if any(schema in str(x) for x in self.state):
             return True
         for i in range(6):
-            if S in str([column[i] for column in self.state]):
+            if schema in str([column[i] for column in self.state]):
                 return True
-        for i in range(3):
-            L, L2, L3, L4 = [], [], [], []
-            for c in range(4 + i):
-                L.append(self.state[3 + i - c][c])
-                L2.append(self.state[3 + i - c][5 - c])
-                L3.append(self.state[3 - i + c][c])
-                L4.append(self.state[3 - i + c][5 - c])
-            if any(S in str(column) for column in (L, L2, L3, L4)):
+        for diagonal in range(3):
+            line1, line2, line3, line4 = [], [], [], []
+            for column in range(4 + i):
+                line1.append(self.state[3 + diagonal - column][column])
+                line2.append(self.state[3 + diagonal - column][5 - column])
+                line3.append(self.state[3 - diagonal + column][column])
+                line4.append(self.state[3 - diagonal + column][5 - column])
+            if any(schema in str(column) for column in (
+                    line1, line2, line3, line4)):
                 return True
         return False
 
-    async def embed_updating(self):
-        await self.message.edit(embed = self.get_embed())
+    async def embed_updating(self) -> None:
+        """Update the embed."""
+        await self.message.edit(embed=self.get_embed())
 
     @menus.button("1\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_1(self, payload):
+    async def column_1(self, payload: discord.RawReactionActionEvent) -> None:
+        """First column."""
         await self.action(0, payload)
 
     @menus.button("2\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_2(self, payload):
+    async def column_2(self, payload: discord.RawReactionActionEvent) -> None:
+        """Second column."""
         await self.action(1, payload)
 
     @menus.button("3\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_3(self, payload):
+    async def column_3(self, payload: discord.RawReactionActionEvent) -> None:
+        """Third column."""
         await self.action(2, payload)
 
     @menus.button("4\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_4(self, payload):
+    async def column_4(self, payload: discord.RawReactionActionEvent) -> None:
+        """Fourth column."""
         await self.action(3, payload)
 
     @menus.button("5\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_5(self, payload):
+    async def column_5(self, payload: discord.RawReactionActionEvent) -> None:
+        """Fifth column."""
         await self.action(4, payload)
 
     @menus.button("6\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_6(self, payload):
+    async def column_6(self, payload: discord.RawReactionActionEvent) -> None:
+        """Sixth column."""
         await self.action(5, payload)
 
     @menus.button("7\N{variation selector-16}\N{combining enclosing keycap}")
-    async def column_7(self, payload):
+    async def column_7(self, payload: discord.RawReactionActionEvent) -> None:
+        """Seventh column."""
         await self.action(6, payload)
 
     @menus.button('\N{BLACK SQUARE FOR STOP}\ufe0f')
-    async def on_stop(self, payload):
+    async def on_stop(self, payload: discord.RawReactionActionEvent) -> None:
+        """Stop."""
         self.stop()
 
-    async def prompt(self, ctx):
+    async def prompt(self, ctx: commands.Context) -> discord.User:
+        """Start it the real way."""
         await self.start(ctx, wait=True)
         return self.winner
 
-class BCard():
-    def __init__(self, value, colour):
-        self._value=value
+
+class BCard:
+    """A blackjack card."""
+
+    def __init__(self, value: int, colour: int) -> None:
+        """Initialize the card."""
+        self._value = value
         self.is_ace = value == 1
         self.colour = colour
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Get the card's full name."""
         if self.is_ace:
-            N = "Ace of "
+            fullname = "Ace of "
         elif self._value > 10:
-            N = ["Jack", "Queen", "King"][self._value - 11] + " of "
+            fullname = ["Jack", "Queen", "King"][self._value - 11] + " of "
         else:
-            N = f"{self._value} of "
-        N += ["\U00002660\N{variation selector-16}", "\U00002663\N{variation selector-16}", "\U00002665\N{variation selector-16}", "\U00002666\N{variation selector-16}"][self.colour]
-        return N
-        #spades, clubs, hearts, diamonds
+            fullname = f"{self._value} of "
+        fullname += [
+            "\U00002660\N{variation selector-16}",
+            "\U00002663\N{variation selector-16}",
+            "\U00002665\N{variation selector-16}",
+            "\U00002666\N{variation selector-16}",
+        ][self.colour]
+        return fullname
+        # spades, clubs, hearts, diamonds
 
     @property
-    def value(self):
+    def value(self) -> int:
+        """Get the card's worth."""
         if self._value > 10:
             return 10
         return self._value
 
-    def tuple(self):
+    def tuple(self) -> tuple:
+        """Get the card as a tuple."""
         return (self._value, self.colour)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """Check if two cards are equal in value."""
         return self._value == other._value
 
-    def min(self):
+    def min(self) -> int:
+        """Get the card's minimal value."""
         if self.is_ace:
             return 1
         return self.value
 
+
 class BRow(list):
-    def isvalid(self):
+    """A row of blackjack cards."""
+
+    def isvalid(self) -> bool:
+        """Check the row's validity."""
         return self.value_min() <= 21
 
-    def value_min(self):
+    def value_min(self) -> int:
+        """Get the minimal value of the row."""
         return sum([card.min() for card in self])
 
-    def value(self):
-        V = self.value_min()
-        c = 0
+    def value(self) -> int:
+        """Get the real value of the row."""
+        total_value = self.value_min()
+        ace_counter = 0
         for card in self:
             if card.is_ace:
-                c += 1
-        while c:
-            if V <= 11:
-                V+=10
-                c -= 1
+                ace_counter += 1
+        while ace_counter:
+            if total_value <= 11:
+                total_value += 10
+                ace_counter -= 1
             else:
                 break
-        return V
+        return total_value
 
-class Deck():
-    def __init__(self, money, cost, player_id):
+
+class Deck:
+    """A deck full of rows."""
+
+    def __init__(self, money: int, cost: int, player_id: int) -> None:
+        """Initialize the deck."""
         self.cards = [BRow()]
         self._money = money
         self.balance = - cost
@@ -219,80 +298,132 @@ class Deck():
         self.player_id = player_id
 
     @property
-    def money(self):
+    def money(self) -> None:
+        """Get your money."""
         return self._money + self.balance
 
-    def __contains__(self, card):
-        return any(card in column for column in self.cards) and len(self.cards) < 3
+    def __contains__(self, card: BCard) -> bool:
+        """If a card is in the deck."""
+        return any(
+            card in column for column in self.cards
+        ) and len(self.cards) < 3
 
-    def __iter__(self):
-        return self.cards
+    def __iter__(self) -> Iterator:
+        """Iterate over me."""
+        return self.cards.__iter__()
 
-    def isvalid(self):
-        return any(column.isvalid() for column in self.cards) and self.money > 0
+    def isvalid(self) -> bool:
+        """Check the validity of the deck."""
+        return any(
+            column.isvalid() for column in self.cards
+        ) and self.money > 0
 
-    async def add(self, card, ctx, ini = False):
+    async def add(
+            self,
+            card: BCard,
+            ctx: commands.Context,
+            ini: bool = False) -> None:
+        """Add a card to the deck."""
         if card in self and self.cost < self.money and not ini:
-            def check(message):
-                return message.author == ctx.author and message.channel == ctx.channel and message.content.lower() in ["y", "yes", "n", "no"]
-            m1 = await ctx.send(f"You have a {card.name}. Do you want to split ? (y/n)")
+            def check(message: discord.Message) -> bool:
+                if message.author == ctx.author:
+                    if message.channel == ctx.channel:
+                        return message.content.lower() in [
+                            "y", "yes", "n", "no"
+                        ]
+                return False
+            message1 = await ctx.send(
+                f"You have a {card.name}. Do you want to split ? (y/n)"
+            )
             try:
-                message = await ctx.bot.wait_for("message", check = check, timeout = 30)
-                if message.content.lower().startswith("y"):
-                    answer = True
-                else:
-                    answer = False
-            except:
+                message = await ctx.bot.wait_for(
+                    "message",
+                    check=check,
+                    timeout=30,
+                )
+                answer = message.content.lower().startswith("y")
+            except discord.DiscordException:
                 answer = False
             try:
-                await m1.delete()
+                await message1.delete()
                 await message.delete()
-            except:
+            except discord.DiscordException:
                 pass
             if answer:
                 return self.split(card)
-        L = [i for i in range(len(self.cards)) if self.cards[i].isvalid()]
-        if len(L) == 1:
-            id = L[0]
+        row_numbers = [
+            i for i in range(len(self.cards)) if self.cards[i].isvalid()
+        ]
+        if len(row_numbers) == 1:
+            card_id = row_numbers[0]
         else:
-            m1 = await ctx.send(f"You have {len(L)} rows available. In which one do you want to play ?")
-            def check(message):
-                if message.author == ctx.author and message.channel == ctx.channel and message.content.isdigit():
+            message1 = await ctx.send(
+                f"You have {len(row_numbers)} rows available. "
+                "In which one do you want to play ?"
+            )
+
+            def check2(message: discord.Message) -> bool:
+                if message.author == ctx.author and (
+                        message.channel == ctx.channel
+                        and message.content.isdigit()):
                     try:
-                        return self.cards[int(message.content)-1].isvalid()
-                    except:
+                        return self.cards[int(message.content) - 1].isvalid()
+                    except Exception:
                         pass
                 return False
-            try:
-                message = await ctx.bot.wait_for("message", check = check, timeout = 30)
-                id = int(message.content) - 1
-            except:
-                id = L[0]
-                await ctx.send(f"Defaulting to row {id+1}", delete_after = 3)
-            try:
-                await m1.delete()
-                await message.delete()
-            except:
-                pass
-        self.cards[id].append(card)
 
-    def split(self, card):
+            try:
+                message = await ctx.bot.wait_for(
+                    "message",
+                    check=check2,
+                    timeout=30,
+                )
+                card_id = int(message.content) - 1
+            except discord.DiscordException:
+                card_id = row_numbers[0]
+                await ctx.send(
+                    f"Defaulting to row {card_id + 1}", delete_after=3
+                )
+            try:
+                await message1.delete()
+                await message.delete()
+            except discord.DiscordException:
+                pass
+        self.cards[card_id].append(card)
+
+    def split(self, card: BCard) -> None:
+        """Split a card."""
         self.balance -= self.cost
         self.cards.append(BRow([card]))
 
+
 class Blackjack(menus.Menu):
-    def __init__(self, players, money_dict, cost, **kwargs):
+    """Let's play Blackjack."""
+
+    def __init__(
+            self,
+            players: list,
+            money_dict: dict,
+            cost: int,
+            **kwargs) -> None:
+        """Initialize all the fuzzy stuff."""
         super().__init__(**kwargs)
         self.ids = cycle([player.id for player in players])
-        self.index = cycle([i for i in range(len(players))])
+        self.index = cycle(range(len(players)))
         self.next = next(self.ids)
         self.next_index = next(self.index)
 
-        self.player_dict = {player.id : player for player in players}
+        self.player_dict = {player.id: player for player in players}
         self.money_dict = money_dict
         self.cost = cost
 
-    async def update(self, payload):
+        self.cards = []
+        self.players = []
+        self.dealer = None
+        self.next_card = None
+
+    async def update(self, payload: discord.RawReactionActionEvent) -> None:
+        """Update if necessary."""
         button = self.buttons[payload.emoji]
         if not self._running:
             return
@@ -306,39 +437,64 @@ class Blackjack(menus.Menu):
                 await button(self, payload)
         except Exception as error:
             embed = discord.Embed(color=0xFF0000)
-            embed.set_author(name = str(self.ctx.author), icon_url = str(self.ctx.author.avatar_url))
-            embed.title = f"{self.ctx.author.id} caused an error in connect 4"
+            embed.set_author(
+                name=str(self.ctx.author),
+                icon_url=str(self.ctx.author.avatar_url),
+            )
+            embed.title = f"{self.ctx.author.id} caused an error in Blackjack"
             embed.description = f"{type(error).__name__} : {error}"
             if self.ctx.guild:
-                embed.description += f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in {self.ctx.channel.name} ({self.ctx.channel.id})"
-            elif isinstance(ctx.channel,discord.DMChannel):
-                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
+                embed.description += (
+                    f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in "
+                    f"{self.ctx.channel.name} ({self.ctx.channel.id})"
+                )
+            elif isinstance(self.ctx.channel, discord.DMChannel):
+                embed.description += (
+                    f"\nin a Private Channel ({self.ctx.channel.id})"
+                )
             else:
-                embed.description += f"\nin the Group {self.ctx.channel.name} ({self.ctx.channel.id})"
-            tb = "".join(traceback.format_tb(error.__traceback__))
-            embed.description += f"```\n{tb}```"
-            embed.set_footer(text = f"{self.bot.user.name} Logging", icon_url = self.ctx.me.avatar_url_as(static_format="png"))
+                embed.description += (
+                    f"\nin the Group {self.ctx.channel.name} "
+                    f"({self.ctx.channel.id})"
+                )
+            formatted_tb = "".join(traceback.format_tb(error.__traceback__))
+            embed.description += f"```\n{formatted_tb}```"
+            embed.set_footer(
+                text=f"{self.bot.user.name} Logging",
+                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+            )
             embed.timestamp = datetime.utcnow()
             try:
-                await self.bot.log_channel.send(embed = embed)
-            except:
-                await self.bot.log_channel.send("Please check the logs for connect 4")
+                await self.bot.log_channel.send(embed=embed)
+            except Exception:
+                await self.bot.log_channel.send(
+                    "Please check the logs for Blackjack"
+                )
                 raise error
 
-    def reaction_check(self, payload):
+    def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
+        """Whether or not it shall be processed."""
         if payload.message_id != self.message.id:
             return False
 
         return payload.user_id == self.next and payload.emoji in self.buttons
 
     @property
-    def card(self):
+    def card(self) -> BCard:
+        """Get a random card."""
         shuffle(self.cards)
         return self.cards.pop()
 
-    async def new_game(self):
-        self.cards = [BCard(i+1, j) for i in range(13) for j in range(4) for _ in range(6)]
-        self.players = [Deck(self.money_dict[i], self.cost, i) for i in self.money_dict]
+    async def new_game(self) -> None:
+        """Start a new game."""
+        self.cards = [
+            BCard(i + 1, j) for i in range(13)
+            for j in range(4)
+            for _ in range(6)
+        ]
+        self.players = [
+            Deck(self.money_dict[i], self.cost, i) for i in self.money_dict
+        ]
         self.dealer = BRow()
         self.dealer.append(self.card)
         for i in range(len(self.players)):
@@ -346,17 +502,40 @@ class Blackjack(menus.Menu):
                 await self.players[i].add(self.card, None, True)
         self.next_card = self.card
 
-    def generate_embed(self):
-        embed = discord.Embed(title = f"The bet is fixed at {self.cost} GP")
-        embed.add_field(name = "Dealer :", value=", ".join([card.name for card in self.dealer]), inline = False)
+    def generate_embed(self) -> discord.Embed:
+        """Generate the next embed."""
+        embed = discord.Embed(title=f"The bet is fixed at {self.cost} GP")
+        embed.add_field(
+            name="Dealer :",
+            value=", ".join([card.name for card in self.dealer]),
+            inline=False,
+        )
         for player in self.players:
-            embed.add_field(name = f"{self.player_dict[player.player_id].display_name} ({player.money} GP)", value="\n".join([", ".join([card.name for card in row]) for row in player.cards]), inline = False)
+            embed.add_field(
+                name=(
+                    f"{self.player_dict[player.player_id].display_name} "
+                    f"({player.money} GP)"
+                ),
+                value="\n".join(
+                    [", ".join(
+                        [card.name for card in row]
+                    ) for row in player.cards]
+                ),
+                inline=False,
+            )
         return embed
 
-    async def send_initial_message(self, ctx, channel):
-        return await ctx.send(self.player_dict[self.next].mention, embed = self.generate_embed())
+    async def send_initial_message(
+            self,
+            ctx: commands.Context,
+            channel: discord.TextChannel) -> discord.Message:
+        """Send the first embed."""
+        return await ctx.send(
+            self.player_dict[self.next].mention, embed=self.generate_embed()
+        )
 
-    async def update_embed(self, new_turn = False):
+    async def update_embed(self, new_turn: bool = False) -> None:
+        """Update the embed."""
         if new_turn:
             self.next = next(self.ids)
             self.next_index = next(self.index)
@@ -364,75 +543,114 @@ class Blackjack(menus.Menu):
                 return await self.result()
         else:
             self.next_card = self.card
-        await self.message.edit(content = self.player_dict[self.next].mention, embed = self.generate_embed())
+        await self.message.edit(
+            content=self.player_dict[self.next].mention,
+            embed=self.generate_embed(),
+        )
 
-    async def result(self):
+    async def result(self) -> discord.User:
+        """Run this at the end."""
         while self.dealer.value() < 17:
             self.dealer.append(self.card)
 
         embed = discord.Embed()
 
         if not self.dealer.isvalid():
-            n = "Busted"
-            V = 0
+            number = "Busted"
+            dealer_score = 0
         elif len(self.dealer) == 2 and self.dealer.value() == 21:
-            n = "Blackjack"
-            V = 22
+            number = "Blackjack"
+            dealer_score = 22
         else:
-            V = self.dealer.value()
-            n = f"{V} points"
-        n += f" : {', '.join([card.name for card in self.dealer])}"
-        embed.add_field(name = "Dealer", value=n, inline = False)
+            dealer_score = self.dealer.value()
+            number = f"{dealer_score} points"
+        number += f" : {', '.join([card.name for card in self.dealer])}"
+        embed.add_field(name="Dealer", value=number, inline=False)
         for player in self.players:
-            n = []
-            if player.cards[0].value() == 21 and len(player.cards) == 1 and len(player.cards[0]) == 2:
-                n.append(f"Blackjack : {', '.join([card.name for card in player.cards[0]])}")
-                if V == 22:
+            numbers = []
+            if player.cards[0].value() == 21 and len(player.cards) == 1 and (
+                    len(player.cards[0]) == 2):
+                numbers.append(
+                    "Blackjack : "
+                    f"{', '.join([card.name for card in player.cards[0]])}"
+                )
+                if dealer_score == 22:
                     player.balance += self.cost
                 else:
-                    player.balance += round(2.5 *self.cost)
+                    player.balance += round(2.5 * self.cost)
             else:
                 for row in player.cards:
                     if row.isvalid():
-                        n.append(f"{row.value()} points : {', '.join([card.name for card in row])}")
-                        if row.value() == V:
+                        numbers.append(
+                            f"{row.value()} points : "
+                            f"{', '.join([card.name for card in row])}"
+                        )
+                        if row.value() == dealer_score:
                             player.balance += self.cost
-                        elif row.value() > V:
+                        elif row.value() > dealer_score:
                             player.balance += 2 * self.cost
                     else:
-                        n.append(f"Busted : {', '.join([card.name for card in row])}")
-            embed.add_field(name = f"{self.player_dict[player.player_id]} : {player.money} GP", value="\n".join(n), inline = False)
-        await self.message.edit(content = None, embed = embed)
+                        numbers.append(
+                            "Busted : "
+                            f"{', '.join([card.name for card in row])}"
+                        )
+            embed.add_field(
+                name=(
+                    f"{self.player_dict[player.player_id]} : {player.money}"
+                    " GP"
+                ),
+                value="\n".join(numbers),
+                inline=False,
+            )
+        await self.message.edit(content=None, embed=embed)
         self.stop()
 
     @menus.button("\U00002795")
-    async def action(self, payload):
+    async def action(self, payload: discord.RawReactionActionEvent) -> None:
+        """Get a card."""
         await self.players[self.next_index].add(self.next_card, self.ctx)
         await self.update_embed(not self.players[self.next_index].isvalid())
 
     @menus.button("\U0000274c")
-    async def next_turn(self, payload):
+    async def next_turn(self, payload: discord.RawReactionActionEvent) -> None:
+        """Time for the next player to shine."""
         await self.update_embed(True)
 
-    async def prompt(self, ctx):
+    async def prompt(self, ctx: commands.Context) -> dict:
+        """Start it the real way."""
         await self.new_game()
-        await self.start(ctx, wait = True)
-        return {P.player_id : P.balance for P in self.players}
+        await self.start(ctx, wait=True)
+        return {P.player_id: P.balance for P in self.players}
 
-class Blackjack_players(menus.Menu):
-    def __init__(self, author, author_money, cost, db, **kwargs):
+
+class Blackjackplayers(menus.Menu):
+    """Menu to check who wants to play."""
+
+    def __init__(
+            self,
+            author: discord.User,
+            author_money: int,
+            cost: int,
+            database,
+            **kwargs) -> None:
+        """Get who wanna play."""
         super().__init__(**kwargs)
         self.players = [author]
-        self.money_dict = {author.id : author_money}
+        self.money_dict = {author.id: author_money}
         self.lock = asyncio.Lock()
-        self.db = db
+        self.database = database
         self.cost = cost
         self.current_state = 0
+        self.time = 0
 
-    def reaction_check(self, payload):
-        return payload.message_id == self.message.id and payload.user_id != self.bot.user.id
+    def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
+        """Check whether or not to process the reaction."""
+        return payload.message_id == self.message.id and (
+            payload.user_id != self.bot.user.id
+        )
 
-    async def update(self, payload):
+    async def update(self, payload: discord.RawReactionActionEvent) -> None:
+        """Update if necessary."""
         button = self.buttons[payload.emoji]
         if not self._running:
             return
@@ -446,54 +664,97 @@ class Blackjack_players(menus.Menu):
                 await button(self, payload)
         except Exception as error:
             embed = discord.Embed(color=0xFF0000)
-            embed.set_author(name = str(self.ctx.author), icon_url = str(self.ctx.author.avatar_url))
-            embed.title = f"{self.ctx.author.id} caused an error in connect 4"
+            embed.set_author(
+                name=str(self.ctx.author),
+                icon_url=str(self.ctx.author.avatar_url),
+            )
+            embed.title = (
+                f"{self.ctx.author.id} caused an error in Blackjack Players"
+            )
             embed.description = f"{type(error).__name__} : {error}"
             if self.ctx.guild:
-                embed.description += f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in {self.ctx.channel.name} ({self.ctx.channel.id})"
-            elif isinstance(ctx.channel,discord.DMChannel):
-                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
+                embed.description += (
+                    f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in "
+                    f"{self.ctx.channel.name} ({self.ctx.channel.id})"
+                )
+            elif isinstance(self.ctx.channel, discord.DMChannel):
+                embed.description += (
+                    f"\nin a Private Channel ({self.ctx.channel.id})"
+                )
             else:
-                embed.description += f"\nin the Group {self.ctx.channel.name} ({self.ctx.channel.id})"
-            tb = "".join(traceback.format_tb(error.__traceback__))
-            embed.description += f"```\n{tb}```"
-            embed.set_footer(text = f"{self.bot.user.name} Logging", icon_url = self.ctx.me.avatar_url_as(static_format="png"))
+                embed.description += (
+                    f"\nin the Group {self.ctx.channel.name} "
+                    f"({self.ctx.channel.id})"
+                )
+            formatted_tb = "".join(traceback.format_tb(error.__traceback__))
+            embed.description += f"```\n{formatted_tb}```"
+            embed.set_footer(
+                text=f"{self.bot.user.name} Logging",
+                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+            )
             embed.timestamp = datetime.utcnow()
             try:
-                await self.bot.log_channel.send(embed = embed)
-            except:
-                await self.bot.log_channel.send("Please check the logs for connect 4")
+                await self.bot.log_channel.send(embed=embed)
+            except Exception:
+                await self.bot.log_channel.send(
+                    "Please check the logs for Blackjack Players"
+                )
                 raise error
 
-    async def send_initial_message(self, ctx, channel):
+    async def send_initial_message(
+            self,
+            ctx: commands.Context,
+            channel: discord.TextChannel) -> discord.Message:
+        """Send the first embed."""
         self.time = 120
         self.current_state = 1
-        return await ctx.send(embed = self.get_embed())
+        return await ctx.send(embed=self.get_embed())
 
-    async def updater(self):
+    async def updater(self) -> None:
+        """Update the embed."""
         self.time -= 5
-        await self.message.edit(embed = self.get_embed())
+        await self.message.edit(embed=self.get_embed())
         if self.time <= 0:
             self.stop()
 
-    def get_embed(self):
-        r = "\n -"
-        return discord.Embed(title = f"Come play blackjack ! Initial bet is {self.cost} GP ({self.time} seconds left)",
-            description = f"Check the command's help for the rules. React with :white_check_mark: to join, :track_next: to begin the game\n\nCurrent players :\n -{r.join([player.mention for player in self.players])}")
+    def get_embed(self) -> discord.Embed:
+        """Get the embed."""
+        newline = "\n -"
+        return discord.Embed(
+            title=(
+                f"Come play blackjack ! Initial bet is {self.cost} GP "
+                f"({self.time} seconds left)"
+            ),
+            description=(
+                "Check the command's help for the rules. React with "
+                ":white_check_mark: to join, :track_next: to begin the game"
+                "\n\nCurrent players :\n -"
+                f"{newline.join([player.mention for player in self.players])}"
+            ),
+        )
 
     @menus.button("\U00002705")
-    async def adder(self, payload):
+    async def adder(self, payload: discord.RawReactionActionEvent) -> None:
+        """Add a player."""
         member = self.ctx.guild.get_member(payload.user_id)
         async with self.lock:
-            row = await self.db.fetchrow("SELECT * FROM public.business WHERE id=$1", payload.user_id)
+            row = await self.database.fetchrow(
+                "SELECT * FROM public.business WHERE id=$1", payload.user_id
+            )
             if not row:
-                return await self.ctx.send(f"Sorry {member.mention}, but you don't have any money to join this table")
+                return await self.ctx.send(
+                    f"Sorry {member.mention}, but you don't have any money "
+                    "to join this table"
+                )
             if payload.user_id in self.money_dict:
                 del self.money_dict[payload.user_id]
             else:
                 money = row["money"] + row["bank"]
                 if money < self.cost:
-                    return await self.ctx.send(f"Sorry {member.mention}, but you don't have enough money to come to this table")
+                    return await self.ctx.send(
+                        f"Sorry {member.mention}, but you don't have enough "
+                        "money to come to this table"
+                    )
                 self.money_dict[payload.user_id] = money
         if member in self.players:
             self.players.remove(member)
@@ -501,66 +762,359 @@ class Blackjack_players(menus.Menu):
             self.players.append(member)
 
     @menus.button("\U000023ed\N{variation selector-16}")
-    async def skipper(self, payload):
+    async def skipper(self, payload: discord.RawReactionActionEvent) -> None:
+        """Start the game ahead of time."""
         self.time = 5
         self.current_state = -1
         await self.updater()
 
-    async def prompt(self, ctx):
-        await self.start(ctx, wait = True)
+    async def prompt(self, ctx: commands.Context) -> tuple:
+        """Start it the real way."""
+        await self.start(ctx, wait=True)
         return self.players, self.money_dict
 
-    def stop(self):
+    def stop(self) -> None:
+        """Stop the thingy."""
         self.current_state = -1
         super().stop()
 
+
+class Battleship:
+    """Play battleship."""
+
+    green = ":green_square:"
+    blue = ":blue_square:"
+    red = ":red_square:"
+    white = ":white_large_square:"
+    black = ":black_large_square:"
+
+    def __init__(self, bot: commands.Bot) -> None:
+        """Initialize the game."""
+        self.bot = bot
+        self.boat_size = [
+            (5, "Carrier"),
+            (4, "Battleship"),
+            (3, "Cruiser"),
+            (3, "Submarine"),
+            (2, "Destroyer"),
+        ]
+        self.column = list("abcdefghij")
+
+    def place_ia(self) -> tuple:
+        """Place the IA's boats."""
+        j2, boats = [[0] * 10 for _ in range(10)], []
+        for size, _ in self.boat_size:
+            test = True
+            while test:
+                coordinates = (randint(0, 9), randint(0, 9))
+                orientation = randint(0, 1)
+                if orientation:
+                    if coordinates[1] > 10 - size:
+                        continue
+                    if coordinates[1]:
+                        if j2[coordinates[0]][coordinates[1] - 1]:
+                            continue
+                        if coordinates[0]:
+                            if j2[coordinates[0] - 1][coordinates[1] - 1]:
+                                continue
+                        if coordinates[0] != 9:
+                            if j2[coordinates[0] + 1][coordinates[1] - 1]:
+                                continue
+                    if coordinates[1] + size < 10:
+                        if j2[coordinates[0]][coordinates[1] + size]:
+                            continue
+                        if coordinates[0]:
+                            if j2[coordinates[0] - 1][coordinates[1] + size]:
+                                continue
+                        if coordinates[0] != 9:
+                            if j2[coordinates[0] + 1][coordinates[1] + size]:
+                                continue
+                    test = False
+                    if coordinates[0] == 0:
+                        for j in range(size):
+                            if j2[0][coordinates[1] + j] or j2[1][
+                                    coordinates[1] + j]:
+                                test = True
+                                break
+                    elif coordinates[0] == 9:
+                        for j in range(size):
+                            if j2[8][coordinates[1] + j] or j2[9][
+                                    coordinates[1] + j]:
+                                test = True
+                                break
+                    else:
+                        for j in range(size):
+                            if any(
+                                    j2[coordinates[0] - 1][
+                                        coordinates[1] + j
+                                    ],
+                                    j2[coordinates[0]][
+                                        coordinates[1] + j
+                                    ],
+                                    j2[coordinates[0] + 1][
+                                        coordinates[1] + j
+                                    ],):
+                                test = True
+                                break
+                    if not test:
+                        boat = []
+                        for j in range(size):
+                            j2[coordinates[0]][coordinates[1] + j] = 1
+                            boat.append((coordinates[0], coordinates[1] + j))
+                        boats.append(boat)
+                else:
+                    if coordinates[0] > 10 - size:
+                        break
+                    if coordinates[0]:
+                        if j2[coordinates[0] - 1][coordinates[1]]:
+                            continue
+                        if coordinates[1]:
+                            if j2[coordinates[0] - 1][coordinates[1] - 1]:
+                                continue
+                        if coordinates[1] != 9:
+                            if j2[coordinates[0] - 1][coordinates[1] + 1]:
+                                continue
+                    if coordinates[0] + size < 10:
+                        if j2[coordinates[0] + size][coordinates[1]]:
+                            continue
+                        if coordinates[1]:
+                            if j2[coordinates[0] + size][coordinates[1] - 1]:
+                                continue
+                        if coordinates[1] != 9:
+                            if j2[coordinates[0] + size][coordinates[1] + 1]:
+                                continue
+                    test = False
+                    if coordinates[1] == 0:
+                        for j in range(size):
+                            if j2[coordinates[0] + j][0] or j2[
+                                    coordinates[0] + j][1]:
+                                test = True
+                                break
+                    elif coordinates[1] == 9:
+                        for j in range(size):
+                            if j2[coordinates[0] + j][8] or j2[
+                                    coordinates[0] + j][9]:
+                                test = True
+                                break
+                    else:
+                        for j in range(size):
+                            if any(
+                                    j2[coordinates[0] + j][coordinates[1] - 1],
+                                    j2[coordinates[0] + j][coordinates[1]],
+                                    j2[coordinates[0] + j][coordinates[1] + 1],
+                                    ):
+                                test = True
+                                break
+                    if not test:
+                        boat = []
+                        for j in range(size):
+                            j2[coordinates[0] + j][coordinates[1]] = 1
+                            boat.append((coordinates[0] + j, coordinates[1]))
+                        boats.append(boat)
+        return boats, j2
+
+    @staticmethod
+    def fire_grid(distance: int, fired: list) -> list:
+        """Create the grid for annihilating the pagans."""
+        new = []
+        for i in range(10):
+            for j in range(round(10 / distance)):
+                new.append((i, distance * j + i % distance))
+        for elem in fired:
+            if elem in new:
+                new.remove(elem)
+        return new
+
+    def grider(self, grid: list, player: bool = True) -> str:
+        """Make that graphical interface."""
+        return "\n".join(
+            [". 1    2    3    4   5    6    7   8    9  10"]
+            + ["".join(
+                [
+                    self.green if (
+                        grid[i][j] == 1 and player
+                    ) else self.white if grid[i][j] == -1 else self.red if (
+                        grid[i][j] == -2
+                    ) else self.black if grid[i][j] == -3 else self.blue
+                    for j in range(len(grid[i]))
+                ]
+                + [" " + self.column[i].upper()]
+            ) for i in range(len(grid))]
+        )
+
+    @staticmethod
+    def check(hits, boat, not_possible):
+        """Check the new grid."""
+        for place in boat:
+            if place[0]:
+                not_possible.append((place[0] - 1, place[1]))
+                if (place[0] - 1, place[1]) in hits:
+                    hits.remove((place[0] - 1, place[1]))
+                if hits[1]:
+                    not_possible.append((place[0] - 1, place[1] - 1))
+                    if (place[0] - 1, place[1] - 1) in hits:
+                        hits.remove((place[0] - 1, place[1] - 1))
+                if hits[1] != 9:
+                    not_possible.append((place[0] - 1, place[1] + 1))
+                    if (place[0] - 1, place[1] + 1) in hits:
+                        hits.remove((place[0] - 1, place[1] + 1))
+            if place[0] != 9:
+                not_possible.append((place[0] + 1, place[1]))
+                if (place[0] + 1, place[1]) in hits:
+                    hits.remove((place[0] + 1, place[1]))
+                if hits[1]:
+                    not_possible.append((place[0] + 1, place[1] - 1))
+                    if (place[0] + 1, place[1] - 1) in hits:
+                        hits.remove((place[0] + 1, place[1] - 1))
+                if hits[1] != 9:
+                    not_possible.append((place[0] + 1, place[1] + 1))
+                    if (place[0] + 1, place[1] + 1) in hits:
+                        hits.remove((place[0] + 1, place[1] + 1))
+            if hits[1]:
+                not_possible.append((place[0], place[1] - 1))
+                if (place[0], place[1] - 1) in hits:
+                    hits.remove((place[0], place[1] - 1))
+            if hits[1] != 9:
+                not_possible.append((place[0], place[1] + 1))
+                if (place[0], place[1] + 1) in hits:
+                    hits.remove((place[0], place[1] + 1))
+        return hits, not_possible
+
+    def player_check(self, size, raw, grid, boats):
+        """Check if a player can do what he has in mind."""
+        if raw.lower()[0] not in self.column or not raw[1: -1].isdigit():
+            return "Please input a correctly formatted message", grid, boats
+        if not 0 < int(msg.content[1: -1]) < 11:
+            return "The column numbers are between 1 and 10", grid, boats
+        if message.content.lower()[-1] == "v":
+            pass
+
+    async def start(self, ctx: commands.Context) -> None:
+        """Start the game."""
+
+        def check(message: discord.Message) -> bool:
+            return message.author == ctx.author and (
+                message.channel == ctx.channel
+            ) and (
+                2 < len(message.content) < 5 or (
+                    message.content.lower() == "quit"
+                )
+            )
+        player_grid = [[0] * 10 for _ in range(10)]
+        player_boats = []
+        player_state = [1] * len(self.boat_size)
+        # Send message
+        for size, name in self.boat_size:
+            await ctx.send(self.grider(player_grid))
+            await ctx.send(f"Place your {name} (size: {size})")
+            invalid = True
+            while invalid:
+                try:
+                    msg = await self.bot.wait_for(
+                        "message",
+                        check=check,
+                        timeout=120,
+                    )
+                except asyncio.TimeoutError:
+                    return await ctx.send("You took too long to answer")
+                if msg.content.lower() == "quit":
+                    return await ctx.send("Maybe another time")
+                status = self.player_check(
+                    size,
+                    msg.content,
+                    player_grid,
+                    player_boats,
+                )
+
 class Games(commands.Cog):
-    def __init__(self, bot):
+    """Good games."""
+
+    def __init__(self, bot: commands.Bot) -> None:
+        """Initialize the games."""
         self.bot = bot
         self.blackjack_list = []
         self.blackjack_updater.start()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
+        """Cleanup on cog unload."""
         self.blackjack_updater.cancel()
 
-    @commands.command(ignore_extra = True)
-    async def blackjack(self, ctx, cost : int = 5):
-        """Please see the detailed help
+    @commands.command(ignore_extra=True)
+    async def blackjack(self, ctx: commands.Context, cost: int = 5) -> None:
+        """Please see the detailed help.
+
         Rules : if it's your turn, press the \U00002795 button to get a card.
         If you want to stop, press \U0000274c, and the next player will play.
-        To win, you must score more than the dealer, but no more than 21 (each card's value is its pip value, except faces, which are worth 10 points, and the Ace, which is worth either 1 or 11).
-        An Ace plus a face is called a blackjack, and beats a 21"""
+        To win, you must score more than the dealer, but no more than 21.
+        Each card's value is its pip value, except faces.
+        Those are worth 10 points, and the Ace is worth either 1 or 11.
+        An Ace plus a face is called a blackjack, and beats a 21
+        """
         if cost < 0:
             await ctx.send("You can't bet negative money")
-        db = await self.bot.pool.acquire()
-        row = await db.fetchrow("SELECT * FROM public.business WHERE id=$1", ctx.author.id)
-        if not row:
-            await ctx.send("You don't have money. You can't run this command without yourself having money")
-            return await self.bot.pool.release(db)
-        money = row["money"] + row["bank"]
-        if money < cost:
-            await ctx.send(f"Sorry, but you don't have enough money to come to this table")
-            return await self.bot.pool.release(db)
-        new_players = Blackjack_players(ctx.author, money, cost, db, delete_message_after = True)
-        self.blackjack_list.append(new_players)
-        players, money_dict = await new_players.prompt(ctx)
-        await self.bot.pool.release(db)
+        async with self.bot.pool.acquire() as database:
+            row = await database.fetchrow(
+                "SELECT * FROM public.business WHERE id=$1", ctx.author.id
+            )
+            if not row:
+                return await ctx.send(
+                    "You don't have money. You can't run this command without "
+                    "yourself having money"
+                )
+            money = row["money"] + row["bank"]
+            if money < cost:
+                return await ctx.send(
+                    "Sorry, but you don't have enough money"
+                    " to come to this table"
+                )
+            new_players = Blackjackplayers(
+                ctx.author,
+                money,
+                cost,
+                database,
+                delete_message_after=True,
+            )
+            self.blackjack_list.append(new_players)
+            players, money_dict = await new_players.prompt(ctx)
         if not players:
             return await ctx.send("Nobody wants to play")
-        balance_dict = await Blackjack(players, money_dict, cost, clear_reactions_after = True).prompt(ctx)
-        async with self.bot.pool.acquire() as db:
-            for id in balance_dict:
-                if balance_dict[id] >= 0:
-                    await db.execute("UPDATE public.business SET money=money+$2 WHERE id=$1", id, balance_dict[id])
+        balance_dict = await Blackjack(
+            players,
+            money_dict,
+            cost,
+            clear_reactions_after=True,
+        ).prompt(ctx)
+        async with self.bot.pool.acquire() as database:
+            for player_id in balance_dict:
+                if balance_dict[player_id] >= 0:
+                    await database.execute(
+                        "UPDATE public.business SET money=money+$2 WHERE "
+                        "id=$1",
+                        player_id,
+                        balance_dict[id],
+                    )
                 else:
-                    row = await db.fetchrow("SELECT * FROM public.business WHERE id=$1", id)
+                    row = await database.fetchrow(
+                        "SELECT * FROM public.business WHERE id=$1", player_id
+                    )
                     if row["money"] >= -balance_dict[id]:
-                        await db.execute("UPDATE public.business SET money=money+$2 WHERE id=$1", id, balance_dict[id])
+                        await database.execute(
+                            "UPDATE public.business SET money=money+$2 WHERE "
+                            "id=$1",
+                            player_id,
+                            balance_dict[id],
+                        )
                     else:
-                        await db.execute("UPDATE public.business SET money=0, bank=bank+$2 WHERE id=$1", id, row["money"]+balance_dict[id])
+                        await database.execute(
+                            "UPDATE public.business SET money=0, bank=bank+$2"
+                            " WHERE id=$1",
+                            player_id,
+                            row["money"] + balance_dict[id],
+                        )
 
-    @tasks.loop(seconds = 5)
-    async def blackjack_updater(self):
+    @tasks.loop(seconds=5)
+    async def blackjack_updater(self) -> None:
+        """Update all Blackjackplayers menus."""
         new = []
         for black in self.blackjack_list:
             if black.current_state == 1:
@@ -570,14 +1124,21 @@ class Games(commands.Cog):
             new.append(black)
         self.blackjack_list = new
 
-    @commands.command(aliases = ["c4"])
-    async def connect4(self, ctx, member : discord.Member):
-        """Play connect 4 with a friend"""
-        winner = await Connect4(ctx.author, member, clear_reactions_after = True).prompt(ctx)
+    @commands.command(aliases=["c4"])
+    async def connect4(
+            self, ctx: commands.Context, member: discord.Member) -> None:
+        """Play connect 4 with a friend."""
+        winner = await Connect4(
+            ctx.author,
+            member,
+            clear_reactions_after=True
+        ).prompt(ctx)
         if winner:
             await ctx.send(f"{winner.mention} won !")
         else:
             await ctx.send("Game cancelled")
 
-def setup(bot):
+
+def setup(bot: commands.Bot) -> None:
+    """Add games to the bot."""
     bot.add_cog(Games(bot))

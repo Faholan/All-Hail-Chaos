@@ -35,7 +35,7 @@ class Battleship(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.boat_size = [(5, "Carrier"), (4, "Battleship"), (3, "Cruiser"), (3, "Submarine"), (2, "Destroyer")]
-        self.column = [i for i in "abcdefghij"]
+        self.column = list("abcdefghij")
 
     def j2_boats(self):
         j2, boats = [[0]*10 for _ in range(10)], []

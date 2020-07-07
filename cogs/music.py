@@ -1,4 +1,4 @@
-"""MIT License
+"""MIT License.
 
 Copyright (c) 2020 Faholan
 
@@ -18,13 +18,12 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
+SOFTWARE.
+"""
 
 from asyncio import sleep
-import copy
 import math
 import re
-from urllib.parse import quote
 
 import discord
 from discord.ext import commands, tasks

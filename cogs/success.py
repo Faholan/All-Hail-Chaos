@@ -1,4 +1,4 @@
-"""MIT License
+"""MIT License.
 
 Copyright (c) 2020 Faholan
 
@@ -18,18 +18,26 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
+SOFTWARE.
+"""
 
 import asyncio
-from os import path
-import traceback
 
 from discord import Embed
-from discord.ext import commands, tasks
+from discord.ext import commands
 
-class Success():
-    """Class implementation of a Discord success"""
-    def __init__(self, name, description, functions, column, description_is_visible = True):
+
+class Success:
+    """Class implementation of a Discord success."""
+
+    def __init__(
+            self,
+            name: str,
+            description: str,
+            functions: list,
+            column: str,
+            description_is_visible: bool = True) -> None:
+        """Initialize a success."""
         self.name = name
         self.description = description
         self._checker, self._advancer = functions
@@ -41,26 +49,48 @@ class Success():
         else:
             self.locked = "Hidden success"
 
-    async def checker(self, ctx, data, identifier, db):
+    async def checker(
+            self,
+            ctx: commands.Context,
+            data: tuple,
+            identifier: int,
+            database) -> bool:
+        """Check the success."""
         test, data = await self._checker(self, ctx, data)
-        await db.execute(f"UPDATE public.successes SET {self.column}=$1 WHERE id=$2", data, identifier)
+        await database.execute(
+            f"UPDATE public.successes SET {self.column}=$1 WHERE id=$2",
+            data,
+            identifier,
+        )
         return test
 
-    async def advancer(self, ctx, data):
+    async def advancer(self, ctx: commands.Context, data: tuple) -> str:
+        """Check how much I advanced."""
         if self._advancer:
             return await self._advancer(self, ctx, data)
         return " - Locked"
 
-def command_count(n):
-    async def checker(self, ctx, data):
-        return data >= n, data+1
-    async def advancer(self, ctx, data):
-        return f" ({data}/{n})"
+
+def command_count(number: int) -> tuple:
+    """Generate the use n commands successes."""
+    async def checker(
+            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        return data >= number, data + 1
+
+    async def advancer(
+            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        return f" ({data}/{number})"
     return checker, advancer
 
-def hidden_commands():
-    total = lambda bot : len([command for command in bot.commands if command.hidden])
-    async def checker(self, ctx, data):
+
+def hidden_commands() -> tuple:
+    """Generate the "hidden commands" success."""
+
+    def total(bot: commands.Bot) -> int:
+        return len([command for command in bot.commands if command.hidden])
+
+    async def checker(
+            self: Success, ctx: commands.Context, data: tuple) -> tuple:
         if not ctx.command.hidden:
             return False, data
         if data:
@@ -71,87 +101,181 @@ def hidden_commands():
         else:
             data = [ctx.command.name]
         return len(data) == total(ctx.bot), data
-    async def advancer(self, ctx, data):
+
+    async def advancer(
+            self: Success, ctx: commands.Context, data: tuple) -> tuple:
         if data:
             return f" ({len(data)}/{total(ctx.bot)})"
-        else:
-            return f" (0/{total(ctx.bot)})"
+        return f" (0/{total(ctx.bot)})"
     return checker, advancer
 
-def prefix():
-    async def checker(self, ctx, data):
+
+def prefix() -> tuple:
+    """Generate the "hidden prefix" success"""
+    async def checker(
+            self: Success, ctx: commands.Context, data: tuple) -> tuple:
         return ctx.prefix == "¤", None
     return checker, None
 
+
 success_list = [
-Success("First command", "Begin using the bot", command_count(1), "n_use_1"),
-Success("Bot regular", "Launch 100 commands", command_count(100), "n_use_100"),
-Success("Bot master", "Launch 1000 commands", command_count(1000), "n_use_1000"),
-Success("The secrets of the bot", "Find every single hidden command", hidden_commands(), "hidden"),
-Success("The dark side of the chaos", "Find the hidden prefix", prefix(), "dark", description_is_visible = False)
+    Success(
+        "First command",
+        "Begin using the bot",
+        command_count(1),
+        "n_use_1",
+    ),
+    Success(
+        "Bot regular",
+        "Launch 100 commands",
+        command_count(100),
+        "n_use_100",
+    ),
+    Success(
+        "Bot master",
+        "Launch 1000 commands",
+        command_count(1000),
+        "n_use_1000",
+    ),
+    Success(
+        "The secrets of the bot",
+        "Find every single hidden command",
+        hidden_commands(),
+        "hidden",
+    ),
+    Success(
+        "The dark side of the chaos",
+        "Find the hidden prefix",
+        prefix(),
+        "dark",
+        description_is_visible=False,
+    ),
 ]
 
-class Successes(commands.Cog):
-    """Everything to know about successes"""
-    def __init__(self, bot, success_list):
-        self.bot = bot
-        self.success_list = success_list
 
-    @commands.command(ignore_extra = True, aliases = ["succes", "successes"])
-    async def success(self,ctx):
-        """Sends back your successes"""
-        async with self.bot.pool.acquire() as db:
-            state = await db.fetchrow("SELECT * FROM public.successes WHERE id=$1", ctx.author.id)
+class Successes(commands.Cog):
+    """Everything to know about successes."""
+
+    def __init__(self, bot: commands.Bot, successes: list) -> None:
+        """Initialize the successes."""
+        self.bot = bot
+        self.success_list = successes
+
+    @commands.command(ignore_extra=True, aliases=["succes", "successes"])
+    async def success(self, ctx: commands.Context) -> None:
+        """Send back your successes."""
+        async with self.bot.pool.acquire() as database:
+            state = await database.fetchrow(
+                "SELECT * FROM public.successes WHERE id=$1",
+                ctx.author.id,
+            )
             if not state:
-                await db.execute("INSERT INTO public.successes (id) VALUES ($1)", ctx.author.id)
-                state = await db.fetchrow("SELECT * FROM public.successes WHERE id=$1", ctx.author.id)
-            embed = Embed(title = f"Success list ({len([s for s in self.success_list if state[s.state_column]])}/{len(self.success_list)})", colour = self.bot.colors["green"])
-            embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
-            embed.set_thumbnail(url = str(ctx.bot.user.avatar_url))
-            locked = []
+                await database.execute(
+                    "INSERT INTO public.successes (id) VALUES ($1)",
+                    ctx.author.id,
+                )
+                state = await database.fetchrow(
+                    "SELECT * FROM public.successes WHERE id=$1",
+                    ctx.author.id,
+                )
+            completed = len(
+                [s for s in self.success_list if state[s.state_column]]
+            )
+            embed = Embed(
+                title=(
+                    f"Success list ({completed}/{len(self.success_list)})"
+                ),
+                colour=self.bot.colors["green"],
+            )
+            embed.set_author(
+                name=str(ctx.author),
+                icon_url=str(ctx.author.avatar_url),
+            )
+            embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
             for succ in self.success_list:
                 if state[succ.state_column]:
-                    embed.add_field(name = f"{succ.name} - Unlocked", value = succ.description, inline = False)
+                    embed.add_field(
+                        name=f"{succ.name} - Unlocked",
+                        value=succ.description,
+                        inline=False,
+                    )
                 else:
-                    locked.append(succ)
-            for succ in locked:
-                embed.add_field(name = f"{succ.name}{await succ.advancer(ctx, state[succ.column])}", value = succ.locked, inline = False)
-            await ctx.send(embed = embed)
+                    embed.add_field(
+                        name=(
+                            f"{succ.name}"
+                            f"{await succ.advancer(ctx, state[succ.column])}"
+                        ),
+                        value=succ.locked,
+                        inline=False,
+                    )
+            await ctx.send(embed=embed)
 
     @commands.Cog.listener("on_command_completion")
-    async def succ_sender(self, ctx):
-        """Checks and sends the successes"""
+    async def succ_sender(self, ctx: commands.Context) -> None:
+        """Check and send the successes."""
         if ctx.invoked_with in ("logout", "reboot"):
             return
         if not hasattr(self, "_succ_conn"):
             self._succ_conn = await self.bot.pool.acquire()
             self._succ_con_lock = asyncio.Lock()
         async with self._succ_con_lock:
-            result = await self._succ_conn.fetchrow("SELECT * FROM public.successes WHERE id=$1", ctx.author.id)
+            result = await self._succ_conn.fetchrow(
+                "SELECT * FROM public.successes WHERE id=$1",
+                ctx.author.id,
+            )
             if not result:
-                await self._succ_conn.execute("INSERT INTO successes (id) VALUES ($1)", ctx.author.id)
-                result = await self._succ_conn.fetchrow("SELECT * FROM public.successes WHERE id=$1", ctx.author.id)
+                await self._succ_conn.execute(
+                    "INSERT INTO successes (id) VALUES ($1)",
+                    ctx.author.id,
+                )
+                result = await self._succ_conn.fetchrow(
+                    "SELECT * FROM public.successes WHERE id=$1",
+                    ctx.author.id,
+                )
             embeds = []
-            for s in success_list:
-                if not result[s.state_column]:
-                    if await s.checker(ctx, result[s.column], ctx.author.id, self._succ_conn):
-                        embed = Embed(title = "Succes unlocked !", description = s.name, colour = ctx.bot.get_color())
-                        embed.set_author(name = str(ctx.author), icon_url = str(ctx.author.avatar_url))
-                        embed.set_thumbnail(url = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg")
-                        embed.add_field(name = s.description, value = "Requirements met")
+            for success in success_list:
+                if not result[success.state_column]:
+                    if await success.checker(
+                            ctx,
+                            result[success.column],
+                            ctx.author.id,
+                            self._succ_conn):
+                        embed = Embed(
+                            title="Succes unlocked !",
+                            description=success.name,
+                            colour=ctx.bot.get_color(),
+                        )
+                        embed.set_author(
+                            name=str(ctx.author),
+                            icon_url=str(ctx.author.avatar_url),
+                        )
+                        embed.set_thumbnail(
+                            url=ctx.bot.success_image)
+                        embed.add_field(
+                            name=success.description,
+                            value="Requirements met",
+                        )
                         embeds.append(embed)
-                        await self._succ_conn.execute(f"UPDATE public.successes SET {s.state_column}=$1 WHERE id=$2", True, ctx.author.id)
+                        await self._succ_conn.execute(
+                            "UPDATE public.successes SET "
+                            f"{success.state_column}=$1 WHERE id=$2",
+                            True,
+                            ctx.author.id,
+                        )
         i = 0
         for embed in embeds:
-            i+=1
+            i += 1
             await ctx.send(embed=embed)
             if i == 4:
                 await asyncio.sleep(5)
                 i = 0
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
+        """Do some cleanup."""
         if hasattr(self, "_succ_conn"):
             asyncio.create_task(self.bot.pool.release(self._succ_conn))
 
+
 def setup(bot):
-    bot.add_cog(Successes(bot,success_list))
+    """Add successes to the bot."""
+    bot.add_cog(Successes(bot, success_list))

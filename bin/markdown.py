@@ -1,4 +1,4 @@
-"""MIT License
+"""MIT License.
 
 Copyright (c) 2020 Faholan
 
@@ -18,68 +18,74 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
-
-from discord.utils import find
+SOFTWARE.
+"""
 
 from html.parser import HTMLParser
 
+from discord.utils import find
+
+
 class MarkdownParser(HTMLParser):
-    def feed(self, input: str) -> str:
-        """Feeds text to the process"""
+    """Converts html to markdown."""
+
+    def feed(self, data: str) -> str:
+        """Feed text to the process."""
         self.output = ""
         self.a_end = ""
-        super().feed(input)
+        super().feed(data)
         return self.output
 
     def handle_starttag(self, tag: str, attrs: list) -> None:
-        """Converts the opening tag to markdown."""
-        if tag == 'a':
-            href = find(lambda h:h[0] == 'href', attrs)
+        """Convert the opening tag to markdown."""
+        if tag == "a":
+            href = find(lambda h: h[0] == "href", attrs)
             if not href:
                 return
             self.output += "[__"
             self.a_end = f"__]({href[1]}"
-            title = find(lambda h:h[0] == 'title', attrs)
+            title = find(lambda h: h[0] == "title", attrs)
             if title:
                 self.a_end += f' "{title[1]}"'
             self.a_end += ")"
-        elif tag == 'b':
+        elif tag == "b":
             self.output += "**"
-        elif tag == "i" or tag == "em":
+        elif tag in ("i", "em"):
             self.output += "*"
         elif tag == "script":
             self.output += "```\n"
 
     def handle_endtag(self, tag: str) -> None:
-        """Converts the closing tag to markdown"""
+        """Convert the closing tag to markdown."""
         if tag == "a":
             self.output += self.a_end
             self.a_end = ""
-        elif tag == 'b':
+        elif tag == "b":
             self.output += "**"
-        elif tag == "i" or tag == "em":
+        elif tag in ("i", "em"):
             self.output += "*"
         elif tag == "script":
             self.output += "\n```"
 
     def handle_startendtag(self, tag: str, attrs: list) -> None:
-        """Converts an empty tag to markdown"""
+        """Convert an empty tag to markdown."""
         if tag == "img":
-            src = find(lambda h:h[0] == 'src', attrs)
+            src = find(lambda h: h[0] == "src", attrs)
             if not src:
                 return
             self.output += f"[__Image__]({src}"
-            alt = find(lambda h:h[0] == 'alt', attrs)
+            alt = find(lambda h: h[0] == "alt", attrs)
             if alt:
                 self.output += f' "{alt}"'
-            self.output += ')'
+            self.output += ")"
         elif tag == "br":
             self.output += "\n"
 
     def handle_data(self, data: str) -> None:
-        """Just a stupid ass copy-paste"""
+        """Just a stupid ass copy-paste."""
         self.output += data
 
+
 def setup(bot) -> None:
+    """Add the parser to the bot."""
     bot.markdownhtml = MarkdownParser

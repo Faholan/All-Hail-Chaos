@@ -1,4 +1,4 @@
-"""MIT License
+"""MIT License.
 
 Copyright (c) 2020 Faholan
 
@@ -18,36 +18,84 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
+SOFTWARE.
+"""
 
 from inspect import Parameter
-from typing import Optional
+import textwrap
+from typing import Callable, Coroutine, Optional
 
 import discord
 from discord.ext import commands, menus
 import discord.utils
 
+
 class HelpSource(menus.ListPageSource):
-    def __init__(self, signature, filter_commands, prefix, author, ID, perms, cogs):
+    """The Help menu."""
+
+    def __init__(
+            self,
+            signature: Callable,
+            filter_commands: Coroutine,
+            prefix: str,
+            author: discord.User,
+            bot_id: int,
+            cogs: dict) -> None:
+        """Create the menu."""
         self.get_command_signature = signature
         self.filter_commands = filter_commands
         self.prefix = prefix
         self.menu_author = author
-        self.bot_id = ID
-        self.bot_perms = perms
-        super().__init__([(cog, cogs[cog]) for cog in cogs], per_page = 1)
+        self.bot_id = bot_id
+        super().__init__(
+            [(cog, cogs[cog]) for cog in sorted(
+                cogs,
+                key=lambda cog: cog.qualified_name if cog else "ZZ"
+            )],
+            per_page=1,
+        )
 
-    async def format_page(self, menu, cog_tuple):
-        cog, commands = cog_tuple
-        embed = discord.Embed(title=f"Help for {cog.qualified_name if cog else 'unclassified commands'}", description=f'Command syntax : `<Those arguments are required>`. `[Those aren\'t]`\n[Everything to know about my glorious self]({discord.utils.oauth_url(str(self.bot_id), permissions=discord.Permissions(self.bot_perms))} "Invite link")\nThe prefix for this channel is `{self.prefix}`\n{cog.description if cog else ""}', color = 0xffff00)
-        embed.set_author(name = self.menu_author.display_name, icon_url = str(self.menu_author.avatar_url))
-        for command in await self.filter_commands(commands):
-            embed.add_field(name = f"{self.prefix}{self.get_command_signature(command)}", value = command.help, inline = False)
-        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
+    async def format_page(
+            self,
+            menu: menus.Menu,
+            cog_tuple: tuple) -> discord.Embed:
+        """Format the pages."""
+        cog, command_list = cog_tuple
+        embed = discord.Embed(
+            title=(
+                "Help for "
+                f"{cog.qualified_name if cog else 'unclassified commands'}"
+            ),
+            description=textwrap.dedent(
+                f"""
+                Help syntax : `<Required argument>`. `[Optional argument]`
+                Command prefix: `{self.prefix}`
+                {cog.description if cog else ""}
+                """
+            ),
+            color=0xffff00,
+        )
+        embed.set_author(
+            name=self.menu_author.display_name,
+            icon_url=str(self.menu_author.avatar_url),
+        )
+        for command in await self.filter_commands(command_list):
+            embed.add_field(
+                name=f"{self.prefix}{self.get_command_signature(command)}",
+                value=command.help,
+                inline=False,
+            )
+        embed.set_footer(
+            text=f"Page {menu.current_page+1}/{self.get_max_pages()}"
+        )
         return embed
 
+
 class Help(commands.HelpCommand):
+    """The Help cog."""
+
     def get_command_signature(self, command: commands.Command) -> str:
+        """Retrieve the command's signature."""
         basis = f"{command.qualified_name}"
         for arg in command.clean_params.values():
             if arg.kind in (Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL):
@@ -63,56 +111,142 @@ class Help(commands.HelpCommand):
         return basis
 
     async def send_bot_help(self, mapping: dict) -> None:
+        """Send the global help."""
         ctx = self.context
-        pages = menus.MenuPages(source = HelpSource(self.get_command_signature, self.filter_commands, ctx.prefix, ctx.author, ctx.bot.user.id, ctx.bot.invite_permissions, sorted(mapping, key=lambda cog: cog.qualified_name if cog else "ZZ")), clear_reactions_after=True)
+        pages = menus.MenuPages(
+            source=HelpSource(
+                self.get_command_signature,
+                self.filter_commands,
+                ctx.prefix,
+                ctx.author,
+                ctx.bot.user.id,
+                mapping),
+            clear_reactions_after=True,
+        )
         await pages.start(ctx)
 
     async def send_cog_help(self, cog: commands.Cog) -> None:
+        """Send help for a cog."""
         ctx = self.context
-        prefix = discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))
-        embed = discord.Embed(title=cog.qualified_name, description=f"Command syntax : `<Those arguments are required>`. `[Those aren't]`\nThe prefix for this channel is `{prefix}`\n{cog.description}", colour=ctx.bot.colors["blue"])
-        embed.set_author(name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url))
+        prefix = discord.utils.escape_markdown(
+            await ctx.bot.get_m_prefix(ctx.message, False),
+        )
+        embed = discord.Embed(
+            title=cog.qualified_name,
+            description=textwrap.dedent(
+                f"""
+                Help syntax : `<Required argument>`. `[Optional argument]`
+                Command prefix: `{prefix}`
+                {cog.description}
+                """
+            ),
+            color=ctx.bot.colors["blue"],
+        )
+        embed.set_author(
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
+        )
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for command in await self.filter_commands(cog.get_commands()):
-            embed.add_field(name=f"{prefix}{self.get_command_signature(command)}", value=command.help, inline=False)
-        embed.set_footer(text=f"Are you interested in {cog.qualified_name} ?", icon_url=str(ctx.bot.user.avatar_url))
+            embed.add_field(
+                name=f"{prefix}{self.get_command_signature(command)}",
+                value=command.help,
+                inline=False,
+            )
+        embed.set_footer(
+            text=f"Are you interested in {cog.qualified_name}?",
+            icon_url=str(ctx.bot.user.avatar_url),
+        )
         await ctx.send(embed=embed)
 
     async def send_command_help(self, command: commands.Command) -> None:
+        """Send help for a command."""
         ctx = self.context
-        prefix = discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))
-        embed = discord.Embed(title=f"{prefix}{self.get_command_signature(command)}", description=f"Command syntax : `<Those arguments are required>`. `[Those aren't]`\n{command.help}", colour=ctx.bot.colors["blue"])
+        prefix = discord.utils.escape_markdown(
+            await ctx.bot.get_m_prefix(ctx.message, False),
+        )
+        embed = discord.Embed(
+            title=f"{prefix}{self.get_command_signature(command)}",
+            description=(
+                "Help syntax : `<Required arguments`. "
+                f"`[Optional arguments]`\n{command.help}"
+            ),
+            color=ctx.bot.colors["blue"],
+        )
         if command.aliases:
-            embed.add_field(name="Aliases :", value= "\n".join(command.aliases))
-        embed.set_author(name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url))
+            embed.add_field(name="Aliases :", value="\n".join(command.aliases))
+        embed.set_author(
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
+        )
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         if command.hidden:
-            embed.set_footer(text=f"Wow, you found {command.name} !", icon_url=str(ctx.bot.user.avatar_url))
+            embed.set_footer(
+                text=f"Wow, you found {command.name}!",
+                icon_url=str(ctx.bot.user.avatar_url),
+            )
         else:
-            embed.set_footer(text=f"Are you interested in {command.name} ?", icon_url=str(ctx.bot.user.avatar_url))
+            embed.set_footer(
+                text=f"Are you interested in {command.name}?",
+                icon_url=str(ctx.bot.user.avatar_url),
+            )
         await ctx.send(embed=embed)
 
     async def send_group_help(self, group: commands.Group) -> None:
+        """Send help for a group."""
         ctx = self.context
-        prefix = discord.utils.escape_markdown(await ctx.bot.get_m_prefix(ctx.message, False))
-        embed = discord.Embed(title = f"Help for group {prefix}{self.get_command_signature(group)}", description=f"Command syntax : `<Those arguments are required>`. `[Those aren't]`\n{group.help}", colour=ctx.bot.colors["blue"])
+        prefix = discord.utils.escape_markdown(
+            await ctx.bot.get_m_prefix(ctx.message, False),
+        )
+        embed = discord.Embed(
+            title=(
+                f"Help for group {prefix}"
+                f"{self.get_command_signature(group)}"
+            ),
+            description=(
+                "Help syntax : `<Required arguments>`. "
+                f"`[Optional arguments]`\n{group.help}"
+            ),
+            color=ctx.bot.colors["blue"],
+        )
         for command in await self.filter_commands(group.commands, sort=True):
-            embed.add_field(name=f"{prefix}{self.get_command_signature(command)}", value=command.help, inline=False)
-        embed.set_author(name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url))
+            embed.add_field(
+                name=f"{prefix}{self.get_command_signature(command)}",
+                value=command.help,
+                inline=False,
+            )
+        embed.set_author(
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
+        )
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         if group.hidden:
-            embed.set_footer(text=f"Wow, you found {group.name} !", icon_url=str(ctx.bot.user.avatar_url))
+            embed.set_footer(
+                text=f"Wow, you found {group.name}!",
+                icon_url=str(ctx.bot.user.avatar_url),
+            )
         else:
-            embed.set_footer(text=f"Are you interested in {group.name} ?", icon_url=str(ctx.bot.user.avatar_url))
+            embed.set_footer(
+                text=f"Are you interested in {group.name}?",
+                icon_url=str(ctx.bot.user.avatar_url),
+            )
         await ctx.send(embed=embed)
 
     async def send_error_message(self, error: str) -> None:
+        """Send an error message."""
         ctx = self.context
         await ctx.bot.httpcat(ctx, 404, error)
 
+
 def setup(bot: commands.Bot) -> None:
+    """Add the help command."""
     bot.old_help_command = bot.help_command
-    bot.help_command = Help(verify_checks = False, command_attrs = {'hidden':True})
+    bot.help_command = Help(
+        verify_checks=False,
+        command_attrs={'hidden': True},
+    )
+
 
 def teardown(bot: commands.Bot) -> None:
+    """Remove the help command."""
     bot.help_command = bot.old_help_command
