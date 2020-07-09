@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import asyncio
 from contextlib import redirect_stdout
 import io
 import textwrap
@@ -68,6 +69,12 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 "Only my owner can use the command " + ctx.invoked_with,
             )
         raise error
+
+    def cog_unload(self):
+        """Do some cleanup."""
+        if hasattr(self, "_stat_conn"):
+            asyncio.create_task(self.bot.pool.release(self._stat_conn))
+        self.bot.remove_listener(self.stats_listener)
 
     @commands.command(name='eval')
     async def _eval(self, ctx: commands.Context, *, body: str) -> None:
@@ -228,6 +235,49 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         """Send stats about the bot's usage."""
         async with self.bot.pool.acquire() as database:
             rows = await database.fetch("SELECT * FROM public.stats")
+            embed = discord.Embed(
+                title="Usage stats",
+                colour=self.bot.colors["blue"],
+            )
+            embed.set_author(
+                name=ctx.author.display_name,
+                icon_url=str(ctx.author.avatar_url),
+            )
+            records = sorted(
+                rows,
+                key=lambda elem: elem["usage_count"],
+                reverse=True,
+            )[:10]
+            for record in records:
+                embed.add_field(
+                    name=record["command"],
+                    value=record["usage_count"],
+                    inline=False,
+                )
+            await ctx.send(embed=embed)
+
+    @commands.Cog.listener("on_command_completion")
+    async def stats_listener(self, ctx: commands.Context) -> None:
+        """Log usage of the bot."""
+        if not hasattr(self, "_stat_conn"):
+            self._stat_conn = await self.bot.pool.acquire()
+            self._stat_lock = asyncio.Lock()
+        async with self._stat_lock:
+            record = await self._stat_conn.fetchrow(
+                "SELECT * FROM public.stats WHERE command=$1",
+                ctx.command.name,
+            )
+            if record:
+                await self._stat_conn.execute(
+                    "UPDATE public.stats SET usage_count=$1 WHERE command=$2",
+                    record["usage_count"] + 1,
+                    ctx.command.name,
+                )
+            else:
+                await self._stat_conn.execute(
+                    "INSERT INTO public.stats VALUES ($1, 1)",
+                    ctx.command.name,
+                )
 
     @commands.command()
     async def unload(self, ctx: commands.Context, *extensions) -> None:
@@ -263,15 +313,6 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
-
-    @commands.Cog.listener("on_command_completion")
-    async def usage_log(self, ctx: commands.Context) -> None:
-        """Log the usage of commands."""
-        async with self.bot.pool.acquire() as database:
-            await database.execute(
-                "INSERT INTO public.stats VALUES ($1, 1) ON CONFLICT (command)"
-                "DO UPDATE SET usage=usage+1", ctx.command.name,
-            )
 
 
 def setup(bot: commands.Bot) -> None:

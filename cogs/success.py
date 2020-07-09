@@ -274,6 +274,7 @@ class Successes(commands.Cog):
         """Do some cleanup."""
         if hasattr(self, "_succ_conn"):
             asyncio.create_task(self.bot.pool.release(self._succ_conn))
+        self.bot.remove_listener(self.succ_sender)
 
 
 def setup(bot):
