@@ -113,11 +113,14 @@ class Help(commands.HelpCommand):
     async def send_bot_help(self, mapping: dict) -> None:
         """Send the global help."""
         ctx = self.context
+        prefix = discord.utils.escape_markdown(
+            await ctx.bot.get_m_prefix(ctx.message, False),
+        )
         pages = menus.MenuPages(
             source=HelpSource(
                 self.get_command_signature,
                 self.filter_commands,
-                ctx.prefix,
+                prefix,
                 ctx.author,
                 ctx.bot.user.id,
                 mapping),

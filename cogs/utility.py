@@ -488,52 +488,18 @@ class Utility(commands.Cog):
             messages_to_delete.append(message_subj)
         messages_to_delete.append(
             await ctx.send(
-                "And now, for the final touch, how much time will this poll"
-                " last ? Send it in the format <days>d <hours>h <minutes>m "
-                "(only one of these is required)"
+                "Now, tell me how long the poll is going to last (days, "
+                "minutes, seconds)\n\nHow many days will the poll last ?"
             )
         )
 
-        def converter(content: str) -> tuple:
-            content = content.replace(" ", "")
-            if not any(i in content for i in "dhm"):
-                return ()
-
-            days, hours, minutes = 0, 0, 0
-
-            if "m" in content:
-                minutes, content = content.split("m", maxsplit=1)
-                if not minutes.isdigit():
-                    return ()
-                minutes = int(minutes)
-                hours += minutes // 60
-                minutes %= 60
-
-            if "h" in content:
-                hours, content = content.split("h", maxsplit=1)
-                if not hours.isdigit():
-                    return ()
-                hours += int(hours)
-                days += hours//24
-                hours %= 24
-
-            if "d" in content:
-                days, content = content.split("d", maxsplit=1)
-                if not days.isdigit():
-                    return ()
-                days += int(days)
-
-            if content:
-                return ()
-            return (days, hours, minutes)
-
         def check3(message: discord.Message) -> bool:
             return message.author == ctx.author and (
-                message.channel == ctx.channel and converter(message.content)
+                message.channel == ctx.channel and message.content.isdigit()
             )
 
         try:
-            message_time = await self.bot.wait_for(
+            message_days = await self.bot.wait_for(
                 "message",
                 check=check3,
                 timeout=120,
@@ -541,10 +507,48 @@ class Utility(commands.Cog):
         except asyncio.TimeoutError:
             return await ctx.send("You didn't answer in time. I'm so sad !")
 
-        days, hours, minutes = converter(message_time.content)
+        days = int(message_days.content)
+
+        messages_to_delete.append(
+            await ctx.send(
+                "How many hours will the poll last ?"
+            )
+        )
+
+        try:
+            message_hours = await self.bot.wait_for(
+                "message",
+                check=check3,
+                timeout=120,
+            )
+        except asyncio.TimeoutError:
+            return await ctx.send("You didn't answer in time. I'm so sad !")
+
+        hours = int(message_hours.content)
+
+        messages_to_delete.append(
+            await ctx.send(
+                "How many minutes will the poll last ?"
+            )
+        )
+
+        try:
+            message_minutes = await self.bot.wait_for(
+                "message",
+                check=check3,
+                timeout=120,
+            )
+        except asyncio.TimeoutError:
+            return await ctx.send("You didn't answer in time. I'm so sad !")
+
+        minutes = int(message_minutes.content)
+
+        messages_to_delete.append(message_days)
+        messages_to_delete.append(message_hours)
+        messages_to_delete.append(message_minutes)
+
         if days == hours == minutes == 0:
             return await ctx.send("A poll must last at least 1 minute")
-        messages_to_delete.append(message_time)
 
         timestamp = datetime.utcnow() + timedelta(
             days=days,
@@ -750,24 +754,24 @@ class Utility(commands.Cog):
             }
             if "`" in before.content:
                 embed_dict["fields"] += [
-                    {"name": "Original message", "value": before.content}
+                    {"name": "Original message", "value": before.content[:1024]}
                 ]
             else:
                 embed_dict["fields"] += [
                     {
                         "name": "Original message",
-                        "value": f"```\n{before.content}\n```",
+                        "value": f"```\n{before.content[:1016]}\n```",
                     }
                 ]
             if "`" in after.content:
                 embed_dict["fields"] += [
-                    {"name": "Edited message", "value": after.content}
+                    {"name": "Edited message", "value": after.content[:1024]}
                 ]
             else:
                 embed_dict["fields"] += [
                     {
                         "name": "Edited message",
-                        "value": f"```\n{after.content}\n```",
+                        "value": f"```\n{after.content[:1016]}\n```",
                     }
                 ]
             embed_dict["timestamp"] = datetime.utcnow()
@@ -791,14 +795,14 @@ class Utility(commands.Cog):
                 embed_dict["fields"] += [
                     {
                         "name": "Original message",
-                        "value": message.content,
+                        "value": message.content[:1024],
                     }
                 ]
             else:
                 embed_dict["fields"] += [
                     {
                         "name": "Original message",
-                        "value": f"```\n{message.content}\n```",
+                        "value": f"```\n{message.content[:1016]}\n```",
                     }
                 ]
             embed_dict["timestamp"] = datetime.utcnow()
