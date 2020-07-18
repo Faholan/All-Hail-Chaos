@@ -386,8 +386,8 @@ class Utility(commands.Cog):
                 "[KSoft.si](https://ksoft.si) : Whole Images Cog, currency,"
                 " reputation\n"
                 "[DiscordRep](https://discordrep.com/) : Reputation\n"
-                "[Lavalink](https://github.com/Frederikam/Lavalink/"
-                '"I thank chr1sBot for learning about this") : Whole Music Cog'
+                '[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank'
+                'chr1sBot for learning about this") : Whole Music Cog'
                 '\n[discord.py](https://discordapp.com/ "More exactly '
                 'discord.ext.commands") : Basically this whole bot\n'
                 '[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : '

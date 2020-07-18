@@ -70,14 +70,6 @@ class Animals(commands.Cog):
         )
 
     @commands.command()
-    async def cat(self, ctx: commands.Context) -> None:
-        """Send a random cat picture."""
-        url = "https://aws.random.cat/meow"
-        async with self.bot.aio_session.get(url) as response:
-            picture = await response.json()
-            await self.image_sender(ctx, Pic(picture["file"], "Cat"))
-
-    @commands.command()
     async def catfact(self, ctx: commands.Context) -> None:
         """Send a random cat fact."""
         fact = choice(self.all_facts["all"])
