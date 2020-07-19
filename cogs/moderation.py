@@ -1492,6 +1492,12 @@ class Moderation(commands.Cog):
                         if word in message.content.lower().split(' '):
                             try:
                                 await message.delete()
+                                await message.channel.send(
+                                    f"Sorry {message.author.mention}. I "
+                                    "deleted your message because it contained"
+                                    " a forbidden word",
+                                    delete_after=5,
+                                )
                             except discord.Forbidden:
                                 if status["notification"]:
                                     await message.guild.owner.send(
@@ -1508,6 +1514,12 @@ class Moderation(commands.Cog):
                         if word in message.content.lower().split(' '):
                             try:
                                 await message.delete()
+                                await message.channel.send(
+                                    f"Sorry {message.author.mention}. I "
+                                    "deleted your message because it contained"
+                                    " a forbidden word",
+                                    delete_after=5,
+                                )
                             except discord.Forbidden:
                                 if status['notification']:
                                     await message.guild.owner.send(
