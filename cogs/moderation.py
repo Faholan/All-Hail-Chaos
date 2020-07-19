@@ -1487,6 +1487,8 @@ class Moderation(commands.Cog):
                     'SELECT * FROM public.swear WHERE id=$1',
                     message.guild.id,
                 )
+                if not status:
+                    return
                 if status['autoswear']:
                     for word in auto_swear_detection:
                         if word in message.content.lower().split(' '):
