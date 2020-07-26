@@ -74,7 +74,7 @@ class NASA(commands.Cog):
         """Update the APOD in the cache."""
         async with self.bot.aio_session.get(
                 "https://api.nasa.gov/planetary/apod",
-                params={"hd": True, "api_key": self.api_key}) as response:
+                params={"hd": "True", "api_key": self.api_key}) as response:
             self.apod_pic = await response.json()
 
     @commands.command(ignore_extra=True)
