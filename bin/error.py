@@ -181,24 +181,6 @@ async def error_manager(
             401,
             "You don't have the rights to use this command",
         )
-    elif isinstance(error, discord.Forbidden):
-        try:
-            await ctx.bot.httpcat(
-                ctx.author,
-                500,
-                (
-                    "Hey, you must give me permissions to send messages if you"
-                    " want me to answer you"
-                ),
-            )
-        except discord.Forbidden:
-            pass
-        finally:
-            returned = True
-            await ctx.bot.log_channel.send(
-                f"{ctx.author} ({ctx.author.id}) tried to use a command "
-                "without giving me permissions to answer"
-            )
     else:
         await ctx.bot.httpcat(
             ctx,

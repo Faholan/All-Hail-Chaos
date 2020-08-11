@@ -27,7 +27,7 @@ from datetime import datetime
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Game, Guild, Message
+from discord import Embed, Forbidden, Game, Guild, Message
 from discord.ext import commands
 from github import Github
 
@@ -246,7 +246,10 @@ class ChaoticBot(commands.Bot):
             description=description
         )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
-        await ctx.send(embed=embed)
+        try:
+            await ctx.send(embed=embed)
+        except Forbidden:
+            pass
 
     @staticmethod
     def get_id(ctx: commands.Context) -> int:

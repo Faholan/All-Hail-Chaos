@@ -171,6 +171,7 @@ class Business(commands.Cog):
             await ctx.send(await business.deposit(money))
 
     @commands.command(ignore_extra=True)
+    @commands.guild_only()
     @commands.cooldown(1, 86400, commands.BucketType.guild)
     async def gift(self, ctx: commands.Context) -> None:
         """Get the guild's 500 GP of daily gift."""
@@ -196,6 +197,7 @@ class Business(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 600, commands.BucketType.user)
+    @commands.guild_only()
     async def steal(
             self,
             ctx: commands.Context,

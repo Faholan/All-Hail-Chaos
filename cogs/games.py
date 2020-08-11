@@ -1091,7 +1091,7 @@ class Games(commands.Cog):
                         "UPDATE public.business SET money=money+$2 WHERE "
                         "id=$1",
                         player_id,
-                        balance_dict[id],
+                        balance_dict[player_id],
                     )
                 else:
                     row = await database.fetchrow(
@@ -1102,14 +1102,14 @@ class Games(commands.Cog):
                             "UPDATE public.business SET money=money+$2 WHERE "
                             "id=$1",
                             player_id,
-                            balance_dict[id],
+                            balance_dict[player_id],
                         )
                     else:
                         await database.execute(
                             "UPDATE public.business SET money=0, bank=bank+$2"
                             " WHERE id=$1",
                             player_id,
-                            row["money"] + balance_dict[id],
+                            row["money"] + balance_dict[player_id],
                         )
 
     @tasks.loop(seconds=5)
