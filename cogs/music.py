@@ -441,7 +441,7 @@ class Music(commands.Cog):
         await player.set_volume(volume)
         embed = discord.Embed(title = f"{VOLUME_ON_EMOJI} | Set to {player.volume}%", color = self.bot.colors['blue'])
         self.formatter(embed, ctx)
-        await ctx.send(embed = embed)
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Music(bot))

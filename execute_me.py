@@ -37,6 +37,7 @@ else:
 
 
 def clear():
+    """Clear the screen."""
     _ = system("cls" if name == "nt" else "clear")
 
 
