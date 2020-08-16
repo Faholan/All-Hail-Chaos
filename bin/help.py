@@ -39,19 +39,17 @@ class HelpSource(menus.ListPageSource):
             filter_commands: Coroutine,
             prefix: str,
             author: discord.User,
-            bot_id: int,
             cogs: dict) -> None:
         """Create the menu."""
         self.get_command_signature = signature
         self.filter_commands = filter_commands
         self.prefix = prefix
         self.menu_author = author
-        self.bot_id = bot_id
         super().__init__(
             [(cog, cogs[cog]) for cog in sorted(
                 cogs,
                 key=lambda cog: cog.qualified_name if cog else "ZZ"
-            )],
+            ) if cogs[cog]],
             per_page=1,
         )
 
@@ -122,8 +120,8 @@ class Help(commands.HelpCommand):
                 self.filter_commands,
                 prefix,
                 ctx.author,
-                ctx.bot.user.id,
-                mapping),
+                mapping,
+            ),
             clear_reactions_after=True,
         )
         await pages.start(ctx)
@@ -171,7 +169,7 @@ class Help(commands.HelpCommand):
         embed = discord.Embed(
             title=f"{prefix}{self.get_command_signature(command)}",
             description=(
-                "Help syntax : `<Required arguments`. "
+                "Help syntax : `<Required argument>`. "
                 f"`[Optional arguments]`\n{command.help}"
             ),
             color=ctx.bot.colors["blue"],
