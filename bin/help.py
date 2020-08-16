@@ -170,7 +170,7 @@ class Help(commands.HelpCommand):
             title=f"{prefix}{self.get_command_signature(command)}",
             description=(
                 "Help syntax : `<Required argument>`. "
-                f"`[Optional arguments]`\n{command.help}"
+                f"`[Optional argument]`\n{command.help}"
             ),
             color=ctx.bot.colors["blue"],
         )
@@ -205,8 +205,8 @@ class Help(commands.HelpCommand):
                 f"{self.get_command_signature(group)}"
             ),
             description=(
-                "Help syntax : `<Required arguments>`. "
-                f"`[Optional arguments]`\n{group.help}"
+                "Help syntax : `<Required argument>`. "
+                f"`[Optional argument]`\n{group.help}"
             ),
             color=ctx.bot.colors["blue"],
         )
