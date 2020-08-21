@@ -174,7 +174,8 @@ class Utility(commands.Cog):
                                 file_lines += 1
                     final_path = filepath + path.sep + name
                     list_of_files.append(final_path.split(
-                        '.' + path.sep)[-1] + f" : {file_lines} lines")
+                        '.' + path.sep
+                    )[-1] + f" : {file_lines} lines")
         embed = discord.Embed(colour=self.bot.colors['yellow'])
         embed.add_field(
             name=f"{self.bot.user.name}'s structure",
@@ -184,7 +185,7 @@ class Utility(commands.Cog):
             text=(
                 f"I am made of {total} lines of Python, spread across "
                 f"{file_amount} files !"
-            )
+            ),
         )
         await ctx.send(embed=embed)
 
@@ -241,7 +242,7 @@ class Utility(commands.Cog):
     @commands.has_permissions(manage_webhooks=True)
     @commands.bot_has_permissions(manage_webhooks=True)
     async def github(self, ctx: commands.Context) -> None:
-        """Create or deletes a webhook to get updates about the bot."""
+        """Create or delete a webhook to get updates about the bot."""
         if not hasattr(self.bot, "github") or not self.bot.github_repo:
             return await ctx.send(
                 "This command hasn't been configured by the developer yet"
