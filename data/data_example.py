@@ -51,6 +51,14 @@ def setup(bot):
             "user": "user",
             "password": "password",
         }
+        bot.lavalink_credentials = {
+            "host": "127.0.0.1",
+            "port": 2233,
+            "password": "youshallnotpass",
+            "region": "eu",
+            "resume_key": "default_node",
+        }
+
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
         bot.http.user_agent = "chaotic_bot"
         bot.default_prefix = "€"
