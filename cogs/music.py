@@ -1,26 +1,3 @@
-"""MIT License.
-
-Copyright (c) 2020 Faholan
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 from asyncio import sleep
 import math
 import re
@@ -129,7 +106,7 @@ class Music(commands.Cog):
             await self.connect_to(guild_id, None)
             # Disconnect from the channel -- there's nothing else to play.
 
-    async def connect_to(self, guild_id: int, channel_id: typing.Union[str, NoneType]) -> None:
+    async def connect_to(self, guild_id: int, channel_id: typing.Optional[str]) -> None:
         """Connect to the given voicechannel ID. A channel_id of `None` means disconnect."""
         websocket = self.bot._connection._get_websocket(guild_id)
         await websocket.voice_state(str(guild_id), channel_id)
@@ -341,7 +318,7 @@ class Music(commands.Cog):
             track = results["tracks"][0]
             embed.title = f"{PLAY_EMOJI} | Track Enqueued"
             other = f"{(REPEAT_EMOJI if player.repeat else 'Repeat OFF')} | {(SHUFFLE_EMOJI if player.shuffle else 'Shuffle OFF')}"
-            embed.description = f"[{track['info']['title']}]({track['info']['uri']})\n{other}""
+            embed.description = f"[{track['info']['title']}]({track['info']['uri']})\n{other}"
             embed.set_image(
                 url=f"https://img.youtube.com/vi/{track['info']['identifier']}/hqdefault.jpg",
             )
