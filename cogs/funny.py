@@ -28,6 +28,7 @@ from random import randint, choice
 
 import discord
 from discord.ext import commands
+from discord import Embed, Color
 from discord.ext.commands import Context
 
 # All the data files necessary for the commands
@@ -585,7 +586,9 @@ class Funny(commands.Cog):
     @commands.command()
     async def joke(self, ctx: Context) -> None:
         """Send a random joke."""
-        async with self.session.get("https://mrwinson.me/api/jokes/random") as resp:
+        async with self.session.get(
+            "https://mrwinson.me/api/jokes/random"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 joke = data["joke"]
@@ -600,7 +603,9 @@ class Funny(commands.Cog):
     @commands.command()
     async def koala(self, ctx: Context) -> None:
         """Get a random picture of a koala."""
-        async with self.session.get("https://some-random-api.ml/img/koala") as resp:
+        async with self.session.get(
+            "https://some-random-api.ml/img/koala"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = Embed(
@@ -615,7 +620,9 @@ class Funny(commands.Cog):
     @commands.command()
     async def panda(self, ctx: Context) -> None:
         """Get a random picture of a panda."""
-        async with self.session.get("https://some-random-api.ml/img/panda",) as resp:
+        async with self.session.get(
+            "https://some-random-api.ml/img/panda"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = Embed(
@@ -631,7 +638,9 @@ class Funny(commands.Cog):
     async def catfact(self, ctx: Context) -> None:
         """Send a random cat fact."""
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://cat-fact.herokuapp.com/facts") as response:
+            async with session.get(
+                "https://cat-fact.herokuapp.com/facts"
+            ) as response:
                 self.all_facts = await response.json()
 
         fact = choice(self.all_facts["all"])
@@ -658,7 +667,8 @@ class Funny(commands.Cog):
     async def yesno(self, ctx: Context, *, question: str) -> None:
         """Let the bot answer a yes/no question for you."""
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://yesno.wtf/api", headers=self.user_agent) as meme:
+            async with session.get(
+                                "https://yesno.wtf/api") as meme:
                 if meme.status == 200:
                     mj = await meme.json()
                     ans = await self.get_answer(mj["answer"])
