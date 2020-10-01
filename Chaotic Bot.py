@@ -27,7 +27,7 @@ from datetime import datetime
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Forbidden, Game, Guild, Message
+from discord import Embed, Forbidden, Game, Guild, Intents, Message
 from discord.ext import commands
 from github import Github
 
@@ -266,7 +266,20 @@ async def command_prefix(bot_instance: ChaoticBot, message: Message) -> str:
 bot = ChaoticBot(
     command_prefix=command_prefix,
     description="A bot for fun",
-    fetch_offline_members=True
+    intents=Intents(
+        guilds=True,
+        members=False,
+        bans=False,
+        emojis=False,
+        integrations=False,
+        webhooks=False,
+        invites=False,
+        voice_states=False,
+        presences=False,
+        messages=True,
+        reactions=True,
+        typing=False,
+    )
 )
 
 if __name__ == "__main__":

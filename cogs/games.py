@@ -342,11 +342,13 @@ class Deck:
                     timeout=30,
                 )
                 answer = message.content.lower().startswith("y")
-            except discord.DiscordException:
+            except asyncio.TimeoutError:
                 answer = False
+                message = None
             try:
                 await message1.delete()
-                await message.delete()
+                if message:
+                    await message.delete()
             except discord.DiscordException:
                 pass
             if answer:
@@ -1097,7 +1099,7 @@ class Games(commands.Cog):
                     row = await database.fetchrow(
                         "SELECT * FROM public.business WHERE id=$1", player_id
                     )
-                    if row["money"] >= -balance_dict[id]:
+                    if row["money"] >= -balance_dict[player_id]:
                         await database.execute(
                             "UPDATE public.business SET money=money+$2 WHERE "
                             "id=$1",

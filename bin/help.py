@@ -49,7 +49,9 @@ class HelpSource(menus.ListPageSource):
             [(cog, cogs[cog]) for cog in sorted(
                 cogs,
                 key=lambda cog: cog.qualified_name if cog else "ZZ"
-            ) if cogs[cog]],
+            ) if cogs[cog] and [
+                command for command in cogs[cog] if not command.hidden
+            ]],
             per_page=1,
         )
 
