@@ -139,3 +139,4 @@ data/database.db*
 
 #codespaces
 pythonenv3.8/
+.vscode/
