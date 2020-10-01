@@ -22,11 +22,13 @@ SOFTWARE.
 """
 
 import asyncio
+import aiohttp
 from os import path
 from random import randint, choice
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import Context
 
 # All the data files necessary for the commands
 file = open(f"data{path.sep}deaths.txt", "r", encoding="utf-8")
@@ -309,6 +311,7 @@ class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize the fun."""
         self.bot = bot
+        self.session = aiohttp.ClientSession()
 
     @commands.command()
     async def chuck(self, ctx: commands.Context) -> None:
@@ -578,6 +581,96 @@ class Funny(commands.Cog):
         if not nice_print[0].isdigit():
             nice_print = nice_print[1:]
         return f"{author} rolled **{total}**. ({nice_print})"
+
+    @commands.command()
+    async def joke(self, ctx: Context) -> None:
+        """Send a random joke."""
+        async with self.session.get("https://mrwinson.me/api/jokes/random") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                joke = data["joke"]
+                embed = Embed(
+                    description=joke,
+                    color=Color.gold()
+                )
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+
+    @commands.command()
+    async def koala(self, ctx: Context) -> None:
+        """Get a random picture of a koala."""
+        async with self.session.get("https://some-random-api.ml/img/koala") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                embed = Embed(
+                    title="Random Koala!",
+                    color=Color.gold()
+                )
+                embed.set_image(url=data["link"])
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+
+    @commands.command()
+    async def panda(self, ctx: Context) -> None:
+        """Get a random picture of a panda."""
+        async with self.session.get("https://some-random-api.ml/img/panda",) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                embed = Embed(
+                    title="Random Panda!",
+                    color=Color.gold(),
+                )
+                embed.set_image(url=data["link"])
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+
+    @commands.command()
+    async def catfact(self, ctx: Context) -> None:
+        """Send a random cat fact."""
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://cat-fact.herokuapp.com/facts") as response:
+                self.all_facts = await response.json()
+
+        fact = choice(self.all_facts["all"])
+        await ctx.send(embed=Embed(
+            title="Did you Know?",
+            description=fact["text"],
+            color=0x690E8
+        ))
+
+    @commands.command()
+    async def inspireme(self, ctx: Context) -> None:
+        """Fetch a random "inspirational message" from the bot."""
+        try:
+            async with self.session.get("http://inspirobot.me/api?generate=true") as page:
+                picture = await page.text(encoding="utf-8")
+                embed = Embed()
+                embed.set_image(url=picture)
+                await ctx.send(embed=embed)
+
+        except Exception:
+            await ctx.send("Oops, there was a problem!")
+
+    @commands.command(aliases=["shouldi", "ask"])
+    async def yesno(self, ctx: Context, *, question: str) -> None:
+        """Let the bot answer a yes/no question for you."""
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://yesno.wtf/api", headers=self.user_agent) as meme:
+                if meme.status == 200:
+                    mj = await meme.json()
+                    ans = await self.get_answer(mj["answer"])
+                    em = Embed(
+                        title=ans,
+                        description=f"And the answer to {question} is this:",
+                        colour=0x690E8
+                    )
+                    em.set_image(url=mj["image"])
+                    await ctx.send(embed=em)
+                else:
+                    await ctx.send(f"OMFG! [STATUS : {meme.status}]")
 
 
 def setup(bot: commands.Bot) -> None:

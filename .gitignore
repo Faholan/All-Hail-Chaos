@@ -136,3 +136,6 @@ bin/story.py
 bin/story_beta.py
 
 data/database.db*
+
+#codespaces
+pythonenv3.8/
