@@ -27,6 +27,8 @@ from random import choice
 import discord
 from discord.ext import commands, tasks
 
+import aiohttp
+
 
 class Pic():
     """Picture placeholder."""
@@ -74,6 +76,22 @@ class Animals(commands.Cog):
         """Send a random cat fact."""
         fact = choice(self.all_facts["all"])
         await ctx.send(fact["text"])
+
+    @commands.command()
+    async def yaycatfact(self, ctx) -> None:
+        """Send a random cat fact."""
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://cat-fact.herokuapp.com/facts"
+            ) as response:
+                self.all_facts = await response.json()
+
+        fact = choice(self.all_facts["all"])
+        await ctx.send(embed=discord.Embed(
+            title="Did you Know?",
+            description=fact["text"],
+            color=0x690E8
+        ))
 
     @commands.command(ignore_extra=True)
     async def dog(self, ctx: commands.Context) -> None:

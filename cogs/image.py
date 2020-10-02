@@ -26,6 +26,8 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+import aiohttp
+
 
 def check_channel(channel: discord.abc.Messageable) -> bool:
     """Check for NSFW rights."""
@@ -305,6 +307,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     def __init__(self, bot: commands.Bot) -> None:
         """Bind the bot to the cog."""
         self.bot = bot
+        self.session = aiohttp.ClientSession()
 
     @commands.command(ignore_extra=True)
     async def dab(self, ctx: commands.Context) -> None:
@@ -342,6 +345,23 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def kappa(self, ctx: commands.Context) -> None:
         """Get a random kappa image."""
         await self.image_sender(ctx, await self.rand_im("kappa"))
+
+    @commands.command()
+    async def koala(self, ctx) -> None:
+        """Get a random picture of a koala."""
+        async with self.session.get(
+            "https://some-random-api.ml/img/koala"
+        ) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                embed = discord.Embed(
+                    title="Random Koala!",
+                    color=discord.Color.gold()
+                )
+                embed.set_image(url=data["link"])
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
 
     @commands.command(ignore_extra=True)
     async def kiss(self, ctx: commands.Context) -> None:
@@ -406,6 +426,23 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def pat(self, ctx: commands.Context) -> None:
         """Get a random pat image."""
         await self.image_sender(ctx, await self.rand_im("pat"))
+
+    @commands.command()
+    async def panda(self, ctx) -> None:
+        """Get a random picture of a panda."""
+        async with self.session.get(
+            "https://some-random-api.ml/img/panda"
+        ) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                embed = discord.Embed(
+                    title="Random Panda!",
+                    color=discord.Color.gold(),
+                )
+                embed.set_image(url=data["link"])
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
 
     @commands.command(ignore_extra=True)
     async def pepe(self, ctx: commands.Context) -> None:
