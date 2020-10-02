@@ -470,18 +470,7 @@ class Funny(commands.Cog):
                         f"{fight[0].display_name}. What a show !"
                     )
 
-    @commands.command()
-    async def inspireme(self, ctx: commands.Context) -> None:
-        """Fetch a random "inspirational message" from the bot."""
-        async with self.bot.aio_session.get(
-                "http://inspirobot.me/api?generate=true"
-        ) as page:
-            picture = await page.text(encoding="utf-8")
-            embed = discord.Embed(colour=discord.Color.blue())
-            embed.set_image(url=picture)
-            await ctx.send(embed=embed)
-
-    @commands.command()
+    # @commands.command()
     async def joke(self, ctx: commands.Context) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
@@ -606,27 +595,6 @@ class Funny(commands.Cog):
         if not nice_print[0].isdigit():
             nice_print = nice_print[1:]
         return f"{author} rolled **{total}**. ({nice_print})"
-
-    @commands.command(aliases=["shouldi", "ask"])
-    async def yesno(self, ctx: commands.Context, *, question: str) -> None:
-        """Let the bot answer a yes/no question for you."""
-        async with self.bot.aio_session.get(
-                "https://yesno.wtf/api"
-        ) as response:
-            if response.status == 200:
-                data = await response.json()
-                embed = discord.Embed(
-                    title=f"And the answer to {question} is this:",
-                    description=data["answer"],
-                    colour=0x690E8
-                )
-                embed.set_image(url=data["image"])
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send("Something went wrong.")
-                await self.bot.log_channel.send(
-                    f"Code {response.status} in yesno."
-                )
 
 
 def setup(bot: commands.Bot) -> None:

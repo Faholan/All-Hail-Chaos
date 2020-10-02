@@ -428,7 +428,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     @commands.command()
     async def panda(self, ctx) -> None:
         """Get a random picture of a panda."""
-        async with self.session.get(
+        async with self.bot.aio_session.get(
                 "https://some-random-api.ml/img/panda"
         ) as resp:
             if resp.status == 200:
