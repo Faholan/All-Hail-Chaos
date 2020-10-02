@@ -584,6 +584,19 @@ class Funny(commands.Cog):
         return f"{author} rolled **{total}**. ({nice_print})"
 
     @commands.command()
+    async def inspireme(self, ctx: Context) -> None:
+        """Fetch a random "inspirational message" from the bot."""
+        try:
+            async with self.session.get("http://inspirobot.me/api?generate=true") as page:
+                picture = await page.text(encoding="utf-8")
+                embed = Embed()
+                embed.set_image(url=picture)
+                await ctx.send(embed=embed)
+
+        except Exception:
+            await ctx.send("Oops, there was a problem!")
+
+    @commands.command()
     async def joke(self, ctx: Context) -> None:
         """Send a random joke."""
         async with self.session.get(
@@ -600,78 +613,16 @@ class Funny(commands.Cog):
             else:
                 await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
 
-    @commands.command()
-    async def koala(self, ctx: Context) -> None:
-        """Get a random picture of a koala."""
-        async with self.session.get(
-            "https://some-random-api.ml/img/koala"
-        ) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                embed = Embed(
-                    title="Random Koala!",
-                    color=Color.gold()
-                )
-                embed.set_image(url=data["link"])
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
-
-    @commands.command()
-    async def panda(self, ctx: Context) -> None:
-        """Get a random picture of a panda."""
-        async with self.session.get(
-            "https://some-random-api.ml/img/panda"
-        ) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                embed = Embed(
-                    title="Random Panda!",
-                    color=Color.gold(),
-                )
-                embed.set_image(url=data["link"])
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
-
-    @commands.command()
-    async def catfact(self, ctx: Context) -> None:
-        """Send a random cat fact."""
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://cat-fact.herokuapp.com/facts"
-            ) as response:
-                self.all_facts = await response.json()
-
-        fact = choice(self.all_facts["all"])
-        await ctx.send(embed=Embed(
-            title="Did you Know?",
-            description=fact["text"],
-            color=0x690E8
-        ))
-
-    @commands.command()
-    async def inspireme(self, ctx: Context) -> None:
-        """Fetch a random "inspirational message" from the bot."""
-        try:
-            async with self.session.get("http://inspirobot.me/api?generate=true") as page:
-                picture = await page.text(encoding="utf-8")
-                embed = Embed()
-                embed.set_image(url=picture)
-                await ctx.send(embed=embed)
-
-        except Exception:
-            await ctx.send("Oops, there was a problem!")
-
     @commands.command(aliases=["shouldi", "ask"])
     async def yesno(self, ctx: Context, *, question: str) -> None:
         """Let the bot answer a yes/no question for you."""
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                                "https://yesno.wtf/api") as meme:
+                                "https://yesno.wtf/api"
+            ) as meme:
                 if meme.status == 200:
                     mj = await meme.json()
-                    ans = await self.get_answer(mj["answer"])
+                    ans = mj["answer"]
                     em = Embed(
                         title=ans,
                         description=f"And the answer to {question} is this:",
