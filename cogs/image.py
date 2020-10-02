@@ -26,8 +26,6 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-import aiohttp
-
 
 def check_channel(channel: discord.abc.Messageable) -> bool:
     """Check for NSFW rights."""
@@ -307,7 +305,6 @@ class Images(commands.Cog):  # Thanks KSoft.si
     def __init__(self, bot: commands.Bot) -> None:
         """Bind the bot to the cog."""
         self.bot = bot
-        self.session = aiohttp.ClientSession()
 
     @commands.command(ignore_extra=True)
     async def dab(self, ctx: commands.Context) -> None:
@@ -349,19 +346,20 @@ class Images(commands.Cog):  # Thanks KSoft.si
     @commands.command()
     async def koala(self, ctx) -> None:
         """Get a random picture of a koala."""
-        async with self.session.get(
-            "https://some-random-api.ml/img/koala"
+        async with self.bot.aio_session.get(
+                "https://some-random-api.ml/img/koala"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    title="Random Koala!",
+                    title="Random Koala",
                     color=discord.Color.gold()
                 )
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
-                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+                await ctx.send("Something went wrong.")
+                await self.bot.log_channel.send(f"Code {resp.status} in koala")
 
     @commands.command(ignore_extra=True)
     async def kiss(self, ctx: commands.Context) -> None:
@@ -431,7 +429,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def panda(self, ctx) -> None:
         """Get a random picture of a panda."""
         async with self.session.get(
-            "https://some-random-api.ml/img/panda"
+                "https://some-random-api.ml/img/panda"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
@@ -443,6 +441,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 await ctx.send(embed=embed)
             else:
                 await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+                await self.bot.log_channel.send(f"Code {resp.status} in panda")
 
     @commands.command(ignore_extra=True)
     async def pepe(self, ctx: commands.Context) -> None:
