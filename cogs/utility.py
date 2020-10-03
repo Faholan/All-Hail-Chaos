@@ -756,7 +756,10 @@ class Utility(commands.Cog):
             }
             if "`" in before.content:
                 embed_dict["fields"] += [
-                    {"name": "Original message", "value": before.content[:1024]}
+                    {
+                        "name": "Original message",
+                        "value": before.content[:1024]
+                    }
                 ]
             else:
                 embed_dict["fields"] += [
