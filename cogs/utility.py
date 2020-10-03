@@ -351,9 +351,10 @@ class Utility(commands.Cog):
             value=len(self.bot.guilds),
             inline=False,
         )
+        members = sum(guild.member_count for guild in self.bot.guilds)
         embed.add_field(
             name="I know pretty much everybody.",
-            value=f"In fact I only know {len(self.bot.users)} users",
+            value=f"In fact I only know {members} users",
             inline=False,
         )
         embed.add_field(
@@ -864,7 +865,7 @@ class Utility(commands.Cog):
             f"https://discordbotlist.com/api/bots/{self.bot.user.id}/stats",
             json={
                 "guilds": len(self.bot.guilds),
-                "users": len([*self.bot.get_all_members()]),
+                "users": sum(guild.member_count for guild in self.bot.guilds),
             },
             headers={"Authorization": f"Bot {self.bot.discord_bot_list}"},
         )
