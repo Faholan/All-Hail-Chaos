@@ -507,11 +507,12 @@ class Moderation(commands.Cog):
         """
         banning = []
         roles = []
+        me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         for banned in who:
             if isinstance(banned, discord.Role):
                 if banned.is_default():
                     await ctx.send("You cannot ban the default role.")
-                elif ctx.me.roles[-1] <= banned:
+                elif me.roles[-1] <= banned:
                     await ctx.send(
                         f"I cannot ban the role {banned.name} : it is higher "
                         "than my highest role"
@@ -526,7 +527,7 @@ class Moderation(commands.Cog):
                                     403,
                                     "I cannot ban the guild owner",
                                 )
-                            elif member != ctx.me:
+                            elif member != me:
                                 if member not in banning:
                                     banning.append(member)
                             else:
@@ -543,9 +544,9 @@ class Moderation(commands.Cog):
                         "higher than your highest role"
                     )
             else:
-                if banned == ctx.me:
+                if banned == me:
                     await self.bot.httpcat(ctx, 403, "I cannot ban myself")
-                elif ctx.me.roles[-1] <= banned.roles[-1]:
+                elif me.roles[-1] <= banned.roles[-1]:
                     await self.bot.httpcat(
                         ctx,
                         403,
@@ -641,6 +642,7 @@ class Moderation(commands.Cog):
         """
         kicking = []
         roles = []
+        me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         for kicked in who:
             if isinstance(kicked, discord.Role):
                 if kicked.is_default():
@@ -649,7 +651,7 @@ class Moderation(commands.Cog):
                         403,
                         "You cannot kick the default role."
                     )
-                elif ctx.me.roles[-1] <= kicked:
+                elif me.roles[-1] <= kicked:
                     await self.bot.httpcat(
                         ctx,
                         403,
@@ -666,7 +668,7 @@ class Moderation(commands.Cog):
                                     403,
                                     "I cannot kick the guild owner",
                                 )
-                            elif member != ctx.me:
+                            elif member != me:
                                 if member not in kicking:
                                     kicking.append(member)
                             else:
@@ -683,13 +685,13 @@ class Moderation(commands.Cog):
                         "higher than your highest role",
                     )
             else:
-                if kicked == ctx.me:
+                if kicked == me:
                     await self.bot.httpcat(
                         ctx,
                         403,
                         "I cannot kick myself"
                     )
-                elif ctx.me.roles[-1] <= kicked.roles[-1]:
+                elif me.roles[-1] <= kicked.roles[-1]:
                     await self.bot.httpcat(
                         ctx,
                         403,

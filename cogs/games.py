@@ -90,7 +90,7 @@ class Connect4(menus.Menu):
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
                 text=f"{self.bot.user.name} Logging",
-                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+                icon_url=self.ctx.bot.user.avatar_url_as(static_format="png"),
             )
             embed.timestamp = datetime.utcnow()
             try:
@@ -463,7 +463,7 @@ class Blackjack(menus.Menu):
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
                 text=f"{self.bot.user.name} Logging",
-                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+                icon_url=self.ctx.bot.user.avatar_url_as(static_format="png"),
             )
             embed.timestamp = datetime.utcnow()
             try:
@@ -692,7 +692,7 @@ class Blackjackplayers(menus.Menu):
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
                 text=f"{self.bot.user.name} Logging",
-                icon_url=self.ctx.me.avatar_url_as(static_format="png"),
+                icon_url=self.ctx.bot.user.avatar_url_as(static_format="png"),
             )
             embed.timestamp = datetime.utcnow()
             try:

@@ -77,7 +77,7 @@ class Music(commands.Cog):
         )
         embed.set_footer(
             text=f"{self.bot.user.name} music player",
-            icon_url=ctx.me.avatar_url_as(static_format="png"),
+            icon_url=ctx.bot.user.avatar_url_as(static_format="png"),
         )
 
     @tasks.loop(seconds=5.0)
@@ -140,7 +140,9 @@ class Music(commands.Cog):
                 await ctx.send("Not connected.")
                 return
 
-            permissions = ctx.author.voice.channel.permissions_for(ctx.me)
+            permissions = ctx.author.voice.channel.permissions_for(
+                ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
+            )
 
             if not permissions.connect or not permissions.speak:
                 await ctx.send(

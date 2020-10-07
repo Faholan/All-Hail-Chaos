@@ -259,6 +259,8 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     @commands.Cog.listener("on_command_completion")
     async def stats_listener(self, ctx: commands.Context) -> None:
         """Log usage of the bot."""
+        if await ctx.bot.is_owner(ctx.author):  # Do not log owner usage.
+            return
         if not hasattr(self, "_stat_conn"):
             self._stat_conn = await self.bot.pool.acquire()
             self._stat_lock = asyncio.Lock()

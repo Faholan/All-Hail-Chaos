@@ -220,7 +220,7 @@ async def error_manager(
     embed.description += f"```\n{formatted_traceback}```"
     embed.set_footer(
         text=f"{ctx.bot.user.name} Logging",
-        icon_url=ctx.me.avatar_url_as(static_format="png"),
+        icon_url=ctx.bot.user.avatar_url_as(static_format="png"),
     )
     embed.timestamp = datetime.datetime.utcnow()
     try:

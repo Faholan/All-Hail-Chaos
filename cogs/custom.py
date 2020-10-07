@@ -238,7 +238,7 @@ class Custom(commands.Cog):
         except discord.NotFound:
             embed.set_author(
                 name="Unclaimed command",
-                icon_url=str(ctx.me.avatar_url),
+                icon_url=str(ctx.bot.user.avatar_url),
             )
 
         embed.timestamp = command["created_at"].astimezone(utc)

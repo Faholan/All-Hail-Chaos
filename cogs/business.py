@@ -192,7 +192,7 @@ class Business(commands.Cog):
                 database,
             )
             embed = business.money_out()
-            embed.set_thumbnail(url=str(ctx.me.avatar_url))
+            embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
             await ctx.send(embed=embed)
 
     @commands.command()
