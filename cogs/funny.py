@@ -371,7 +371,7 @@ class Funny(commands.Cog):
             self, ctx: commands.Context, cible: discord.Member) -> None:
         """To punch someone to death.
 
-        We won't be hold accountable for any broken cranes, ripped guts
+        We won't be held accountable for any broken cranes, ripped guts
         or any other painful death.
         If you got any idea, use €suggestion fight [idea]
         """

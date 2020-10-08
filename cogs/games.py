@@ -1028,6 +1028,7 @@ class Battleship:
                     player_boats,
                 )
 
+
 class Games(commands.Cog):
     """Good games."""
 
