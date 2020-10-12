@@ -26,8 +26,10 @@ import codecs
 from datetime import datetime, timedelta
 import os
 from os import path
+import inspect
 import pathlib
 from sys import version
+from textwrap import dedent
 from typing import Callable
 
 import discord
@@ -37,7 +39,7 @@ import humanize
 import psutil
 
 
-class EmbedSource(menus.ListPageSource):
+class SnipeSource(menus.ListPageSource):
     """Source for the snipe."""
 
     def __init__(self, embeds_dict: list) -> None:
@@ -64,6 +66,21 @@ class EmbedSource(menus.ListPageSource):
                 inline=False,
             )
         embed.timestamp = embed_dict["timestamp"]
+        return embed
+
+
+class SauceSource(menus.ListPageSource):
+    """Source for the sauce command."""
+
+    async def format_page(self, menu: menus.Menu, entry: str):
+        """Format the page of code."""
+        max_pages = self.get_max_pages()
+        embed = discord.Embed(
+            description=entry,
+            colour=discord.Colour.purple()
+        )
+        if max_pages > 1:
+            embed.set_footer(text=f"Page {menu.current_page + 1}/{max_pages}")
         return embed
 
 
@@ -735,6 +752,40 @@ class Utility(commands.Cog):
         )
         await ctx.send(f"The prefix for this channel is `{old_prefix}`")
 
+    @commands.command(aliases=["sauce"])
+    async def source(self, ctx: commands.Context, *, command_name: str) -> None:
+        """Get the source code of a command."""
+        command = self.bot.get_command(command_name)
+        if not command:
+            await ctx.send(f"No command named `{command_name}` found.")
+            return
+        try:
+            source_lines, _ = inspect.getsourcelines(command.callback)
+        except (TypeError, OSError):
+            await ctx.send(
+                "I was unable to retrieve the source for "
+                f"`{command_name}` for some reason."
+            )
+            return
+
+        # Get rid of extra \n
+        source_lines = dedent("".join(source_lines)).split("\n")
+        paginator = commands.Paginator(
+            prefix="```py",
+            suffix="```",
+            max_size=2048,
+        )
+        for line in source_lines:
+            paginator.add_line(line)
+        pages = menus.MenuPages(
+            source=SauceSource(
+                paginator.pages,
+                per_page=1,
+            ),
+            clear_reactions_after=True,
+        )
+        await pages.start(ctx)
+
     @commands.command(ignore_extra=True)
     @commands.guild_only()
     async def snipe(self, ctx: commands.Context) -> None:
@@ -742,7 +793,7 @@ class Utility(commands.Cog):
         embed_dicts = self.snipe_list.get(ctx.channel.id)
         if embed_dicts:
             pages = menus.MenuPages(
-                source=EmbedSource(embed_dicts),
+                source=SnipeSource(embed_dicts),
                 clear_reactions_after=True,
             )
             await pages.start(ctx)
