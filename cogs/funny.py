@@ -297,10 +297,9 @@ class Fighter():  # Class for the fight command
 
         if randint(1, 100) + pbonus > int(prob):
             return rate, "", name, url2
-        else:
-            damage = randint(int(min_damage), int(max_damage))
-            self.pv -= damage
-            return touche, str(damage), name, url
+        damage = randint(int(min_damage), int(max_damage))
+        self.pv -= damage
+        return touche, str(damage), name, url
 
 
 class Funny(commands.Cog):

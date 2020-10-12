@@ -33,6 +33,7 @@ from typing import Callable
 import discord
 from discord.ext import commands, menus, tasks
 from discord.utils import escape_mentions, get, sleep_until
+import humanize
 import psutil
 
 
@@ -106,9 +107,6 @@ class Utility(commands.Cog):
         if self.bot.discord_bot_list:
             self.discord_bot_list.start()
 
-        self.process = psutil.Process()
-        self.process.cpu_percent()
-        psutil.cpu_percent()
         self.poll_tasks = []
         asyncio.create_task(self.poll_initial())
 
@@ -400,14 +398,25 @@ class Utility(commands.Cog):
         embed.add_field(
             name="Time since last update :",
             value=secondes(delta.seconds + 86400 * delta.days),
+            inline=False,
         )
-        embed.add_field(
-            name="CPU usage - bot (total)",
-            value=(
-                f"{self.process.cpu_percent():.2f} % "
-                f"({psutil.cpu_percent():.2f} %)"
-            ),
-        )
+        process = psutil.Process()
+        with process.oneshot():
+            mem = process.memory_full_info()
+            name = process.name()
+            pid = process.pid
+            threads = process.num_threads()
+            embed.add_field(
+                name="Memory usage :",
+                value=(
+                    f"Using {humanize.naturalsize(mem.rss)} physical memory "
+                    f"and {humanize.naturalsize(mem.vms)} virtual memory, "
+                    f"{humanize.naturalsize(mem.uss)} of which unique to "
+                    "this process.\nRunning on PID "
+                    f"{pid} (`{name}`) with {threads} thread(s)."
+                ),
+                inline=False,
+            )
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)

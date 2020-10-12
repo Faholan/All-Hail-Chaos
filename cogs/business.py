@@ -106,22 +106,20 @@ class Businessguy():
         """Deposit some money."""
         if self.money < money:
             return f"Sorry, but you only have {self.money} GP"
-        else:
-            deposit_max = self.bank_max - self.bank
-            if money <= deposit_max:
-                self.money -= money
-                self.bank += money
-                await self.save()
-                return f"{money} GP deposited"
-            else:
-                self.money -= deposit_max
-                self.bank += deposit_max
-                await self.save()
-                return (
-                    f"{deposit_max} GP deposited. {deposit_max - money} "
-                    "GP couldn't be deposited (capacity of {self.bank_max} GP"
-                    " reached)"
-                )
+        deposit_max = self.bank_max - self.bank
+        if money <= deposit_max:
+            self.money -= money
+            self.bank += money
+            await self.save()
+            return f"{money} GP deposited"
+        self.money -= deposit_max
+        self.bank += deposit_max
+        await self.save()
+        return (
+            f"{deposit_max} GP deposited. {deposit_max - money} "
+            "GP couldn't be deposited (capacity of {self.bank_max} GP"
+            " reached)"
+        )
 
     async def steal(self, other) -> int:
         """Gimme your money."""
