@@ -87,10 +87,7 @@ class Music(commands.Cog):
             if player and player.is_playing:
                 guild = self.bot.get_guild(int(player.guild_id))
                 vocal = guild.get_channel(int(player.channel_id))
-                members = [
-                    member for member in vocal.members if not member.bot
-                ]
-                if not members:
+                if len(vocal.voice_states) <= 1:
                     player.queue.clear()
                     await player.stop()
                     await self.connect_to(guild.id, None)
