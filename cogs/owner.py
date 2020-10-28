@@ -144,12 +144,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             embed = discord.Embed(
                 title="Message from my owner",
                 description=message,
-                url=discord.utils.oauth_url(
-                    str(self.bot.user.id),
-                    permissions=discord.Permissions(
-                        self.bot.invite_permissions
-                    ),
-                ),
+                url=self.bot.support,
             )
             embed.set_author(
                 name=f"{ctx.author.name}#{ctx.author.discriminator}",
