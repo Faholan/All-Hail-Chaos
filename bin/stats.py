@@ -12,10 +12,6 @@ async def statistics(ctx: commands.Context) -> None:
             "AND EXTRACT(EPOCH FROM (NOW() - timestamp)) < 15*60",
             ctx.command.name,
         )
-        global_row = await database.fetchrow(
-            "SELECT * FROM stats.usage WHERE command=NULL "
-            "AND EXTRACT(EPOCH FROM (NOW() - timestamp)) < 15*60",
-        )
         if row:
             await database.execute(
                 "UPDATE stats.usage SET count=count+1 WHERE timestamp=$1"
@@ -29,18 +25,6 @@ async def statistics(ctx: commands.Context) -> None:
                 "to_timestamp((CAST(EXTRACT(EPOCH FROM NOW()) AS INTEGER)"
                 " / 900) * 900))",
                 ctx.command.name,
-            )
-        if global_row:
-            await database.execute(
-                "UPDATE stats.usage SET count=count+1 WHERE timestamp=$1"
-                "AND command=NULL",
-                global_row["timestamp"],
-            )
-        else:
-            await database.execute(
-                "INSERT INTO stats.usage VALUES (NULL, 1, "
-                "to_timestamp((CAST(EXTRACT(EPOCH FROM NOW()) AS INTEGER)"
-                " / 900) * 900))",
             )
 
 
