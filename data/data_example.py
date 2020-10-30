@@ -28,7 +28,7 @@ import ksoftapi
 
 
 def setup(bot):
-    '''Add all the data to the bot.'''
+    """Add all the data to the bot."""
     bot.extensions_list = [
         "cogs.animals",
         "cogs.battleship",
@@ -45,6 +45,7 @@ def setup(bot):
         "bin.error",
         "bin.help",
         "bin.markdown",
+        "bin.stats",
     ]
     if bot.first_on_ready:
         bot.postgre_connection = {
