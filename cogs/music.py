@@ -32,7 +32,9 @@ def rq_check(ctx: commands.Context) -> bool:
     player = ctx.bot.lavalink.player_manager.get(ctx.guild.id)
     if player:
         if player.is_playing:
-            return ctx.author.id == player.current.requester
+            return ctx.author.id == player.current.requester or (
+                ctx.author.guild_permissions.mute_members
+            )
     return False
 
 
