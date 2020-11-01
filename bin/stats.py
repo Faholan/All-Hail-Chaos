@@ -49,6 +49,25 @@ async def guild_loop(bot: commands.Bot):
         )
 
 
+@tasks.loop(minutes=14)
+async def usage_loop(bot: commands.Bot):
+    """Log a default value."""
+    async with bot.pool.acquire() as database:
+        for command in bot.commands:
+            row = await database.fetchrow(
+                "SELECT * FROM stats.usage WHERE command=$1 "
+                "AND EXTRACT(EPOCH FROM (NOW() - timestamp)) < 15*60",
+                command.name,
+            )
+            if not row:
+                await database.execute(
+                    "INSERT INTO stats.usage VALUES ($1, 0, "
+                    "to_timestamp((CAST(EXTRACT(EPOCH FROM NOW()) AS INTEGER)"
+                    " / 900) * 900))",
+                    command.name,
+                )
+
+
 def setup(bot: commands.Bot) -> None:
     """Add stats listeners."""
     bot.add_listener(statistics, "on_command_completion")
@@ -56,6 +75,7 @@ def setup(bot: commands.Bot) -> None:
     bot.add_listener(bot.guilds_logger, "on_guild_join")
     bot.add_listener(bot.guilds_logger, "on_guild_remove")
     guild_loop.start(bot)
+    usage_loop.start(bot)
 
 
 def teardown(bot: commands.Bot) -> None:
@@ -64,3 +84,4 @@ def teardown(bot: commands.Bot) -> None:
     bot.remove_listener(bot.guilds_logger, "on_guild_join")
     bot.remove_listener(bot.guilds_logger, "on_guild_remove")
     guild_loop.stop()
+    usage_loop.stop()
