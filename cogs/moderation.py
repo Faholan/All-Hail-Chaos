@@ -508,6 +508,9 @@ class Moderation(commands.Cog):
         banning = []
         roles = []
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id
+        )
         for banned in who:
             if isinstance(banned, discord.Role):
                 if banned.is_default():
@@ -521,7 +524,7 @@ class Moderation(commands.Cog):
                     if banned not in roles:
                         roles.append(banned)
                         for member in banned.members:
-                            if member == ctx.guild.owner:
+                            if member == owner:
                                 await self.bot.httpcat(
                                     ctx,
                                     403,
@@ -553,7 +556,7 @@ class Moderation(commands.Cog):
                         f"I cannot ban {banned.name} : he has a higher "
                         "role than me"
                     )
-                elif banned == ctx.guild.owner:
+                elif banned == owner:
                     await self.bot.httpcat(
                         ctx,
                         403,
@@ -643,6 +646,9 @@ class Moderation(commands.Cog):
         kicking = []
         roles = []
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id
+        )
         for kicked in who:
             if isinstance(kicked, discord.Role):
                 if kicked.is_default():
@@ -662,7 +668,7 @@ class Moderation(commands.Cog):
                     if kicked not in roles:
                         roles.append(kicked)
                         for member in kicked.members:
-                            if member == ctx.guild.owner:
+                            if member == owner:
                                 await self.bot.httpcat(
                                     ctx,
                                     403,
@@ -698,7 +704,7 @@ class Moderation(commands.Cog):
                         f"I cannot kick {kicked.name} : he has a higher "
                         "role than me",
                     )
-                elif kicked == ctx.guild.owner:
+                elif kicked == owner:
                     await self.bot.httpcat(
                         ctx,
                         403,
@@ -1235,6 +1241,9 @@ class Moderation(commands.Cog):
         Nothing means to check the status
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !
         """
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id
+        )
         async with self.bot.pool.acquire() as database:
             if word:
                 word = word.lower()
@@ -1282,11 +1291,12 @@ class Moderation(commands.Cog):
                         )
                         await ctx.send('Autodetection turned on')
                 elif word == "notification":
-                    if not ctx.guild.owner == ctx.author:
-                        return await ctx.send(
+                    if ctx.author != owner:
+                        await ctx.send(
                             'As he is the one alerted, only the guild owner '
                             'can change this setting'
                         )
+                        return
                     result = await database.fetchrow(
                         'SELECT * FROM public.swear WHERE id=$1',
                         ctx.guild.id,
@@ -1491,6 +1501,9 @@ class Moderation(commands.Cog):
                 )
                 if not status:
                     return
+                owner = message.guild.owner or await message.guild.fetch_member(
+                    message.guild.owner_id
+                )
                 if status['autoswear']:
                     for word in auto_swear_detection:
                         if word in message.content.lower().split(' '):
@@ -1504,7 +1517,7 @@ class Moderation(commands.Cog):
                                 )
                             except discord.Forbidden:
                                 if status["notification"]:
-                                    await message.guild.owner.send(
+                                    await owner.send(
                                         f"{message.author} used a swear word :"
                                         f" `{word}`, but I lack the permission"
                                         "s to delete the message. Please give "
@@ -1526,7 +1539,7 @@ class Moderation(commands.Cog):
                                 )
                             except discord.Forbidden:
                                 if status['notification']:
-                                    await message.guild.owner.send(
+                                    await owner.send(
                                         f"{message.author} used a swear word :"
                                         f" `{word}`, but I lack the permission"
                                         "s to delete the message. Please give "

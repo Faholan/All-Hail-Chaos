@@ -738,7 +738,9 @@ class Blackjackplayers(menus.Menu):
     @menus.button("\U00002705")
     async def adder(self, payload: discord.RawReactionActionEvent) -> None:
         """Add a player."""
-        member = self.ctx.guild.get_member(payload.user_id)
+        member = self.ctx.guild.get_member(
+            payload.user_id
+        ) or await self.ctx.guild.fetch_member(payload.user_id)
         async with self.lock:
             row = await self.database.fetchrow(
                 "SELECT * FROM public.business WHERE id=$1", payload.user_id
