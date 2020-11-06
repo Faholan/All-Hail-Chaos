@@ -50,7 +50,7 @@ class Music(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.paginator_queue = dict()
+        self.paginator_queue = {}
         self.get_bar = get_bar
 
         if not hasattr(bot, "lavalink"):

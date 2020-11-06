@@ -29,15 +29,12 @@ import discord
 from discord.ext import commands
 
 # All the data files necessary for the commands
-file = open(f"data{path.sep}deaths.txt", "r", encoding="utf-8")
-death = file.readlines()
-file.close()
-file = open(f"data{path.sep}Excuses.txt", "r", encoding="utf-8")
-excuses = file.readlines()
-file.close()
-file = open(f"data{path.sep}weapons.txt", "r", encoding="utf-8")
-weapons = file.readlines()
-file.close()
+with open(f"data{path.sep}deaths.txt", "r", encoding="utf-8") as file:
+    death = file.readlines()
+with open(f"data{path.sep}Excuses.txt", "r", encoding="utf-8") as file:
+    excuses = file.readlines()
+with open(f"data{path.sep}weapons.txt", "r", encoding="utf-8") as file:
+    weapons = file.readlines()
 
 
 # Special effects for the fight command

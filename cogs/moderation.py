@@ -1179,9 +1179,9 @@ class Moderation(commands.Cog):
                 def check(message: discord.Message) -> bool:
                     return message.author == ctx.author and (
                         message.channel == ctx.channel and all(
-                            [k.isdigit() for k in message.content.replace(
+                            k.isdigit() for k in message.content.replace(
                                 ' ', ''
-                            ).split(',')]
+                            ).split(',')
                         )
                     )
                 try:
@@ -1199,7 +1199,7 @@ class Moderation(commands.Cog):
                     ' ', ''
                 ).split(',')]
 
-                if not all([0 < k <= len(roles) for k in role_numbers]):
+                if not all(0 < k <= len(roles) for k in role_numbers):
                     await ctx.send(
                         'You entered wrong values for the indexes. '
                         'Please re-run the command with correct values.'
