@@ -111,7 +111,7 @@ def hidden_commands() -> tuple:
 
 
 def prefix() -> tuple:
-    """Generate the "hidden prefix" success"""
+    """Generate the "hidden prefix" success."""
     async def checker(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
         return ctx.prefix == "¤", None
