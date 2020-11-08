@@ -123,7 +123,8 @@ class Animals(commands.Cog):
         if not image.image_url:
             await self.bot.httpcat(ctx, 404)
         embed.set_image(url=image.image_url)
-        embed.set_footer(text=(
+        embed.set_footer(
+            text=(
                 f"👍 {image.upvotes} | 👎 {image.downvotes}"
                 f" | 💬 {image.comments}"
             ),
