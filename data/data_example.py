@@ -24,6 +24,8 @@ SOFTWARE.
 """
 
 from random import choice
+
+from discord import Intents
 import ksoftapi
 
 
@@ -61,6 +63,21 @@ def setup(bot):
         }
 
         bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
+        bot.intents = Intents(
+            guilds=True,
+            members=False,
+            bans=False,
+            emojis=False,
+            integrations=False,
+            webhooks=False,
+            invites=False,
+            voice_states=True,
+            presences=False,
+            messages=True,
+            reactions=True,
+            typing=False,
+        )
+
         bot.http.user_agent = "chaotic_bot"
         bot.default_prefix = "€"
 

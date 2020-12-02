@@ -27,7 +27,7 @@ from datetime import datetime
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Forbidden, Game, Guild, Intents, Message
+from discord import Embed, Forbidden, Game, Guild, Message
 from discord.ext import commands
 from github import Github
 
@@ -35,11 +35,11 @@ from github import Github
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self) -> None:
         """Initialize the bot."""
-        super().__init__(**kwargs)
 
         self.token = None
+        self.intents = None
 
         self.first_on_ready = True
         self.last_update = datetime.utcnow()
@@ -74,6 +74,11 @@ class ChaoticBot(commands.Bot):
         if self.github_token:
             self.github = Github(self.github_token)
         self.prefix_dict = {}
+
+        super().__init__(
+            command_prefix=self.get_m_prefix,
+            intents=self.intents,
+        )
 
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""
@@ -258,29 +263,10 @@ class ChaoticBot(commands.Bot):
             return ctx.guild.id
         return ctx.channel.id
 
+    def launch(self) -> None:
+        """Launch the bot."""
+        self.run(self.token)
 
-async def command_prefix(bot_instance: ChaoticBot, message: Message) -> str:
-    """Define the prefix of the commands."""
-    return await bot_instance.get_m_prefix(message)
-
-bot = ChaoticBot(
-    command_prefix=command_prefix,
-    description="A bot for fun",
-    intents=Intents(
-        guilds=True,
-        members=False,
-        bans=False,
-        emojis=False,
-        integrations=False,
-        webhooks=False,
-        invites=False,
-        voice_states=True,
-        presences=False,
-        messages=True,
-        reactions=True,
-        typing=False,
-    )
-)
 
 if __name__ == "__main__":
-    bot.run(bot.token)
+    ChaoticBot().launch()
