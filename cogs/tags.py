@@ -428,6 +428,7 @@ class Tags(commands.Cog):
         await ctx.send("Okay, what will the tag's name be ?")
 
         def check(message: discord.Message) -> bool:
+            """Check the author."""
             return message.author == ctx.author and (
                 message.channel == ctx.channel
             )
@@ -698,6 +699,7 @@ class Tags(commands.Cog):
                 )
 
                 def check(message: discord.Message) -> bool:
+                    """Check the author."""
                     return message.channel == ctx.channel and (
                         message.author == ctx.author
                     )

@@ -87,6 +87,7 @@ class SauceSource(menus.ListPageSource):
 def check_administrator() -> Callable:
     """Check for admin rights."""
     def predictate(ctx: commands.Context) -> bool:
+        """Process the check."""
         if isinstance(ctx.channel, discord.TextChannel):
             return ctx.channel.permissions_for(ctx.author).administrator
         return True
@@ -462,6 +463,7 @@ class Utility(commands.Cog):
         ]
 
         def check(message: discord.Message) -> bool:
+            """Check the message, first version."""
             return message.author == ctx.author and (
                 message.channel == ctx.channel
             )
@@ -482,6 +484,7 @@ class Utility(commands.Cog):
         )
 
         def check2(message: discord.Message) -> bool:
+            """Check the message, second version."""
             return message.author == ctx.author and (
                 message.channel == ctx.channel and message.content.isdigit()
             )
@@ -522,6 +525,7 @@ class Utility(commands.Cog):
         )
 
         def check3(message: discord.Message) -> bool:
+            """Check the message, third version."""
             return message.author == ctx.author and (
                 message.channel == ctx.channel and message.content.isdigit()
             )
@@ -661,6 +665,7 @@ class Utility(commands.Cog):
             subject: str):
         """Generate a poll coroutine."""
         async def predictate():
+            """End the poll."""
             await sleep_until(timestamp)
             async with self.bot.pool.acquire(timeout=5) as database:
                 await database.execute(

@@ -25,7 +25,6 @@ SOFTWARE.
 
 from random import choice
 
-from discord import Intents
 import ksoftapi
 
 

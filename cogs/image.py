@@ -275,6 +275,8 @@ class PicError:
 
 
 class Redditwrapper:
+    """Wrap a reddit post in a class structure."""
+
     def __init__(self, json: dict):
         if json.get("error"):
             self.error = json["error"]

@@ -59,6 +59,7 @@ class Custom(commands.Cog):
     async def create(self, ctx: commands.Context) -> None:
         """Interactively create a custom command."""
         def check(message: discord.Message) -> bool:
+            """Check author and channel."""
             if message.author == ctx.author:
                 return message.channel == ctx.channel
             return False
@@ -246,7 +247,7 @@ class Custom(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def custom_invoke(self, message: discord.Message) -> None:
-        """That heck invokes the custom commands."""
+        """Invoke the custom command."""
         prefix = await self.bot.get_prefix(message)
 
         if not message.content.startswith(prefix) or not message.guild:

@@ -580,6 +580,7 @@ class Moderation(commands.Cog):
             )
 
         def check(message: discord.Message) -> bool:
+            """Check the answer."""
             return message.author == ctx.author and (
                 message.content.lower().startswith('y') or (
                     message.content.lower().startswith('n')
@@ -728,6 +729,7 @@ class Moderation(commands.Cog):
             )
 
         def check(message: discord.Message) -> bool:
+            """Check the answer."""
             return message.author == ctx.author and (
                 message.content.lower().startswith('y') or (
                     message.content.lower().startswith('n')
@@ -927,6 +929,7 @@ class Moderation(commands.Cog):
                 )
 
                 def check(message: discord.Message) -> bool:
+                    """Check th answer."""
                     return message.channel == ctx.channel and (
                         message.role_mentions and message.author == ctx.author
                     )
@@ -950,6 +953,7 @@ class Moderation(commands.Cog):
             )
 
             def check2(payload: discord.RawReactionActionEvent) -> bool:
+                """Check the reaction."""
                 return payload.guild_id == ctx.guild.id and (
                     payload.member == ctx.author
                 )
@@ -1005,6 +1009,7 @@ class Moderation(commands.Cog):
                 )
 
                 def check3(message: discord.Message) -> bool:
+                    """Check the answer."""
                     return message.author == ctx.author and (
                         message.channel == ctx.channel and (
                             message.content.lower().startswith('add') or (
@@ -1177,6 +1182,7 @@ class Moderation(commands.Cog):
                 )
 
                 def check(message: discord.Message) -> bool:
+                    """Check for digits."""
                     return message.author == ctx.author and (
                         message.channel == ctx.channel and all(
                             k.isdigit() for k in message.content.replace(

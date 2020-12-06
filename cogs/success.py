@@ -75,10 +75,12 @@ def command_count(number: int) -> tuple:
     """Generate the use n commands successes."""
     async def checker(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        """Check for the success."""
         return data >= number, data + 1
 
     async def advancer(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        """Advance the success."""
         return f" ({data}/{number})"
     return checker, advancer
 
@@ -87,10 +89,12 @@ def hidden_commands() -> tuple:
     """Generate the "hidden commands" success."""
 
     def total(bot: commands.Bot) -> int:
+        """Compute the number of hidden commands."""
         return len([command for command in bot.commands if command.hidden])
 
     async def checker(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        """Check for the success."""
         if not ctx.command.hidden:
             return False, data
         if data:
@@ -104,6 +108,7 @@ def hidden_commands() -> tuple:
 
     async def advancer(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        """Advance the success."""
         if data:
             return f" ({len(data)}/{total(ctx.bot)})"
         return f" (0/{total(ctx.bot)})"
@@ -114,6 +119,7 @@ def prefix() -> tuple:
     """Generate the "hidden prefix" success."""
     async def checker(
             self: Success, ctx: commands.Context, data: tuple) -> tuple:
+        """Check for the success."""
         return ctx.prefix == "¤", None
     return checker, None
 
