@@ -27,7 +27,7 @@ from datetime import datetime
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Forbidden, Game, Guild, Message
+from discord import Embed, Forbidden, Game, Guild, Intents, Message
 from discord.ext import commands
 from github import Github
 
@@ -35,11 +35,26 @@ from github import Github
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
+    used_intents = Intents(
+        guilds=True,
+        members=False,
+        bans=False,
+        emojis=False,
+        integrations=False,
+        webhooks=False,
+        invites=False,
+        voice_states=True,
+        presences=False,
+        messages=True,
+        reactions=True,
+        typing=False,
+    )
+
     def __init__(self) -> None:
         """Initialize the bot."""
 
         self.token = None
-        self.intents = None
+        self.used_intents = None
 
         self.first_on_ready = True
         self.last_update = datetime.utcnow()
@@ -62,8 +77,6 @@ class ChaoticBot(commands.Bot):
 
         self.extensions_list = []
 
-        self.load_extension("data.data")
-
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
                 self,
@@ -77,8 +90,10 @@ class ChaoticBot(commands.Bot):
 
         super().__init__(
             command_prefix=self.get_m_prefix,
-            intents=self.intents,
+            intents=self.used_intents,
         )
+
+        self.load_extension("data.data")
 
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""
@@ -224,7 +239,7 @@ class ChaoticBot(commands.Bot):
         await ctx.send(embed=embed)
 
     async def get_m_prefix(
-            self,
+            self, _,
             message: Message,
             not_print: bool = True) -> str:
         """Get the prefix from a message."""

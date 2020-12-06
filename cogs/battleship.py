@@ -172,6 +172,7 @@ class Battleship(commands.Cog):
         return coups, not_possible
 
     @commands.command()
+    @commands.max_concurrency(1, commands.BucketType.guild)
     async def game(self, ctx):
         """Play Battleship against myself"""
         def check(m):
