@@ -114,7 +114,7 @@ class Help(commands.HelpCommand):
         """Send the global help."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(ctx.message, False),
+            await ctx.bot.get_m_prefix(None, ctx.message, False),
         )
         pages = menus.MenuPages(
             source=HelpSource(
@@ -132,7 +132,7 @@ class Help(commands.HelpCommand):
         """Send help for a cog."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(ctx.message, False),
+            await ctx.bot.get_m_prefix(None, ctx.message, False),
         )
         embed = discord.Embed(
             title=cog.qualified_name,
@@ -166,7 +166,7 @@ class Help(commands.HelpCommand):
         """Send help for a command."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(ctx.message, False),
+            await ctx.bot.get_m_prefix(None, ctx.message, False),
         )
         embed = discord.Embed(
             title=f"{prefix}{self.get_command_signature(command)}",
@@ -199,7 +199,7 @@ class Help(commands.HelpCommand):
         """Send help for a group."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(ctx.message, False),
+            await ctx.bot.get_m_prefix(None, ctx.message, False),
         )
         embed = discord.Embed(
             title=(
