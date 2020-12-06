@@ -229,7 +229,7 @@ class Custom(commands.Cog):
         )
         try:
             owner = ctx.guild.get_member(command["owner_id"]) or (
-                await ctx.guikd.fetch_member(command["owner_id"])
+                await ctx.guild.fetch_member(command["owner_id"])
             )
             embed.set_author(
                 name=owner.display_name,
