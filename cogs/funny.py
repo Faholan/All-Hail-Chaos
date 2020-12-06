@@ -363,6 +363,7 @@ class Funny(commands.Cog):
 
     @commands.command(aliases=["baston"])
     @commands.guild_only()
+    @commands.max_concurrency(1, commands.BucketType.guild)
     async def fight(
             self, ctx: commands.Context, cible: discord.Member) -> None:
         """To punch someone to death.
