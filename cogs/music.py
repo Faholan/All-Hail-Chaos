@@ -286,7 +286,7 @@ class Music(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def play(self, ctx: commands.Context, *, query: str) -> None:
         """Search and play a song from a given query."""
-        await sleep(1)
+        await sleep(0.5)
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         query = query.strip("<>")

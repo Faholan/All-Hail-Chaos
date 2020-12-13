@@ -54,7 +54,6 @@ class ChaoticBot(commands.Bot):
         """Initialize the bot."""
 
         self.token = None
-        self.used_intents = None
 
         self.first_on_ready = True
         self.last_update = datetime.utcnow()
@@ -77,6 +76,15 @@ class ChaoticBot(commands.Bot):
 
         self.extensions_list = []
 
+        self.prefix_dict = {}
+
+        super().__init__(
+            command_prefix=self.get_m_prefix,
+            intents=self.used_intents,
+        )
+
+        self.load_extension("data.data")
+
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
                 self,
@@ -86,14 +94,6 @@ class ChaoticBot(commands.Bot):
 
         if self.github_token:
             self.github = Github(self.github_token)
-        self.prefix_dict = {}
-
-        super().__init__(
-            command_prefix=self.get_m_prefix,
-            intents=self.used_intents,
-        )
-
-        self.load_extension("data.data")
 
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""

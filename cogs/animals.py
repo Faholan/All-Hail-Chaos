@@ -72,7 +72,7 @@ class Animals(commands.Cog):
     @commands.command()
     async def catfact(self, ctx: commands.Context) -> None:
         """Send a random cat fact."""
-        fact = choice(self.all_facts["all"])
+        fact = choice(self.all_facts)
         await ctx.send(fact["text"])
 
     @commands.command(ignore_extra=True)
