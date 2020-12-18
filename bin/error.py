@@ -24,7 +24,7 @@ SOFTWARE.
 import datetime
 import sys
 import traceback
-from typing import Coroutine
+from typing import Callable
 
 import discord
 from discord.ext import commands
@@ -65,6 +65,26 @@ async def error_manager(
     elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
         returned = True
         await ctx.bot.httpcat(ctx, 400, str(error))
+    elif isinstance(error, commands.MaxConcurrencyReached):
+        returned = True
+        pers = {
+            commands.BucketType.default: "bot",
+            commands.BucketType.user: "user",
+            commands.BucketType.guild: "guild",
+            commands.BucketType.channel: "channel",
+            commands.BucketType.member: "member",
+            commands.BucketType.category: "category",
+            commands.BucketType.role: "role"
+        }
+        await ctx.bot.httpcat(
+            ctx,
+            429,
+            (
+                f"This command can only be used {error.number} "
+                f"time{'s' if error.number > 1 else ''} per {pers[error.per]} "
+                "concurrently."
+            )
+        )
     elif isinstance(error, commands.MissingRequiredArgument):
         returned = True
         await ctx.bot.httpcat(
@@ -231,12 +251,14 @@ async def error_manager(
     raise error
 
 
-def generator(bot: commands.Bot) -> Coroutine:
+def generator(bot: commands.Bot) -> Callable:
     """Generate an on_error for the bot."""
     async def predictate(event: str, *args, **kwargs) -> None:
         if event == "on_command_error" or not bot.log_channel:
             raise
         error_type, value, raw_traceback = sys.exc_info()
+        if not error_type:
+            return
         embed = discord.Embed(color=0xFF0000)
         embed.title = f"Error in {event} with args {args} {kwargs}"
         embed.description = f"{error_type.__name__} : {value}"

@@ -23,7 +23,7 @@ SOFTWARE.
 
 from inspect import Parameter
 import textwrap
-from typing import Callable, Coroutine, Optional
+from typing import Callable, Coroutine
 
 import discord
 from discord.ext import commands, menus
@@ -100,7 +100,11 @@ class Help(commands.HelpCommand):
         for arg in command.clean_params.values():
             if arg.kind in (Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL):
                 basis += f" [{arg.name}]"
-            elif arg.annotation == Optional:
+            elif (
+                hasattr(arg.annotation.type, "__args__")
+                and len(arg.annotation.__args__) == 2
+                and isinstance(arg.annotation.__args__[-1], type(None))
+            ):
                 basis += f" [{arg.name} = None]"
             elif isinstance(arg.annotation, commands.converter._Greedy):
                 basis += f" [{arg.name} = (...)]"
