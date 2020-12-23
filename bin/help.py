@@ -101,7 +101,7 @@ class Help(commands.HelpCommand):
             if arg.kind in (Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL):
                 basis += f" [{arg.name}]"
             elif (
-                hasattr(arg.annotation.type, "__args__")
+                hasattr(getattr(arg.annotation, "type", None), "__args__")
                 and len(arg.annotation.__args__) == 2
                 and isinstance(arg.annotation.__args__[-1], type(None))
             ):
