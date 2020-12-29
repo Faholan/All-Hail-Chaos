@@ -824,31 +824,26 @@ class Utility(commands.Cog):
                 },
                 "fields": [],
             }
-            if "`" in before.content:
-                embed_dict["fields"] += [
-                    {
-                        "name": "Original message",
-                        "value": before.content[:1024]
-                    }
-                ]
-            else:
-                embed_dict["fields"] += [
-                    {
-                        "name": "Original message",
-                        "value": f"```\n{before.content[:1016]}\n```",
-                    }
-                ]
-            if "`" in after.content:
-                embed_dict["fields"] += [
-                    {"name": "Edited message", "value": after.content[:1024]}
-                ]
-            else:
-                embed_dict["fields"] += [
-                    {
-                        "name": "Edited message",
-                        "value": f"```\n{after.content[:1016]}\n```",
-                    }
-                ]
+            original = before.content.replace(
+                "```", f"`{ZWS}`{ZWS}`"
+            )[:1016]
+            embed_dict["fields"] += [
+                {
+                    "name": "Original message",
+                    "value": f"```\n{original}\n```",
+                }
+            ]
+
+            new = after.content.replace(
+                "```", f"`{ZWS}`{ZWS}`"
+            )[:1016]
+            embed_dict["fields"] += [
+                {
+                    "name": "Edited message",
+                    "value": f"```\n{new}\n```",
+                }
+            ]
+
             embed_dict["timestamp"] = datetime.utcnow()
             embed_dicts = [embed_dict] + embed_dicts
             self.snipe_list[before.channel.id] = embed_dicts[:20]
@@ -866,20 +861,15 @@ class Utility(commands.Cog):
                 },
                 "fields": [],
             }
-            if "`" in message.content:
-                embed_dict["fields"] += [
-                    {
-                        "name": "Original message",
-                        "value": message.content[:1024],
-                    }
-                ]
-            else:
-                embed_dict["fields"] += [
-                    {
-                        "name": "Original message",
-                        "value": f"```\n{message.content[:1016]}\n```",
-                    }
-                ]
+            content = message.content.replace(
+                "```", f"`{ZWS}`{ZWS}`"
+            )[:1016]
+            embed_dict["fields"] += [
+                {
+                    "name": "Original message",
+                    "value": f"```\n{content}\n```",
+                }
+            ]
             embed_dict["timestamp"] = datetime.utcnow()
             embed_dicts = [embed_dict] + embed_dicts
             self.snipe_list[message.channel.id] = embed_dicts[:20]
