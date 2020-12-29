@@ -39,6 +39,9 @@ import humanize
 import psutil
 
 
+ZWS = "\u200b"
+
+
 class SnipeSource(menus.ListPageSource):
     """Source for the snipe."""
 
@@ -774,7 +777,9 @@ class Utility(commands.Cog):
             return
 
         # Get rid of extra \n
-        source_lines = dedent("".join(source_lines)).split("\n")
+        source_lines = dedent(
+            "".join(source_lines).replace("```", f"`{ZWS}`{ZWS}`")
+        ).split("\n")
         paginator = commands.Paginator(
             prefix="```py",
             suffix="```",
