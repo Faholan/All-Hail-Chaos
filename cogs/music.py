@@ -62,6 +62,7 @@ class Music(commands.Cog):
             )
 
         bot.lavalink.add_event_hook(self.track_hook)
+        self.empty_channels: typing.List[int] = []
         self.empty_vc_check.start()
 
     async def cog_check(self, ctx: commands.Context) -> bool:
@@ -82,17 +83,22 @@ class Music(commands.Cog):
             icon_url=ctx.bot.user.avatar_url_as(static_format="png"),
         )
 
-    @tasks.loop(seconds=5.0)
+    @tasks.loop(minutes=1)
     async def empty_vc_check(self) -> None:
         """Stop playing if nobody is listening."""
+        new_channels = []
         for player in list(self.bot.lavalink.player_manager.players.values()):
             if player and player.is_playing:
                 guild = self.bot.get_guild(int(player.guild_id))
                 vocal = guild.get_channel(int(player.channel_id))
                 if len(vocal.voice_states) <= 1:
-                    player.queue.clear()
-                    await player.stop()
-                    await self.connect_to(guild.id, None)
+                    if guild.id in self.empty_channels:
+                        player.queue.clear()
+                        await player.stop()
+                        await self.connect_to(guild.id, None)
+                    else:
+                        new_channels.append(guild.id)
+        self.empty_channels = new_channels
 
     def cog_unload(self) -> None:
         """Do some cleanup."""
