@@ -24,7 +24,7 @@ SOFTWARE.
 import asyncio
 from datetime import datetime
 from itertools import cycle
-from random import randint, shuffle
+from random import shuffle
 import traceback
 from typing import Iterator
 
