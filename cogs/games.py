@@ -148,7 +148,7 @@ class Connect4(menus.Menu):
         for i in range(6):
             if schema in str([column[i] for column in self.state]):
                 return True
-        for diagonal in range(4):
+        for diagonal in range(3):
             lines = [
                 [
                     self.state[3 + diagonal - i][i]
