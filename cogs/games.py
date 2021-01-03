@@ -101,7 +101,7 @@ class Connect4(menus.Menu):
                 )
                 raise error
 
-    def reaction_check(self, payload: discord.RawReactionActionEvent) -> None:
+    def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
         """Whether or not to process the payload."""
         if payload.message_id != self.message.id:
             return False
@@ -148,15 +148,26 @@ class Connect4(menus.Menu):
         for i in range(6):
             if schema in str([column[i] for column in self.state]):
                 return True
-        for diagonal in range(3):
-            line1, line2, line3, line4 = [], [], [], []
-            for column in range(4 + i):
-                line1.append(self.state[3 + diagonal - column][column])
-                line2.append(self.state[3 + diagonal - column][5 - column])
-                line3.append(self.state[3 - diagonal + column][column])
-                line4.append(self.state[3 - diagonal + column][5 - column])
-            if any(schema in str(column) for column in (
-                    line1, line2, line3, line4)):
+        for diagonal in range(4):
+            lines = [
+                [
+                    self.state[3 + diagonal - i][i]
+                    for i in range(4 + diagonal)
+                ],
+                [
+                    self.state[i - diagonal - 4][-i - 1]
+                    for i in range(4 + diagonal)
+                ],
+                [
+                    self.state[i - diagonal - 4][i]
+                    for i in range(4 + diagonal)
+                ],
+                [
+                    self.state[3 + diagonal - i][-i - 1]
+                    for i in range(4 + diagonal)
+                ],
+            ]
+            if any(schema in line for line in lines):
                 return True
         return False
 
@@ -298,7 +309,7 @@ class Deck:
         self.player_id = player_id
 
     @property
-    def money(self) -> None:
+    def money(self) -> int:
         """Get your money."""
         return self._money + self.balance
 
@@ -381,7 +392,7 @@ class Deck:
                     timeout=30,
                 )
                 card_id = int(message.content) - 1
-            except discord.DiscordException:
+            except asyncio.TimeoutError:
                 card_id = row_numbers[0]
                 await ctx.send(
                     f"Defaulting to row {card_id + 1}", delete_after=3
@@ -421,8 +432,8 @@ class Blackjack(menus.Menu):
 
         self.cards = []
         self.players = []
-        self.dealer = None
-        self.next_card = None
+        self.dealer: BRow = None
+        self.next_card: BCard = None
 
     async def update(self, payload: discord.RawReactionActionEvent) -> None:
         """Update if necessary."""
@@ -550,7 +561,7 @@ class Blackjack(menus.Menu):
             embed=self.generate_embed(),
         )
 
-    async def result(self) -> discord.User:
+    async def result(self) -> None:
         """Run this at the end."""
         while self.dealer.value() < 17:
             self.dealer.append(self.card)
@@ -781,254 +792,6 @@ class Blackjackplayers(menus.Menu):
         """Stop the thingy."""
         self.current_state = -1
         super().stop()
-
-
-class Battleship:
-    """Play battleship."""
-
-    green = ":green_square:"
-    blue = ":blue_square:"
-    red = ":red_square:"
-    white = ":white_large_square:"
-    black = ":black_large_square:"
-
-    def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the game."""
-        self.bot = bot
-        self.boat_size = [
-            (5, "Carrier"),
-            (4, "Battleship"),
-            (3, "Cruiser"),
-            (3, "Submarine"),
-            (2, "Destroyer"),
-        ]
-        self.column = list("abcdefghij")
-
-    def place_ia(self) -> tuple:
-        """Place the IA's boats."""
-        j2, boats = [[0] * 10 for _ in range(10)], []
-        for size, _ in self.boat_size:
-            test = True
-            while test:
-                coordinates = (randint(0, 9), randint(0, 9))
-                orientation = randint(0, 1)
-                if orientation:
-                    if coordinates[1] > 10 - size:
-                        continue
-                    if coordinates[1]:
-                        if j2[coordinates[0]][coordinates[1] - 1]:
-                            continue
-                        if coordinates[0]:
-                            if j2[coordinates[0] - 1][coordinates[1] - 1]:
-                                continue
-                        if coordinates[0] != 9:
-                            if j2[coordinates[0] + 1][coordinates[1] - 1]:
-                                continue
-                    if coordinates[1] + size < 10:
-                        if j2[coordinates[0]][coordinates[1] + size]:
-                            continue
-                        if coordinates[0]:
-                            if j2[coordinates[0] - 1][coordinates[1] + size]:
-                                continue
-                        if coordinates[0] != 9:
-                            if j2[coordinates[0] + 1][coordinates[1] + size]:
-                                continue
-                    test = False
-                    if coordinates[0] == 0:
-                        for j in range(size):
-                            if j2[0][coordinates[1] + j] or j2[1][
-                                    coordinates[1] + j]:
-                                test = True
-                                break
-                    elif coordinates[0] == 9:
-                        for j in range(size):
-                            if j2[8][coordinates[1] + j] or j2[9][
-                                    coordinates[1] + j]:
-                                test = True
-                                break
-                    else:
-                        for j in range(size):
-                            if any(
-                                    j2[coordinates[0] - 1][
-                                        coordinates[1] + j
-                                    ],
-                                    j2[coordinates[0]][
-                                        coordinates[1] + j
-                                    ],
-                                    j2[coordinates[0] + 1][
-                                        coordinates[1] + j
-                                    ],):
-                                test = True
-                                break
-                    if not test:
-                        boat = []
-                        for j in range(size):
-                            j2[coordinates[0]][coordinates[1] + j] = 1
-                            boat.append((coordinates[0], coordinates[1] + j))
-                        boats.append(boat)
-                else:
-                    if coordinates[0] > 10 - size:
-                        break
-                    if coordinates[0]:
-                        if j2[coordinates[0] - 1][coordinates[1]]:
-                            continue
-                        if coordinates[1]:
-                            if j2[coordinates[0] - 1][coordinates[1] - 1]:
-                                continue
-                        if coordinates[1] != 9:
-                            if j2[coordinates[0] - 1][coordinates[1] + 1]:
-                                continue
-                    if coordinates[0] + size < 10:
-                        if j2[coordinates[0] + size][coordinates[1]]:
-                            continue
-                        if coordinates[1]:
-                            if j2[coordinates[0] + size][coordinates[1] - 1]:
-                                continue
-                        if coordinates[1] != 9:
-                            if j2[coordinates[0] + size][coordinates[1] + 1]:
-                                continue
-                    test = False
-                    if coordinates[1] == 0:
-                        for j in range(size):
-                            if j2[coordinates[0] + j][0] or j2[
-                                    coordinates[0] + j][1]:
-                                test = True
-                                break
-                    elif coordinates[1] == 9:
-                        for j in range(size):
-                            if j2[coordinates[0] + j][8] or j2[
-                                    coordinates[0] + j][9]:
-                                test = True
-                                break
-                    else:
-                        for j in range(size):
-                            if any(
-                                    j2[coordinates[0] + j][coordinates[1] - 1],
-                                    j2[coordinates[0] + j][coordinates[1]],
-                                    j2[coordinates[0] + j][coordinates[1] + 1],
-                                    ):
-                                test = True
-                                break
-                    if not test:
-                        boat = []
-                        for j in range(size):
-                            j2[coordinates[0] + j][coordinates[1]] = 1
-                            boat.append((coordinates[0] + j, coordinates[1]))
-                        boats.append(boat)
-        return boats, j2
-
-    @staticmethod
-    def fire_grid(distance: int, fired: list) -> list:
-        """Create the grid for annihilating the pagans."""
-        new = []
-        for i in range(10):
-            for j in range(round(10 / distance)):
-                new.append((i, distance * j + i % distance))
-        for elem in fired:
-            if elem in new:
-                new.remove(elem)
-        return new
-
-    def grider(self, grid: list, player: bool = True) -> str:
-        """Make that graphical interface."""
-        return "\n".join(
-            [". 1    2    3    4   5    6    7   8    9  10"]
-            + ["".join(
-                [
-                    self.green if (
-                        grid[i][j] == 1 and player
-                    ) else self.white if grid[i][j] == -1 else self.red if (
-                        grid[i][j] == -2
-                    ) else self.black if grid[i][j] == -3 else self.blue
-                    for j in range(len(grid[i]))
-                ]
-                + [" " + self.column[i].upper()]
-            ) for i in range(len(grid))]
-        )
-
-    @staticmethod
-    def check(hits, boat, not_possible):
-        """Check the new grid."""
-        for place in boat:
-            if place[0]:
-                not_possible.append((place[0] - 1, place[1]))
-                if (place[0] - 1, place[1]) in hits:
-                    hits.remove((place[0] - 1, place[1]))
-                if hits[1]:
-                    not_possible.append((place[0] - 1, place[1] - 1))
-                    if (place[0] - 1, place[1] - 1) in hits:
-                        hits.remove((place[0] - 1, place[1] - 1))
-                if hits[1] != 9:
-                    not_possible.append((place[0] - 1, place[1] + 1))
-                    if (place[0] - 1, place[1] + 1) in hits:
-                        hits.remove((place[0] - 1, place[1] + 1))
-            if place[0] != 9:
-                not_possible.append((place[0] + 1, place[1]))
-                if (place[0] + 1, place[1]) in hits:
-                    hits.remove((place[0] + 1, place[1]))
-                if hits[1]:
-                    not_possible.append((place[0] + 1, place[1] - 1))
-                    if (place[0] + 1, place[1] - 1) in hits:
-                        hits.remove((place[0] + 1, place[1] - 1))
-                if hits[1] != 9:
-                    not_possible.append((place[0] + 1, place[1] + 1))
-                    if (place[0] + 1, place[1] + 1) in hits:
-                        hits.remove((place[0] + 1, place[1] + 1))
-            if hits[1]:
-                not_possible.append((place[0], place[1] - 1))
-                if (place[0], place[1] - 1) in hits:
-                    hits.remove((place[0], place[1] - 1))
-            if hits[1] != 9:
-                not_possible.append((place[0], place[1] + 1))
-                if (place[0], place[1] + 1) in hits:
-                    hits.remove((place[0], place[1] + 1))
-        return hits, not_possible
-
-    def player_check(self, size, raw, grid, boats):
-        """Check if a player can do what he has in mind."""
-        if raw.lower()[0] not in self.column or not raw[1: -1].isdigit():
-            return "Please input a correctly formatted message", grid, boats
-        if not 0 < int(msg.content[1: -1]) < 11:
-            return "The column numbers are between 1 and 10", grid, boats
-        if message.content.lower()[-1] == "v":
-            pass
-
-    async def start(self, ctx: commands.Context) -> None:
-        """Start the game."""
-
-        def check(message: discord.Message) -> bool:
-            return message.author == ctx.author and (
-                message.channel == ctx.channel
-            ) and (
-                2 < len(message.content) < 5 or (
-                    message.content.lower() == "quit"
-                )
-            )
-        player_grid = [[0] * 10 for _ in range(10)]
-        player_boats = []
-        player_state = [1] * len(self.boat_size)
-        # Send message
-        for size, name in self.boat_size:
-            await ctx.send(self.grider(player_grid))
-            await ctx.send(f"Place your {name} (size: {size})")
-            invalid = True
-            while invalid:
-                try:
-                    msg = await self.bot.wait_for(
-                        "message",
-                        check=check,
-                        timeout=120,
-                    )
-                except asyncio.TimeoutError:
-                    return await ctx.send("You took too long to answer")
-                if msg.content.lower() == "quit":
-                    return await ctx.send("Maybe another time")
-                status = self.player_check(
-                    size,
-                    msg.content,
-                    player_grid,
-                    player_boats,
-                )
 
 
 class Games(commands.Cog):
