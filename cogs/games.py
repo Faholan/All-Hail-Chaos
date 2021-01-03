@@ -167,7 +167,7 @@ class Connect4(menus.Menu):
                     for i in range(4 + diagonal)
                 ],
             ]
-            if any(schema in line for line in lines):
+            if any(schema in str(line) for line in lines):
                 return True
         return False
 
