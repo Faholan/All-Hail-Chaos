@@ -48,8 +48,8 @@ def secondes(num_seconds: int) -> str:
 
 
 async def error_manager(
-        ctx: commands.Context,
-        error: discord.DiscordException,
+    ctx: commands.Context,
+    error: discord.DiscordException,
 ) -> None:
     """Error manager."""
     returned = False
@@ -255,6 +255,7 @@ async def error_manager(
 def generator(bot: commands.Bot) -> Callable:
     """Generate an on_error for the bot."""
     async def predictate(event: str, *args, **kwargs) -> None:
+        """Process the on_error event."""
         if event == "on_command_error" or not bot.log_channel:
             raise
         error_type, value, raw_traceback = sys.exc_info()

@@ -26,6 +26,7 @@ from contextlib import redirect_stdout
 import io
 import textwrap
 import traceback
+import typing
 
 import discord
 from discord.ext import commands
@@ -42,6 +43,8 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         """Initialize Owner."""
         self.bot = bot
         self._last_result = None
+        self._stat_conn: typing.Any = None
+        self._stat_lock: typing.Any = None
 
     @staticmethod
     def cleanup_code(content: str) -> str:
@@ -73,7 +76,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
     def cog_unload(self):
         """Do some cleanup."""
-        if hasattr(self, "_stat_conn"):
+        if self._stat_conn:
             asyncio.create_task(self.bot.pool.release(self._stat_conn))
         self.bot.remove_listener(self.stats_listener)
 
@@ -262,7 +265,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         """Log usage of the bot."""
         if await ctx.bot.is_owner(ctx.author):  # Do not log owner usage.
             return
-        if not hasattr(self, "_stat_conn"):
+        if not self._stat_conn:
             self._stat_conn = await self.bot.pool.acquire()
             self._stat_lock = asyncio.Lock()
         async with self._stat_lock:

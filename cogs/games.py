@@ -120,7 +120,7 @@ class Connect4(menus.Menu):
     async def send_initial_message(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel,
+        _,
     ) -> discord.Message:
         """Send the first message."""
         return await ctx.send(embed=self.get_embed())
@@ -213,7 +213,7 @@ class Connect4(menus.Menu):
         await self.action(6, payload)
 
     @menus.button('\N{BLACK SQUARE FOR STOP}\ufe0f')
-    async def on_stop(self, payload: discord.RawReactionActionEvent) -> None:
+    async def on_stop(self, _) -> None:
         """Stop."""
         self.stop()
 
@@ -545,7 +545,7 @@ class Blackjack(menus.Menu):
     async def send_initial_message(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel,
+        _,
     ) -> discord.Message:
         """Send the first embed."""
         return await ctx.send(
@@ -723,7 +723,7 @@ class Blackjackplayers(menus.Menu):
     async def send_initial_message(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel,
+        _,
     ) -> discord.Message:
         """Send the first embed."""
         self.time = 120

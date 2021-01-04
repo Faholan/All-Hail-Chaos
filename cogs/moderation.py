@@ -494,6 +494,10 @@ class Moderation(commands.Cog):
         self._role_add_lock: typing.Any = None
         self._role_remove: typing.Any = None
         self._role_remove_lock: typing.Any = None
+        self._role_save: typing.Any = None
+        self._role_save_lock: typing.Any = None
+        self._swear_conn: typing.Any = None
+        self._swear_conn_lock: typing.Any = None
 
     @commands.command()
     @commands.guild_only()
@@ -1479,7 +1483,7 @@ class Moderation(commands.Cog):
     @commands.Cog.listener('on_member_join')
     async def role_saver(self, member: discord.Member) -> None:
         """Give roles on join."""
-        if not hasattr(self, "_role_save"):
+        if not self._role_save:
             self._role_save = await self.bot.pool.acquire()
             self._role_save_lock = asyncio.Lock()
         async with self._role_save_lock:
@@ -1518,7 +1522,7 @@ class Moderation(commands.Cog):
         if message.channel.is_nsfw() or (
                 message.author.guild_permissions.manage_messages):
             return
-        if not hasattr(self, "_swear_conn"):
+        if not self._swear_conn:
             self._swear_conn = await self.bot.pool.acquire()
             self._swear_conn_lock = asyncio.Lock()
         async with self._swear_conn_lock:
