@@ -41,7 +41,7 @@ class Animals(commands.Cog):
     """Get cute pics of animals."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Add the bot to the cog."""
+        """Initialize Animals."""
         self.bot = bot
         self.all_facts = []
         self.catfact_update.start()
@@ -78,7 +78,7 @@ class Animals(commands.Cog):
     @commands.command(ignore_extra=True)
     async def dog(self, ctx: commands.Context) -> None:
         """Get random dog image."""
-        if choice([True, False]):
+        if choice({True, False}):
             await self.image_sender(
                 ctx,
                 await self.bot.ksoft_client.images.random_image(tag="dog"),
@@ -100,12 +100,14 @@ class Animals(commands.Cog):
     async def image_sender(self, ctx: commands.Context, image) -> None:
         """Embeds an image then sends it."""
         if hasattr(image, "code"):
-            return await ctx.send(image.message)
+            await ctx.send(image.message)
+            return
         if not image.url:
-            return await self.bot.httpcat(ctx, 404)
+            await self.bot.httpcat(ctx, 404)
+            return
         embed = discord.Embed(
             timestamp=datetime.utcnow(),
-            colour=self.bot.colors["blue"]
+            colour=discord.Color.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -118,7 +120,7 @@ class Animals(commands.Cog):
             title=image.title,
             url=image.source,
             timestamp=datetime.fromtimestamp(image.created_at),
-            colour=self.bot.colors["blue"],
+            colour=discord.Color.blue(),
         )
         if not image.image_url:
             await self.bot.httpcat(ctx, 404)
@@ -138,5 +140,5 @@ class Animals(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add the cog to the bot."""
+    """Load the Animals cog."""
     bot.add_cog(Animals(bot))

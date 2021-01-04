@@ -57,7 +57,7 @@ class Businessguy():
         self.name = str(user)
         self.avatar_url = str(user.avatar_url)
 
-    def __eq__(self, other) -> None:
+    def __eq__(self, other) -> bool:
         """Are we equal."""
         return self.id == other.id
 
@@ -135,7 +135,7 @@ class Business(commands.Cog):
     """Some commands involving money."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the Cog."""
+        """Initialize Business."""
         self.bot = bot
 
     async def _fetcher(self, identifier: int, database) -> dict:
@@ -197,9 +197,10 @@ class Business(commands.Cog):
     @commands.cooldown(1, 600, commands.BucketType.user)
     @commands.guild_only()
     async def steal(
-            self,
-            ctx: commands.Context,
-            victim: discord.Member) -> None:
+        self,
+        ctx: commands.Context,
+        victim: discord.Member,
+    ) -> None:
         """Stealing is much more gainful than killing."""
         async with self.bot.pool.acquire(timeout=5) as database:
             pickpocket = Businessguy(
@@ -214,15 +215,17 @@ class Business(commands.Cog):
             )
             if pickpocket == stolen:
                 self.steal.reset_cooldown(ctx)
-                return await ctx.send(
+                await ctx.send(
                     "Are you seriously tring to steal yourself ?"
                 )
+                return
             if stolen.money == 0:
                 self.steal.reset_cooldown(ctx)
-                return await ctx.send(
+                await ctx.send(
                     f"`{victim.display_name}` doesn't have money on him. "
                     "What a shame."
                 )
+                return
 
             threshold = p_vol(pickpocket.steal_streak)
             if victim.status == discord.Status.offline:
@@ -252,5 +255,5 @@ class Business(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    """Add Business to the bot."""
+    """Load the Business cog."""
     bot.add_cog(Business(bot))

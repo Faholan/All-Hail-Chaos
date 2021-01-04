@@ -22,21 +22,35 @@ SOFTWARE.
 """
 
 import asyncio
+import typing
 
-from discord import Embed
+from discord import Color, Embed
 from discord.ext import commands
+
+
+Functions = typing.Tuple[
+    typing.Callable[
+        ["Success", commands.Context, typing.Any],
+        typing.Awaitable,
+    ],
+    typing.Optional[typing.Callable[
+        ["Success", commands.Context, typing.Any],
+        typing.Awaitable,
+    ]],
+]
 
 
 class Success:
     """Class implementation of a Discord success."""
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            functions: list,
-            column: str,
-            description_is_visible: bool = True) -> None:
+        self,
+        name: str,
+        description: str,
+        functions: Functions,
+        column: str,
+        description_is_visible: bool = True,
+    ) -> None:
         """Initialize a success."""
         self.name = name
         self.description = description
@@ -50,11 +64,12 @@ class Success:
             self.locked = "Hidden success"
 
     async def checker(
-            self,
-            ctx: commands.Context,
-            data: tuple,
-            identifier: int,
-            database) -> bool:
+        self,
+        ctx: commands.Context,
+        data: typing.Any,
+        identifier: int,
+        database,
+    ) -> bool:
         """Check the success."""
         test, data = await self._checker(self, ctx, data)
         await database.execute(
@@ -64,36 +79,33 @@ class Success:
         )
         return test
 
-    async def advancer(self, ctx: commands.Context, data: tuple) -> str:
+    async def advancer(self, ctx: commands.Context, data: typing.Any) -> str:
         """Check how much I advanced."""
         if self._advancer:
             return await self._advancer(self, ctx, data)
         return " - Locked"
 
 
-def command_count(number: int) -> tuple:
+def command_count(number: int) -> Functions:
     """Generate the use n commands successes."""
-    async def checker(
-            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+    async def checker(_, __, data: int) -> tuple:
         """Check for the success."""
         return data >= number, data + 1
 
-    async def advancer(
-            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+    async def advancer(_, __, data: int) -> str:
         """Advance the success."""
         return f" ({data}/{number})"
     return checker, advancer
 
 
-def hidden_commands() -> tuple:
+def hidden_commands() -> Functions:
     """Generate the "hidden commands" success."""
 
     def total(bot: commands.Bot) -> int:
         """Compute the number of hidden commands."""
         return len([command for command in bot.commands if command.hidden])
 
-    async def checker(
-            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+    async def checker(_, ctx: commands.Context, data: list) -> tuple:
         """Check for the success."""
         if not ctx.command.hidden:
             return False, data
@@ -106,8 +118,7 @@ def hidden_commands() -> tuple:
             data = [ctx.command.name]
         return len(data) == total(ctx.bot), data
 
-    async def advancer(
-            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+    async def advancer(_, ctx: commands.Context, data: list) -> str:
         """Advance the success."""
         if data:
             return f" ({len(data)}/{total(ctx.bot)})"
@@ -115,10 +126,9 @@ def hidden_commands() -> tuple:
     return checker, advancer
 
 
-def prefix() -> tuple:
+def prefix() -> Functions:
     """Generate the "hidden prefix" success."""
-    async def checker(
-            self: Success, ctx: commands.Context, data: tuple) -> tuple:
+    async def checker(_, ctx: commands.Context, __) -> tuple:
         """Check for the success."""
         return ctx.prefix == "¤", None
     return checker, None
@@ -163,9 +173,11 @@ class Successes(commands.Cog):
     """Everything to know about successes."""
 
     def __init__(self, bot: commands.Bot, successes: list) -> None:
-        """Initialize the successes."""
+        """Initialize Successes."""
         self.bot = bot
         self.success_list = successes
+        self._succ_conn: typing.Any = None
+        self._succ_con_lock: typing.Any = None
 
     @commands.command(ignore_extra=True, aliases=["succes", "successes"])
     async def success(self, ctx: commands.Context) -> None:
@@ -191,7 +203,7 @@ class Successes(commands.Cog):
                 title=(
                     f"Success list ({completed}/{len(self.success_list)})"
                 ),
-                colour=self.bot.colors["green"],
+                colour=Color.green(),
             )
             embed.set_author(
                 name=str(ctx.author),
@@ -221,7 +233,7 @@ class Successes(commands.Cog):
         """Check and send the successes."""
         if ctx.invoked_with in ("logout", "reboot"):
             return
-        if not hasattr(self, "_succ_conn"):
+        if not self._succ_conn:
             self._succ_conn = await self.bot.pool.acquire()
             self._succ_con_lock = asyncio.Lock()
         async with self._succ_con_lock:
@@ -242,10 +254,11 @@ class Successes(commands.Cog):
             for success in success_list:
                 if not result[success.state_column]:
                     if await success.checker(
-                            ctx,
-                            result[success.column],
-                            ctx.author.id,
-                            self._succ_conn):
+                        ctx,
+                        result[success.column],
+                        ctx.author.id,
+                        self._succ_conn
+                    ):
                         embed = Embed(
                             title="Succes unlocked !",
                             description=success.name,
@@ -278,11 +291,11 @@ class Successes(commands.Cog):
 
     def cog_unload(self) -> None:
         """Do some cleanup."""
-        if hasattr(self, "_succ_conn"):
+        if self._succ_conn:
             asyncio.create_task(self.bot.pool.release(self._succ_conn))
         self.bot.remove_listener(self.succ_sender)
 
 
 def setup(bot):
-    """Add successes to the bot."""
+    """Load the Successes cog."""
     bot.add_cog(Successes(bot, success_list))

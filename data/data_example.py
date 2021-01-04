@@ -100,13 +100,6 @@ def setup(bot):
             "https://discordbotlist.com/bots/chaotic-bot"
         )  # discordbotlist.com page
 
-        bot.colors = {
-            'red': 0xff0000,
-            'green': 0x006400,
-            'yellow': 0xffff00,
-            'blue': 0x00008b,
-        }
-
         bot.get_color = lambda: choice([
             0x11806a,
             0x2ecc71,

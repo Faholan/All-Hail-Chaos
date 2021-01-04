@@ -305,7 +305,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     """
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Bind the bot to the cog."""
+        """Initialize Images."""
         self.bot = bot
 
     @commands.command(ignore_extra=True)
@@ -405,10 +405,11 @@ class Images(commands.Cog):  # Thanks KSoft.si
         use im_nsfw or reddit with an NSFW subreddit
         """
         async with self.bot.aio_session.get(
-                "https://api.ksoft.si/images/random-nsfw",
-                headers={
-                    "Authorization": f"Bearer {self.bot.ksoft_client.api_key}"
-                }) as response:
+            "https://api.ksoft.si/images/random-nsfw",
+            headers={
+                "Authorization": f"Bearer {self.bot.ksoft_client.api_key}"
+            }
+        ) as response:
             await self.reddit_sender(
                 ctx,
                 Redditwrapper(await response.json()),
@@ -431,7 +432,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def panda(self, ctx) -> None:
         """Get a random picture of a panda."""
         async with self.bot.aio_session.get(
-                "https://some-random-api.ml/img/panda"
+            "https://some-random-api.ml/img/panda"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
@@ -442,7 +443,9 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
-                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
+                await ctx.send(
+                    f"Something went boom! :( [CODE: {resp.status}]"
+                )
                 await self.bot.log_channel.send(f"Code {resp.status} in panda")
 
     @commands.command(ignore_extra=True)
@@ -459,16 +462,17 @@ class Images(commands.Cog):  # Thanks KSoft.si
         sub = subreddit.split('r/')[-1]
         try:
             async with self.bot.aio_session.get(
-                    f"https://api.ksoft.si/images/rand-reddit/{sub}",
-                    headers={
-                        "Authorization": (
-                            f"Bearer {self.bot.ksoft_client.api_key}"
-                        )
-                    },
-                    params={
-                        "remove_nsfw": str(not check_channel(ctx.channel)),
-                        "span": "week",
-                    },) as response:
+                f"https://api.ksoft.si/images/rand-reddit/{sub}",
+                headers={
+                    "Authorization": (
+                        f"Bearer {self.bot.ksoft_client.api_key}"
+                    )
+                },
+                params={
+                    "remove_nsfw": str(not check_channel(ctx.channel)),
+                    "span": "week",
+                },
+            ) as response:
                 await self.reddit_sender(
                     ctx,
                     Redditwrapper(await response.json()),
@@ -495,7 +499,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed = discord.Embed(
             title=image.title,
             url=image.article_url,
-            colour=self.bot.colors['blue'],
+            colour=discord.Color.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -519,7 +523,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed = discord.Embed(
             title=image.tag,
             timestamp=datetime.utcnow(),
-            colour=self.bot.colors['blue'],
+            colour=discord.Color.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -532,7 +536,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
             title=image.title,
             url=image.source,
             timestamp=datetime.fromtimestamp(image.created_at),
-            colour=self.bot.colors['blue'],
+            colour=discord.Color.blue(),
         )
         if not image.image_url:
             return await self.bot.httpcat(ctx, 404)
@@ -550,5 +554,5 @@ class Images(commands.Cog):  # Thanks KSoft.si
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add images to the bot."""
+    """Load the Images cog."""
     bot.add_cog(Images(bot))

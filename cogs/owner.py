@@ -39,7 +39,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     """Owner-specific commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Run owner only commands."""
+        """Initialize Owner."""
         self.bot = bot
         self._last_result = None
 
@@ -63,11 +63,12 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             self, ctx: commands.Context, error: Exception) -> None:
         """Call that on error."""
         if isinstance(error, OwnerError):
-            return await ctx.bot.httpcat(
+            await ctx.bot.httpcat(
                 ctx,
                 401,
                 "Only my owner can use the command " + ctx.invoked_with,
             )
+            return
         raise error
 
     def cog_unload(self):
@@ -99,9 +100,10 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         try:
             exec(to_compile, env)
         except Exception as error:
-            return await ctx.send(
+            await ctx.send(
                 f'```py\n{error.__class__.__name__}: {error}\n```'
             )
+            return
 
         func = env['func']
         try:
@@ -126,21 +128,24 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
     @commands.command()
     async def system(
-            self,
-            ctx: commands.Context,
-            user: discord.User = None,
-            *,
-            message: str) -> None:
+        self,
+        ctx: commands.Context,
+        user: discord.User = None,
+        *,
+        message: str,
+    ) -> None:
         """Make the bot send a message to the specified user."""
         if not user:
-            return await ctx.send("I couldn't find this user")
+            await ctx.send("I couldn't find this user")
+            return
         async with self.bot.pool.acquire() as database:
             result = await database.fetchrow(
                 'SELECT * FROM block WHERE id=$1',
                 user.id,
             )
             if result:
-                return await ctx.send("This user blocked me. Sorry")
+                await ctx.send("This user blocked me. Sorry")
+                return
             embed = discord.Embed(
                 title="Message from my owner",
                 description=message,
@@ -180,9 +185,10 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     async def load(self, ctx: commands.Context, *extensions) -> None:
         """Load an extension."""
         if not extensions:
-            return await ctx.send(
+            await ctx.send(
                 "Please specify at least one extension to unload"
             )
+            return
         total_ext = len(extensions)
         report = []
         success = 0
@@ -215,7 +221,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 " not loaded"
             ),
             description='\n'.join(report),
-            colour=self.bot.colors['green'],
+            colour=discord.Color.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
@@ -232,7 +238,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             rows = await database.fetch("SELECT * FROM public.stats")
             embed = discord.Embed(
                 title="Usage stats",
-                colour=self.bot.colors["blue"],
+                colour=discord.Color.blue(),
             )
             embed.set_author(
                 name=ctx.author.display_name,
@@ -280,11 +286,13 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     async def unload(self, ctx: commands.Context, *extensions) -> None:
         """Unload extensions."""
         if "cogs.owner" in extensions:
-            return await ctx.send("You shouldn't unload me")
+            await ctx.send("You shouldn't unload me")
+            return
         if not extensions:
-            return await ctx.send(
+            await ctx.send(
                 "Please specify at least one extension to unload"
             )
+            return
         total_ext = len(extensions)
         report = []
         success = 0
@@ -306,12 +314,12 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 "not unloaded"
             ),
             description='\n'.join(report),
-            colour=self.bot.colors['green'],
+            colour=discord.Color.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add my commands to the bot."""
+    """Load the Owner cog."""
     bot.add_cog(Owner(bot))

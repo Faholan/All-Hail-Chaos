@@ -85,11 +85,11 @@ class NASA(commands.Cog):
             description=self.apod_pic.get("explanation", discord.Embed.Empty),
             colour=self.bot.get_color(),
         )
-        if self.apod_pic.get('media_type') == 'video':
-            if 'embed' in self.apod_pic.get('url', 'nope'):
-                preview = self.apod_pic.get('url').split('/')[-1].split('?')[0]
+        if self.apod_pic.get("media_type") == "video":
+            if "embed" in self.apod_pic.get("url", "nope"):
+                preview = self.apod_pic.get("url").split("/")[-1].split("?")[0]
             else:
-                preview = self.apod_pic.get('url').split('=')[-1]
+                preview = self.apod_pic.get("url").split("=")[-1]
             embed.set_image(
                 url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg"
             )
@@ -129,10 +129,12 @@ class NASA(commands.Cog):
 
     @commands.command()
     async def mars(
-            self,
-            ctx: commands.Context,
-            date: str,
-            rover: str = None, number: int = 1) -> None:
+        self,
+        ctx: commands.Context,
+        date: str,
+        rover: str = None,
+        number: int = 1,
+    ) -> None:
         """Get images from Mars.
 
         You must specify the date (in the form YYYY-MM-DD)
@@ -142,7 +144,7 @@ class NASA(commands.Cog):
         if rover is None:
             rover = choice(("curiosity", "opportunity", "spirit"))
 
-        if not rover.lower() in ("curiosity", "opportunity", "spirit"):
+        if rover.lower() not in {"curiosity", "opportunity", "spirit"}:
             return await ctx.send("Sorry but this rover doesn't exist")
         async with self.bot.aio_session.get(
                 "https://api.nasa.gov/mars-photos/api/v1/rovers/"
@@ -208,5 +210,5 @@ class NASA(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    """Make the bot hack the NASA."""
+    """Load the NASA cog."""
     bot.add_cog(NASA(bot))

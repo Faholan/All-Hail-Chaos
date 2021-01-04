@@ -23,7 +23,7 @@ SOFTWARE.
 
 from inspect import Parameter
 import textwrap
-from typing import Callable, Coroutine
+import typing
 
 import discord
 from discord.ext import commands, menus
@@ -35,11 +35,15 @@ class HelpSource(menus.ListPageSource):
 
     def __init__(
             self,
-            signature: Callable,
-            filter_commands: Coroutine,
+            signature: typing.Callable[[commands.Command], str],
+            filter_commands: typing.Callable[
+                [typing.List[commands.Command]],
+                typing.Awaitable,
+            ],
             prefix: str,
             author: discord.User,
-            cogs: dict) -> None:
+            cogs: typing.Dict[commands.Cog, typing.List[commands.Command]],
+    ) -> None:
         """Create the menu."""
         self.get_command_signature = signature
         self.filter_commands = filter_commands
@@ -58,9 +62,10 @@ class HelpSource(menus.ListPageSource):
     async def format_page(
             self,
             menu: menus.Menu,
-            cog_tuple: tuple) -> discord.Embed:
+            page: typing.Tuple[commands.Cog, typing.List[commands.Command]],
+    ) -> discord.Embed:
         """Format the pages."""
-        cog, command_list = cog_tuple
+        cog, command_list = page
         embed = discord.Embed(
             title=(
                 "Help for "
@@ -114,7 +119,10 @@ class Help(commands.HelpCommand):
                 basis += f" [{arg.name} = {arg.default}]"
         return basis
 
-    async def send_bot_help(self, mapping: dict) -> None:
+    async def send_bot_help(
+        self,
+        mapping: typing.Dict[commands.Cog, typing.List[commands.Command]]
+    ) -> None:
         """Send the global help."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
@@ -147,7 +155,7 @@ class Help(commands.HelpCommand):
                 {cog.description}
                 """
             ),
-            color=ctx.bot.colors["blue"],
+            color=discord.Color.blue(),
         )
         embed.set_author(
             name=str(ctx.message.author),
@@ -178,7 +186,7 @@ class Help(commands.HelpCommand):
                 "Help syntax : `<Required argument>`. "
                 f"`[Optional argument]`\n{command.help}"
             ),
-            color=ctx.bot.colors["blue"],
+            color=discord.Color.blue(),
         )
         if command.aliases:
             embed.add_field(name="Aliases :", value="\n".join(command.aliases))
@@ -214,7 +222,7 @@ class Help(commands.HelpCommand):
                 "Help syntax : `<Required argument>`. "
                 f"`[Optional argument]`\n{group.help}"
             ),
-            color=ctx.bot.colors["blue"],
+            color=discord.Color.blue(),
         )
         for command in await self.filter_commands(group.commands, sort=True):
             embed.add_field(
@@ -241,8 +249,7 @@ class Help(commands.HelpCommand):
 
     async def send_error_message(self, error: str) -> None:
         """Send an error message."""
-        ctx = self.context
-        await ctx.bot.httpcat(ctx, 404, error)
+        await self.context.bot.httpcat(self.context, 404, error)
 
 
 def setup(bot: commands.Bot) -> None:

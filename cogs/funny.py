@@ -24,6 +24,7 @@ SOFTWARE.
 import asyncio
 from os import path
 from random import randint, choice
+import typing
 
 import discord
 from discord.ext import commands
@@ -35,230 +36,6 @@ with open(f"data{path.sep}Excuses.txt", "r", encoding="utf-8") as file:
     excuses = file.readlines()
 with open(f"data{path.sep}weapons.txt", "r", encoding="utf-8") as file:
     weapons = file.readlines()
-
-
-# Special effects for the fight command
-def pink(attacking, victim, weapon_list: list) -> tuple:
-    """Boom you're pink."""
-    return (
-        (
-            "Chaotic energies swirl around you, making you pink for 3 turns",
-            "",
-            "Life in pink",
-            attacking.avatar_url,
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def teleportation(attacking, *args) -> tuple:
-    """Get outta here."""
-    return (
-        (
-            (
-                "Chaotic energies swirl around you. You were teleported 20 km "
-                "away in a random direction, thus missing your attack"
-            ),
-            "",
-            "Teleportation",
-            attacking.avatar_url,
-        ),
-    )
-
-
-def combustion(attacking, victim, weapon_list: list) -> tuple:
-    """I love fire."""
-    attacking.pv -= 100
-    return (
-        (
-            "{attacking} suddenly bursts into a fireball, losing 100 HP",
-            "",
-            "Spontaneous combustion",
-            "https://i.ytimg.com/vi/ymsiLGVsi_k/maxresdefault.jpg"
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def election(attacking, victim, weapon_list: list) -> tuple:
-    """You like my wall."""
-    return (
-        victim.hit(choice(weapon_list).split("|")),
-        (
-            "Right after his election, Donald Trump built a wall between"
-            " {attacking} and {defending}. He must kip his turn",
-            "",
-            "Donald Trump's election",
-            "https://d.newsweek.com/en/full/607858/adsgads.jpg"
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def mishap(attacking, victim, weapon_list: list) -> tuple:
-    """Wupsy."""
-    attacking_pv = list(str(attacking.pv))
-    attacking_pv.reverse()
-    attacking.pv = int("".join(attacking_pv))
-    victim_pv = list(str(victim.pv))
-    victim_pv.reverse()
-    victim.pv = int("".join(victim_pv))
-    return (
-        (
-            "Because of a lunatic divine scribe, the two players' HP "
-            "were reversed. Have a good day",
-            "",
-            "Transcription mishap",
-            "https://i.ytimg.com/vi/-dKG0gQKA3I/maxresdefault.jpg",
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def double(attacking, victim, weapon_list: list) -> tuple:
-    """Haha so funny."""
-    attacking.pv, victim.pv = victim.pv, attacking.pv
-    return (
-        (
-            "Bob, god of Chaos and Spaghettis, decided that {attacking}'s "
-            "and {defending}'s HP shall be exhanged",
-            "",
-            "Double trigonometric reversed possession",
-            attacking.avatar_url,
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def intervention(attacking, victim, weapon_list: list) -> tuple:
-    """Itsa me, Bob."""
-    attacking.pv, victim.pv = 1000, 1000
-    return (
-        (
-            "Michel, god of dad jokes, decided to restart the fight : "
-            "each player now has 1000 HP",
-            "",
-            "Michel's intervention",
-            attacking.avatar_url,
-        ),
-        victim.hit(choice(weapon_list).split("|")),
-    )
-
-
-def fumble(attacking, victim, weapon_list: list) -> tuple:
-    """Oh shit."""
-    message, damage, attack, url = attacking.hit(
-        choice(weapon_list).split("|")
-    )
-    return (
-        (
-            "{attacking} just hurt himself !",
-            "",
-            "Fumble",
-            attacking.avatar_url,
-        ),
-        (
-            message.format(
-                defending=attacking.display_name,
-                attacking=attacking.display_name,
-                damage=damage,
-            ),
-            damage,
-            attack,
-            url,
-        ),
-    )
-
-
-def armor(attacking, victim, weapon_list: list) -> tuple:
-    """Suck on my thorns."""
-    message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
-    if damage == "":
-        damage = 0
-    attacking.pv -= round(int(damage)/2)
-    return (
-        (
-            "{defending} wore a thorny armor, and {attacking} thus hurt"
-            " himself for half the damage !",
-            "",
-            "Thorny armor",
-            "https://66.media.tumblr.com/e68eb510217f17f96e1a7249294a01ee/"
-            "tumblr_p7yj5oWrO91rvzucio1_1280.jpg"
-        ),
-        (
-            message,
-            damage,
-            attack,
-            url,
-        ),
-    )
-
-
-def steal(attacking, victim, weapon_list: list) -> tuple:
-    """Your life is now mine."""
-    message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
-    if damage == "":
-        damage = 0
-    attacking.pv += round(int(damage) / 2)
-    return (
-        (
-            "{attacking}, thanks to a demonic ritual to the glory of our "
-            "lord Satan, steals half the HP lost by {defending}.",
-            "",
-            "Life steal",
-            attacking.avatar_url,
-        ),
-        (
-            message,
-            damage,
-            attack,
-            url,
-        ),
-    )
-
-
-def depression(attacking, victim, weapon_list: list) -> tuple:
-    """I wanna die."""
-    return (
-        (
-            "{defending} thinks he is basically a piece of shit (which isn't "
-            "totally false, by the way), making him pretty much easier to hit",
-            "",
-            "Depression",
-            victim.avatar_url
-        ),
-        victim.hit(choice(weapon_list).split("|"), 10),
-    )
-
-
-def bottle(attacking, victim, weapon_list: list) -> tuple:
-    """Not a good idea."""
-    return (
-        (
-            "{attacking} tried drinking from the hornet-filled bottle. He "
-            "logically cannot very well aim for {defending}",
-            "",
-            "Hornet bottle",
-            attacking.avatar_url,
-        ),
-        victim.hit(choice(weapon_list).split("|"), -10),
-    )
-
-
-chaos = [
-    pink,
-    teleportation,
-    combustion,
-    election,
-    mishap,
-    double,
-    intervention,
-    fumble,
-    armor,
-    steal,
-    depression,
-    bottle,
-]
 
 
 class Fighter():  # Class for the fight command
@@ -299,11 +76,243 @@ class Fighter():  # Class for the fight command
         return touche, str(damage), name, url
 
 
+# Special effects for the fight command
+def pink(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Boom you're pink."""
+    return (
+        (
+            "Chaotic energies swirl around you, making you pink for 3 turns",
+            "",
+            "Life in pink",
+            attacking.avatar_url,
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def teleportation(attacking: Fighter, *_) -> tuple:
+    """Get outta here."""
+    return (
+        (
+            (
+                "Chaotic energies swirl around you. You were teleported 20 km "
+                "away in a random direction, thus missing your attack"
+            ),
+            "",
+            "Teleportation",
+            attacking.avatar_url,
+        ),
+    )
+
+
+def combustion(
+    attacking: Fighter,
+    victim: Fighter,
+    weapon_list: list,
+) -> tuple:
+    """I love fire."""
+    attacking.pv -= 100
+    return (
+        (
+            "{attacking} suddenly bursts into a fireball, losing 100 HP",
+            "",
+            "Spontaneous combustion",
+            "https://i.ytimg.com/vi/ymsiLGVsi_k/maxresdefault.jpg"
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def election(_, victim: Fighter, weapon_list: list) -> tuple:
+    """You like my wall."""
+    return (
+        victim.hit(choice(weapon_list).split("|")),
+        (
+            "Right after his election, Donald Trump built a wall between"
+            " {attacking} and {defending}. He must kip his turn",
+            "",
+            "Donald Trump's election",
+            "https://d.newsweek.com/en/full/607858/adsgads.jpg"
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def mishap(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Wupsy."""
+    attacking_pv = list(str(attacking.pv))
+    attacking_pv.reverse()
+    attacking.pv = int("".join(attacking_pv))
+    victim_pv = list(str(victim.pv))
+    victim_pv.reverse()
+    victim.pv = int("".join(victim_pv))
+    return (
+        (
+            "Because of a lunatic divine scribe, the two players' HP "
+            "were reversed. Have a good day",
+            "",
+            "Transcription mishap",
+            "https://i.ytimg.com/vi/-dKG0gQKA3I/maxresdefault.jpg",
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def double(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Haha so funny."""
+    attacking.pv, victim.pv = victim.pv, attacking.pv
+    return (
+        (
+            "Bob, god of Chaos and Spaghettis, decided that {attacking}'s "
+            "and {defending}'s HP shall be exhanged",
+            "",
+            "Double trigonometric reversed possession",
+            attacking.avatar_url,
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def intervention(
+    attacking: Fighter,
+    victim: Fighter,
+    weapon_list: list,
+) -> tuple:
+    """Itsa me, Bob."""
+    attacking.pv, victim.pv = 1000, 1000
+    return (
+        (
+            "Michel, god of dad jokes, decided to restart the fight : "
+            "each player now has 1000 HP",
+            "",
+            "Michel's intervention",
+            attacking.avatar_url,
+        ),
+        victim.hit(choice(weapon_list).split("|")),
+    )
+
+
+def fumble(attacking: Fighter, _, weapon_list: list) -> tuple:
+    """Oh shit."""
+    message, damage, attack, url = attacking.hit(
+        choice(weapon_list).split("|")
+    )
+    return (
+        (
+            "{attacking} just hurt himself !",
+            "",
+            "Fumble",
+            attacking.avatar_url,
+        ),
+        (
+            message.format(
+                defending=attacking.display_name,
+                attacking=attacking.display_name,
+                damage=damage,
+            ),
+            damage,
+            attack,
+            url,
+        ),
+    )
+
+
+def armor(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Suck on my thorns."""
+    message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
+    if damage == "":
+        damage = 0
+    attacking.pv -= round(int(damage)/2)
+    return (
+        (
+            "{defending} wore a thorny armor, and {attacking} thus hurt"
+            " himself for half the damage !",
+            "",
+            "Thorny armor",
+            "https://66.media.tumblr.com/e68eb510217f17f96e1a7249294a01ee/"
+            "tumblr_p7yj5oWrO91rvzucio1_1280.jpg"
+        ),
+        (
+            message,
+            damage,
+            attack,
+            url,
+        ),
+    )
+
+
+def steal(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Your life is now mine."""
+    message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
+    if damage == "":
+        damage = 0
+    attacking.pv += round(int(damage) / 2)
+    return (
+        (
+            "{attacking}, thanks to a demonic ritual to the glory of our "
+            "lord Satan, steals half the HP lost by {defending}.",
+            "",
+            "Life steal",
+            attacking.avatar_url,
+        ),
+        (
+            message,
+            damage,
+            attack,
+            url,
+        ),
+    )
+
+
+def depression(_, victim: Fighter, weapon_list: list) -> tuple:
+    """I wanna die."""
+    return (
+        (
+            "{defending} thinks he is basically a piece of shit (which isn't "
+            "totally false, by the way), making him pretty much easier to hit",
+            "",
+            "Depression",
+            victim.avatar_url
+        ),
+        victim.hit(choice(weapon_list).split("|"), 10),
+    )
+
+
+def bottle(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+    """Not a good idea."""
+    return (
+        (
+            "{attacking} tried drinking from the hornet-filled bottle. He "
+            "logically cannot very well aim for {defending}",
+            "",
+            "Hornet bottle",
+            attacking.avatar_url,
+        ),
+        victim.hit(choice(weapon_list).split("|"), -10),
+    )
+
+
+chaos: typing.List[typing.Callable[[Fighter, Fighter, list], tuple]] = [
+    pink,
+    teleportation,
+    combustion,
+    election,
+    mishap,
+    double,
+    intervention,
+    fumble,
+    armor,
+    steal,
+    depression,
+    bottle,
+]
+
+
 class Funny(commands.Cog):
     """Some funny commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the fun."""
+        """Initialize Funny."""
         self.bot = bot
 
     @commands.command()
@@ -314,13 +323,15 @@ class Funny(commands.Cog):
                     "https://api.chucknorris.io/jokes/random"
                         ) as response:
                 joke = await response.json()
-                return await ctx.send(joke["value"])
+                await ctx.send(joke["value"])
+                return
         if ctx.guild:
             if not ctx.channel.is_nsfw():
                 url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
                 async with self.bot.aio_session.get(url) as response:
                     joke = await response.json()
-                    return await ctx.send(joke["value"]["joke"])
+                    await ctx.send(joke["value"]["joke"])
+                    return
         async with self.bot.aio_session.get(
                 "http://api.icndb.com/jokes/random"
                 ) as response:
@@ -337,7 +348,10 @@ class Funny(commands.Cog):
 
     @commands.command()
     async def dong(
-            self, ctx: commands.Context, dick: discord.Member = None) -> None:
+        self,
+        ctx: commands.Context,
+        dick: discord.Member = None,
+    ) -> None:
         """How long is this person's dong."""
         if not dick:
             dick = ctx.author
@@ -365,7 +379,10 @@ class Funny(commands.Cog):
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.guild)
     async def fight(
-            self, ctx: commands.Context, cible: discord.Member) -> None:
+        self,
+        ctx: commands.Context,
+        cible: discord.Member,
+    ) -> None:
         """To punch someone to death.
 
         We won't be held accountable for any broken cranes, ripped guts
@@ -486,7 +503,11 @@ class Funny(commands.Cog):
 
     @commands.command()
     async def kill(
-            self, ctx: commands.Context, kill: str, *kills) -> None:
+        self,
+        ctx: commands.Context,
+        kill: str,
+        *kills,
+    ) -> None:
         """Just in case you wanna kill your neighbour.
 
         If you have an idea for an horrible death, use €suggestion fight [idea]
@@ -508,14 +529,16 @@ class Funny(commands.Cog):
         char = [str(i) for i in range(10)] + ["d", "+", "-"]
         for character in expr:
             if character not in char:
-                return await ctx.send(
+                await ctx.send(
                     f"Invalid character : `{character}` at position "
                     f"`{expr.index(character)}`"
                 )
+                return
         if not expr[0].isdigit() or not expr[-1].isdigit():
-            return await ctx.send(
+            await ctx.send(
                 "The first and last characters must be digits"
             )
+            return
         before = ""
         after = ""
         sign = "+"
@@ -523,9 +546,11 @@ class Funny(commands.Cog):
         for i in expr:
             if i == "d":
                 if after:
-                    return await ctx.send(
+                    await ctx.send(
                         "The expression you enterded isn't valid (d "
-                        "character used while rolling dice)")
+                        "character used while rolling dice)"
+                    )
+                    return
                 after = "+"
             elif i.isdigit():
                 if after:
@@ -534,15 +559,17 @@ class Funny(commands.Cog):
                     before += i
             else:
                 if before == "" or after == "+":
-                    return await ctx.send(
+                    await ctx.send(
                         "You cannot roll empty dices or empty times a dice"
                     )
+                    return
                 if after == "":
                     total.append(sign + before)
                     before = ""
                     sign = i
                 elif int(after) == 0:
-                    return await ctx.send("You cannot roll a 0-dice")
+                    await ctx.send("You cannot roll a 0-dice")
+                    return
                 else:
                     total.append(
                         [sign + str(randint(1, int(after))) for _ in range(
@@ -553,13 +580,15 @@ class Funny(commands.Cog):
                     before = ""
                     sign = i
         if before == "":
-            return await ctx.send(
+            await ctx.send(
                 "You cannot roll empty dices or empty times a dice"
             )
+            return
         if after == "":
             total.append(sign + before)
         elif int(after) == 0:
-            return await ctx.send("You cannot roll a 0-dice")
+            await ctx.send("You cannot roll a 0-dice")
+            return
         else:
             total.append(
                 [sign + str(randint(1, int(after))) for _ in range(
@@ -595,5 +624,5 @@ class Funny(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    """Make it funny."""
+    """Load the Funny cog."""
     bot.add_cog(Funny(bot))

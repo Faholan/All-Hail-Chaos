@@ -49,7 +49,8 @@ def secondes(num_seconds: int) -> str:
 
 async def error_manager(
         ctx: commands.Context,
-        error: discord.DiscordException) -> None:
+        error: discord.DiscordException,
+) -> None:
     """Error manager."""
     returned = False
     if isinstance(error, commands.CheckAnyFailure):

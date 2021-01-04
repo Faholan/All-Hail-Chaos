@@ -48,7 +48,8 @@ def get_bar(current: int, total: int) -> str:
 class Music(commands.Cog):
     """Listen to some [music](https://www.youtube.com/watch?v=dQw4w9WgXcQ "Hello I'm a link")."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
+        """Initialize Music."""
         self.bot = bot
         self.paginator_queue = {}
         self.get_bar = get_bar
@@ -111,7 +112,11 @@ class Music(commands.Cog):
             await self.connect_to(guild_id, None)
             # Disconnect from the channel -- there's nothing else to play.
 
-    async def connect_to(self, guild_id: int, channel_id: typing.Optional[str]) -> None:
+    async def connect_to(
+        self,
+        guild_id: int,
+        channel_id: typing.Optional[str],
+    ) -> None:
         """Connect to the given voicechannel ID. A channel_id of `None` means disconnect."""
         websocket = self.bot._connection._get_websocket(guild_id)
         await websocket.voice_state(str(guild_id), channel_id)
@@ -179,7 +184,11 @@ class Music(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        if not ctx.author.voice or (player.is_connected and ctx.author.voice.channel.id != int(player.channel_id)):
+        if not ctx.author.voice or (
+            player.is_connected and ctx.author.voice.channel.id != int(
+                player.channel_id
+            )
+        ):
             embed = discord.Embed(
                 title="Please get in my voicechannel first.",
                 color=discord.Color.red(),
@@ -203,7 +212,9 @@ class Music(commands.Cog):
         """List the first 10 search results from a given query."""
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
-        if not query.startswith("ytsearch:") and not query.startswith("scsearch:"):
+        if not query.startswith("ytsearch:") and not query.startswith(
+            "scsearch:"
+        ):
             query = "ytsearch:" + query
 
         results = await player.node.get_tracks(query)
@@ -441,14 +452,14 @@ class Music(commands.Cog):
         """Seek to a given position in a track."""
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
-        seconds = time_rx.search(time)
-        if not seconds:
+        raw_seconds = time_rx.search(time)
+        if not raw_seconds:
             await ctx.send(
                 "You need to specify the amount of seconds to skip!"
             )
             return
 
-        seconds = int(seconds.group()) * 1000
+        seconds = int(raw_seconds.group()) * 1000
         if time.startswith("-"):
             seconds *= -1
         track_time = player.position + seconds
@@ -461,7 +472,7 @@ class Music(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.check(rq_check)
-    async def shuffle(self, ctx):
+    async def shuffle(self, ctx: commands.Context) -> None:
         """Shuffle the player's queue."""
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.is_playing:

@@ -65,7 +65,7 @@ class Tags(commands.Cog):
     """Tag system."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the tags."""
+        """Initialize Tags."""
         self.bot = bot
         self.tags_being_made = {}
 
@@ -87,7 +87,11 @@ class Tags(commands.Cog):
     @commands.group(invoke_without_command=True, aliases=["t"])
     @commands.guild_only()
     async def tag(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Tag some text to retrieve it later."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -124,11 +128,12 @@ class Tags(commands.Cog):
         await ctx.send(tag["content"])
 
     async def create_tag(
-            self,
-            ctx: commands.Context,
-            name: str,
-            content: str,
-            location_id: int = None) -> None:
+        self,
+        ctx: commands.Context,
+        name: str,
+        content: str,
+        location_id: int = None,
+    ) -> None:
         """Create a tag."""
         if location_id is None:
             location_id = self.bot.get_id(ctx)
@@ -171,11 +176,12 @@ class Tags(commands.Cog):
     @tag.command(name="alias")
     @commands.guild_only()
     async def tag_alias(
-            self,
-            ctx: commands.Context,
-            name: TagName(lower=True),
-            *,
-            alias: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        name: TagName(lower=True),
+        *,
+        alias: TagName(lower=True),
+    ) -> None:
         """Create an alias to a tag under which it can be retrieved."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -216,7 +222,11 @@ class Tags(commands.Cog):
     @tag.command(name="claim")
     @commands.guild_only()
     async def tag_claim(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Become the owner of an unclaimed tag."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -280,11 +290,12 @@ class Tags(commands.Cog):
     @tag.command(name="create")
     @commands.guild_only()
     async def tag_create(
-            self,
-            ctx: commands.Context,
-            name: TagName(lower=True),
-            *,
-            content: str) -> None:
+        self,
+        ctx: commands.Context,
+        name: TagName(lower=True),
+        *,
+        content: str,
+    ) -> None:
         """Create a tag with the given name and content."""
         location_id = self.bot.get_id(ctx)
         if not self.check_tag(name, location_id, ctx.author.id):
@@ -299,7 +310,11 @@ class Tags(commands.Cog):
     @tag.command(name="delete", aliases=["remove"])
     @commands.guild_only()
     async def tag_delete(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Use this to delete a tag."""
         override = ctx.author.id == self.bot.owner_id or (
             ctx.author.guild_permissions.manage_messages if ctx.guild else (
@@ -359,7 +374,11 @@ class Tags(commands.Cog):
     @tag.command(name="info")
     @commands.guild_only()
     async def tag_info(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Retrieve information about a tag."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -385,7 +404,7 @@ class Tags(commands.Cog):
 
         embed = discord.Embed(
             title=f"Informations about tag {tag['name']}",
-            colour=self.bot.colors["blue"],
+            colour=discord.Color.blue(),
         )
         try:
             owner = ctx.guild.get_member(
@@ -494,7 +513,10 @@ class Tags(commands.Cog):
     @tag.command(name="purge")
     @commands.has_guild_permissions(manage_messages=True)
     async def tag_purge(
-            self, ctx: discord.Member, member: discord.Member) -> None:
+        self,
+        ctx: discord.Member,
+        member: discord.Member,
+    ) -> None:
         """Delete all local tags made by a user."""
         location_id = self.bot.get_id(ctx)
         counter = 0
@@ -519,7 +541,11 @@ class Tags(commands.Cog):
     @tag.command(name="search")
     @commands.guild_only()
     async def tag_search(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Search for a tag."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -532,11 +558,12 @@ class Tags(commands.Cog):
     @tag.command(name="transfer", aliases=["give"])
     @commands.guild_only()
     async def tag_transfer(
-            self,
-            ctx: commands.Context,
-            name: TagName(lower=True),
-            *,
-            member: discord.Member) -> None:
+        self,
+        ctx: commands.Context,
+        name: TagName(lower=True),
+        *,
+        member: discord.Member,
+    ) -> None:
         """Transfer a tag, or alias, you own to a new user."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -587,10 +614,11 @@ class Tags(commands.Cog):
     @tag_global.command(name="put")
     @commands.guild_only()
     async def global_put(
-            self,
-            ctx: commands.Context,
-            *,
-            alias: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        alias: TagName(lower=True),
+    ) -> None:
         """Make a tag global. Only the owner of the tag can use this."""
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
@@ -631,10 +659,11 @@ class Tags(commands.Cog):
     @tag_global.command(name="delete", aliases=["remove"])
     @commands.guild_only()
     async def global_delete(
-            self,
-            ctx: commands.Context,
-            *,
-            name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Remove a tag from the global database.
 
         This has no effect on local versions of this tag
@@ -662,10 +691,11 @@ class Tags(commands.Cog):
     @tag_global.command(name="retrieve")
     @commands.guild_only()
     async def global_retrieve(
-            self,
-            ctx: commands.Context,
-            *,
-            name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Retrieve a tag from the global database."""
         alias = name
         location_id = self.bot.get_id(ctx)
@@ -749,7 +779,11 @@ class Tags(commands.Cog):
     @tag_global.command(name="search")
     @commands.guild_only()
     async def global_search(
-            self, ctx: commands.Context, *, name: TagName(lower=True)) -> None:
+        self,
+        ctx: commands.Context,
+        *,
+        name: TagName(lower=True),
+    ) -> None:
         """Search for a global tag."""
         async with self.bot.pool.acquire() as database:
             rows = await self.search_tag(name, 0, database)
@@ -762,5 +796,5 @@ class Tags(commands.Cog):
 
 
 def setup(bot):
-    """Tagify the bot."""
+    """Load the Tags cog."""
     bot.add_cog(Tags(bot))

@@ -29,7 +29,7 @@ import discord
 from discord.ext import commands
 from discord.utils import find
 
-auto_swear_detection = [
+auto_swear_detection = frozenset({
     "4r5e",
     "5h1t",
     "5hit",
@@ -481,23 +481,31 @@ auto_swear_detection = [
     "willy",
     "xrated",
     "xxx"
-]
+})
 
 
 class Moderation(commands.Cog):
     """Manage your server like never before."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the moderation."""
+        """Initialize Moderation."""
         self.bot = bot
+        self._role_add: typing.Any = None
+        self._role_add_lock: typing.Any = None
+        self._role_remove: typing.Any = None
+        self._role_remove_lock: typing.Any = None
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def ban(self, ctx: commands.Context, who: commands.Greedy[
-            typing.Union[discord.Role, discord.Member]
-            ], *, reason=None) -> None:
+    async def ban(
+        self,
+        ctx: commands.Context,
+        who: commands.Greedy[typing.Union[discord.Role, discord.Member]],
+        *,
+        reason=None,
+    ) -> None:
         """You can specify members or roles, and a reason for the ban.
 
         The bot will ban all the members specified
@@ -634,9 +642,13 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: commands.Context, who: commands.Greedy[
-            typing.Union[discord.Role, discord.Member]
-            ], *, reason=None) -> None:
+    async def kick(
+        self,
+        ctx: commands.Context,
+        who: commands.Greedy[typing.Union[discord.Role, discord.Member]],
+        *,
+        reason=None,
+    ) -> None:
         """You can specify members or roles, and a reason for the kick.
 
         The bot will kick all the members specified.
@@ -781,8 +793,12 @@ class Moderation(commands.Cog):
             await ctx.send("No members were kicked")
 
     @commands.command()
-    async def reputation(self, ctx: commands.Context, *, other: typing.Union[
-            discord.Member, int]) -> None:
+    async def reputation(
+        self,
+        ctx: commands.Context,
+        *,
+        other: typing.Union[discord.Member, int],
+    ) -> None:
         """Check the reputation of an user.
 
         You can refer to him if he's in the same server, or just paste his ID
@@ -820,7 +836,7 @@ class Moderation(commands.Cog):
             infractions = await response.json()
 
         embed = discord.Embed(
-            colour=self.bot.colors['green'],
+            colour=discord.Color.dark_green(),
             description=(
                 "Source : [DiscordRep](https://discordrep.com) and "
                 "[KSoft](https://ksoft.si)"
@@ -835,7 +851,7 @@ class Moderation(commands.Cog):
         banning = []
         if infractions.get("type") == "BAN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
-            embed.colour = self.bot.colors['yellow']
+            embed.colour = 0xffff00
             banning.append(
                 f"Warned on {date.day}-{date.month}-{date.year} "
                 f"{date.hour}:{date.minute}:{date.second} because of : "
@@ -843,7 +859,7 @@ class Moderation(commands.Cog):
             )
         elif infractions.get("type") == "WARN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
-            embed.colour = self.bot.colors['red']
+            embed.colour = discord.Color.red()
             banning.append(
                 f"Banned on {date.day}-{date.month}-{date.year} "
                 f"{date.hour}:{date.minute}:{date.second} because of : "
@@ -878,7 +894,7 @@ class Moderation(commands.Cog):
                 )
         if check_ban:
             ksoft_ban = await self.bot.ksoft_client.bans.info(int(user_id))
-            embed.colour = self.bot.colors['red']
+            embed.colour = discord.Color.red()
             embed.add_field(
                 name="Bans from KSoft",
                 value=(
@@ -917,9 +933,10 @@ class Moderation(commands.Cog):
 
     @role.command()
     async def add(
-            self,
-            ctx: commands.Context,
-            roles: commands.Greedy[discord.Role]) -> None:
+        self,
+        ctx: commands.Context,
+        roles: commands.Greedy[discord.Role],
+    ) -> None:
         """Add a new rule for this server."""
         async with self.bot.pool.acquire() as database:
             if not roles:
@@ -929,9 +946,11 @@ class Moderation(commands.Cog):
                 )
 
                 def check(message: discord.Message) -> bool:
-                    """Check th answer."""
+                    """Check the answer."""
                     return message.channel == ctx.channel and (
-                        message.role_mentions and message.author == ctx.author
+                        bool(
+                            message.role_mentions
+                        ) and message.author == ctx.author
                     )
 
                 try:
@@ -1119,7 +1138,7 @@ class Moderation(commands.Cog):
 
             embed = discord.Embed(
                 title=f'Rules for guild {ctx.guild.name}',
-                color=self.bot.colors['blue'],
+                color=discord.Color.blue(),
                 description=(
                     "List of all the rules defined. You need the rule number "
                     "for the `delete` action."
@@ -1375,7 +1394,7 @@ class Moderation(commands.Cog):
 
                 embed = discord.Embed(
                     title=f"Swear words in {ctx.guild.name}",
-                    colour=self.bot.colors['yellow'],
+                    colour=0xffff00,
                 )
                 embed.add_field(
                     name="Manual filter status",
@@ -1406,9 +1425,11 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener('on_raw_reaction_add')
     async def role_adder(
-            self, payload: discord.RawReactionActionEvent) -> None:
+        self,
+        payload: discord.RawReactionActionEvent,
+    ) -> None:
         """Add a role on reaction."""
-        if not hasattr(self, "_role_add"):
+        if not self._role_add:
             self._role_add = await self.bot.pool.acquire()
             self._role_add_lock = asyncio.Lock()
         async with self._role_add_lock:
@@ -1430,9 +1451,11 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener('on_raw_reaction_remove')
     async def role_remover(
-            self, payload: discord.RawReactionActionEvent) -> None:
+        self,
+        payload: discord.RawReactionActionEvent,
+    ) -> None:
         """Remove the role."""
-        if not hasattr(self, "_role_remove"):
+        if self._role_remove:
             self._role_remove = await self.bot.pool.acquire()
             self._role_remove_lock = asyncio.Lock()
         async with self._role_remove_lock:
@@ -1490,8 +1513,7 @@ class Moderation(commands.Cog):
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message: discord.Message) -> None:
         """Delete swear words."""
-        if message.author == self.bot or not isinstance(
-                message.author, discord.Member):
+        if message.author == self.bot or not message.guild:
             return
         if message.channel.is_nsfw() or (
                 message.author.guild_permissions.manage_messages):
@@ -1560,11 +1582,11 @@ class Moderation(commands.Cog):
     def cog_unload(self) -> None:
         """Cleanup the connections."""
         for name in ("_swear_conn", "_role_save", "_role_add", "_role_remove"):
-            conn = getattr(self, name, False)
+            conn = getattr(self, name, None)
             if conn:
                 asyncio.create_task(self.bot.pool.release(conn))
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add moderation to the bot."""
+    """Load the Moderation cog."""
     bot.add_cog(Moderation(bot))

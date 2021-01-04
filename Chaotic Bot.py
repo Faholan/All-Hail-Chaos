@@ -23,11 +23,12 @@ SOFTWARE.
 
 from asyncio import all_tasks
 from datetime import datetime
+import typing
 
 import aiohttp
 import asyncpg
 import dbl
-from discord import Embed, Forbidden, Game, Guild, Intents, Message
+import discord
 from discord.ext import commands
 from github import Github
 
@@ -35,7 +36,7 @@ from github import Github
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
-    used_intents = Intents(
+    used_intents = discord.Intents(
         guilds=True,
         members=False,
         bans=False,
@@ -52,31 +53,28 @@ class ChaoticBot(commands.Bot):
 
     def __init__(self) -> None:
         """Initialize the bot."""
-
-        self.token = None
+        self.token: typing.Optional[str] = None
 
         self.first_on_ready = True
         self.last_update = datetime.utcnow()
 
-        self.dbl_token = None
-        self.github_token = None
-        self.pool = None
-        self.default_prefix = "€"
-        self.postgre_connection = {}
+        self.dbl_token: typing.Optional[str] = None
+        self.github_token: typing.Optional[str] = None
+        self.pool: asyncpg.pool.Pool = None
+        self.default_prefix: str = "€"
+        self.postgre_connection: typing.Dict[str, typing.Any] = {}
 
-        self.ksoft_client = None
-        self.aio_session = None
+        self.ksoft_client: typing.Any = None
+        self.aio_session: aiohttp.ClientSession = None
 
-        self.log_channel = None
-        self.suggestion_channel = None
+        self.log_channel: discord.TextChannel = None
+        self.suggestion_channel: discord.TextChannel = None
         self.log_channel_id = 0
         self.suggestion_channel_id = 0
 
-        self.colors = {}
+        self.extensions_list: typing.List[str] = []
 
-        self.extensions_list = []
-
-        self.prefix_dict = {}
+        self.prefix_dict: typing.Dict[int, str] = {}
 
         super().__init__(
             command_prefix=self.get_m_prefix,
@@ -97,7 +95,9 @@ class ChaoticBot(commands.Bot):
 
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""
-        await self.change_presence(activity=Game(f"{self.default_prefix}help"))
+        await self.change_presence(
+            activity=discord.Game(f"{self.default_prefix}help"),
+        )
         if self.first_on_ready:
             self.first_on_ready = False
             self.pool = await asyncpg.create_pool(
@@ -134,24 +134,24 @@ class ChaoticBot(commands.Bot):
                     except commands.NoEntryPointError:
                         report.append(f"❌ | **setup not defined** : `{ext}`")
 
-            embed = Embed(
+            embed = discord.Embed(
                 title=(
                     f"{success} extensions were loaded & "
                     f"{len(self.extensions_list) - success} extensions were "
                     "not loaded"
                 ),
                 description="\n".join(report),
-                color=self.colors["green"],
+                color=discord.Color.green(),
             )
             await self.log_channel.send(embed=embed)
         else:
             await self.log_channel.send("on_ready called again")
 
-    async def on_guild_join(self, guild: Guild) -> None:
+    async def on_guild_join(self, guild: discord.Guild) -> None:
         """Log message on guild join."""
         await self.log_channel.send(f"{guild.name} joined")
 
-    async def on_guild_remove(self, guild: Guild) -> None:
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
         """Log message on guild remove."""
         await self.log_channel.send(f"{guild.name} left")
 
@@ -167,10 +167,10 @@ class ChaoticBot(commands.Bot):
         await super().close()
 
     async def cog_reloader(
-            self,
-            ctx: commands.Context,
-            extensions: list
-            ) -> None:
+        self,
+        ctx: commands.Context,
+        extensions: typing.List[str],
+    ) -> None:
         """Reload cogs."""
         self.last_update = datetime.utcnow()
         report = []
@@ -224,7 +224,7 @@ class ChaoticBot(commands.Bot):
                 except commands.NoEntryPointError:
                     report.append(f"❌ | **setup not defined** : `{ext}`")
         not_loaded = total_reload - success
-        embed = Embed(
+        embed = discord.Embed(
             title=(
                 f"{success} "
                 f"{'extension was' if success == 1 else 'extensions were'} "
@@ -233,15 +233,16 @@ class ChaoticBot(commands.Bot):
                 " not loaded"
             ),
             description="\n".join(report),
-            colour=self.colors["green"],
+            colour=discord.Color.green(),
         )
         await self.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
 
     async def get_m_prefix(
-            self, _,
-            message: Message,
-            not_print: bool = True) -> str:
+        self, _,
+        message: discord.Message,
+        not_print: bool = True,
+    ) -> str:
         """Get the prefix from a message."""
         if message.content.startswith("¤") and not_print:
             return '¤'
@@ -254,21 +255,22 @@ class ChaoticBot(commands.Bot):
         )
 
     async def httpcat(
-            self,
-            ctx: commands.Context,
-            code: int,
-            title: str = Embed.Empty,
-            description: str = Embed.Empty) -> None:
+        self,
+        ctx: commands.Context,
+        code: int,
+        title: str = discord.Embed.Empty,
+        description: str = discord.Embed.Empty,
+    ) -> None:
         """Funny error picture."""
-        embed = Embed(
+        embed = discord.Embed(
             title=title,
-            color=self.colors["red"],
+            color=discord.Color.red(),
             description=description
         )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
         try:
             await ctx.send(embed=embed)
-        except Forbidden:
+        except discord.Forbidden:
             pass
 
     @staticmethod

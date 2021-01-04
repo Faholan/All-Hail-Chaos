@@ -46,40 +46,44 @@ class SnipeSource(menus.ListPageSource):
     """Source for the snipe."""
 
     def __init__(self, embeds_dict: list) -> None:
+        """Initialize SnipeSource."""
         super().__init__(embeds_dict, per_page=1)
 
     async def format_page(
-            self, menu: menus.Menu, embed_dict: dict) -> discord.Embed:
+        self,
+        menu: menus.Menu,
+        page: dict,
+    ) -> discord.Embed:
         """Create an embed from a dict."""
         embed = discord.Embed(
-            title=embed_dict["title"].format(
+            title=page["title"].format(
                 message_number=menu.current_page + 1,
                 max_number=self.get_max_pages(),
             ),
             colour=0xffff00,
         )
         embed.set_author(
-            name=embed_dict["author"]["name"],
-            icon_url=embed_dict["author"]["icon_url"],
+            name=page["author"]["name"],
+            icon_url=page["author"]["icon_url"],
         )
-        for field in embed_dict["fields"]:
+        for field in page["fields"]:
             embed.add_field(
                 name=field["name"],
                 value=field["value"],
                 inline=False,
             )
-        embed.timestamp = embed_dict["timestamp"]
+        embed.timestamp = page["timestamp"]
         return embed
 
 
 class SauceSource(menus.ListPageSource):
     """Source for the sauce command."""
 
-    async def format_page(self, menu: menus.Menu, entry: str):
+    async def format_page(self, menu: menus.Menu, page: str):
         """Format the page of code."""
         max_pages = self.get_max_pages()
         embed = discord.Embed(
-            description=entry,
+            description=page,
             colour=discord.Colour.purple()
         )
         if max_pages > 1:
@@ -195,7 +199,7 @@ class Utility(commands.Cog):
                     list_of_files.append(final_path.split(
                         '.' + path.sep
                     )[-1] + f" : {file_lines} lines")
-        embed = discord.Embed(colour=self.bot.colors['yellow'])
+        embed = discord.Embed(colour=0xffff00)
         embed.add_field(
             name=f"{self.bot.user.name}'s structure",
             value="\n".join(sorted(list_of_files)),
@@ -230,11 +234,12 @@ class Utility(commands.Cog):
 
     @commands.command(aliases=["convert"])
     async def currency(
-            self,
-            ctx: commands.Context,
-            original: str,
-            goal: str,
-            value: float) -> None:
+        self,
+        ctx: commands.Context,
+        original: str,
+        goal: str,
+        value: float,
+    ) -> None:
         """Convert money from one currency to another one."""
         if not len(original) == len(goal) == 3:
             return await ctx.send(
@@ -367,7 +372,7 @@ class Utility(commands.Cog):
             )
         embed.add_field(
             name="I'm very social. Number of servers i'm in :",
-            value=len(self.bot.guilds),
+            value=str(len(self.bot.guilds)),
             inline=False,
         )
         members = sum(guild.member_count for guild in self.bot.guilds)
@@ -658,14 +663,15 @@ class Utility(commands.Cog):
                 self.poll_tasks.append(task)
 
     def poll_generator(
-            self,
-            message_id: int,
-            channel_id: int,
-            guild_id: int,
-            author_id: int,
-            timestamp,
-            answers: list,
-            subject: str):
+        self,
+        message_id: int,
+        channel_id: int,
+        guild_id: int,
+        author_id: int,
+        timestamp: datetime,
+        answers: list,
+        subject: str,
+    ):
         """Generate a poll coroutine."""
         async def predictate():
             """End the poll."""
@@ -761,7 +767,12 @@ class Utility(commands.Cog):
         await ctx.send(f"The prefix for this channel is `{old_prefix}`")
 
     @commands.command(aliases=["sauce"])
-    async def source(self, ctx: commands.Context, *, command_name: str) -> None:
+    async def source(
+        self,
+        ctx: commands.Context,
+        *,
+        command_name: str,
+    ) -> None:
         """Get the source code of a command."""
         command = self.bot.get_command(command_name)
         if not command:
@@ -877,7 +888,12 @@ class Utility(commands.Cog):
     @commands.command()
     @commands.cooldown(2, 600, commands.BucketType.user)
     async def suggestion(
-            self, ctx: commands.Context, subject: str, *, idea: str) -> None:
+        self,
+        ctx: commands.Context,
+        subject: str,
+        *,
+        idea: str,
+    ) -> None:
         """Make suggestions for the bot.
 
         Your Discord name will be recorded and publicly associated to the idea.
@@ -887,7 +903,7 @@ class Utility(commands.Cog):
             description=(
                 f"Subject of <@{ctx.author.id}>'s suggestion : {subject}"
             ),
-            colour=self.bot.colors['yellow'],
+            colour=0xffff00,
         )
         embed.set_author(
             name=str(ctx.author),
@@ -935,5 +951,5 @@ class Utility(commands.Cog):
 
 
 def setup(bot):
-    """Add utility to the bot."""
+    """Load the Utility cog."""
     bot.add_cog(Utility(bot))

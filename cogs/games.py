@@ -99,7 +99,7 @@ class Connect4(menus.Menu):
                 await self.bot.log_channel.send(
                     "Please check the logs for connect 4"
                 )
-                raise error
+                raise error from None
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
         """Whether or not to process the payload."""
@@ -118,16 +118,18 @@ class Connect4(menus.Menu):
             )
 
     async def send_initial_message(
-            self,
-            ctx: commands.Context,
-            channel: discord.TextChannel) -> discord.Message:
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel,
+    ) -> discord.Message:
         """Send the first message."""
         return await ctx.send(embed=self.get_embed())
 
     async def action(
-            self,
-            number: int,
-            payload: discord.RawReactionActionEvent) -> None:
+        self,
+        number: int,
+        payload: discord.RawReactionActionEvent,
+    ) -> None:
         """Do something."""
         if 0 not in self.state[number]:
             return
@@ -330,10 +332,11 @@ class Deck:
         ) and self.money > 0
 
     async def add(
-            self,
-            card: BCard,
-            ctx: commands.Context,
-            ini: bool = False) -> None:
+        self,
+        card: BCard,
+        ctx: commands.Context,
+        ini: bool = False,
+    ) -> None:
         """Add a card to the deck."""
         if card in self and self.cost < self.money and not ini:
             def check(message: discord.Message) -> bool:
@@ -414,11 +417,12 @@ class Blackjack(menus.Menu):
     """Let's play Blackjack."""
 
     def __init__(
-            self,
-            players: list,
-            money_dict: dict,
-            cost: int,
-            **kwargs) -> None:
+        self,
+        players: list,
+        money_dict: dict,
+        cost: int,
+        **kwargs,
+    ) -> None:
         """Initialize all the fuzzy stuff."""
         super().__init__(**kwargs)
         self.ids = cycle([player.id for player in players])
@@ -483,7 +487,7 @@ class Blackjack(menus.Menu):
                 await self.bot.log_channel.send(
                     "Please check the logs for Blackjack"
                 )
-                raise error
+                raise error from None
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
         """Whether or not it shall be processed."""
@@ -539,9 +543,10 @@ class Blackjack(menus.Menu):
         return embed
 
     async def send_initial_message(
-            self,
-            ctx: commands.Context,
-            channel: discord.TextChannel) -> discord.Message:
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel,
+    ) -> discord.Message:
         """Send the first embed."""
         return await ctx.send(
             self.player_dict[self.next].mention, embed=self.generate_embed()
@@ -619,13 +624,13 @@ class Blackjack(menus.Menu):
         self.stop()
 
     @menus.button("\U00002795")
-    async def action(self, payload: discord.RawReactionActionEvent) -> None:
+    async def action(self, _) -> None:
         """Get a card."""
         await self.players[self.next_index].add(self.next_card, self.ctx)
         await self.update_embed(not self.players[self.next_index].isvalid())
 
     @menus.button("\U0000274c")
-    async def next_turn(self, payload: discord.RawReactionActionEvent) -> None:
+    async def next_turn(self, _) -> None:
         """Time for the next player to shine."""
         await self.update_embed(True)
 
@@ -640,12 +645,13 @@ class Blackjackplayers(menus.Menu):
     """Menu to check who wants to play."""
 
     def __init__(
-            self,
-            author: discord.User,
-            author_money: int,
-            cost: int,
-            database,
-            **kwargs) -> None:
+        self,
+        author: discord.User,
+        author_money: int,
+        cost: int,
+        database,
+        **kwargs,
+    ) -> None:
         """Get who wanna play."""
         super().__init__(**kwargs)
         self.players = [author]
@@ -712,12 +718,13 @@ class Blackjackplayers(menus.Menu):
                 await self.bot.log_channel.send(
                     "Please check the logs for Blackjack Players"
                 )
-                raise error
+                raise error from None
 
     async def send_initial_message(
-            self,
-            ctx: commands.Context,
-            channel: discord.TextChannel) -> discord.Message:
+        self,
+        ctx: commands.Context,
+        channel: discord.TextChannel,
+    ) -> discord.Message:
         """Send the first embed."""
         self.time = 120
         self.current_state = 1
@@ -757,19 +764,21 @@ class Blackjackplayers(menus.Menu):
                 "SELECT * FROM public.business WHERE id=$1", payload.user_id
             )
             if not row:
-                return await self.ctx.send(
+                await self.ctx.send(
                     f"Sorry {member.mention}, but you don't have any money "
                     "to join this table"
                 )
+                return
             if payload.user_id in self.money_dict:
                 del self.money_dict[payload.user_id]
             else:
                 money = row["money"] + row["bank"]
                 if money < self.cost:
-                    return await self.ctx.send(
+                    await self.ctx.send(
                         f"Sorry {member.mention}, but you don't have enough "
                         "money to come to this table"
                     )
+                    return
                 self.money_dict[payload.user_id] = money
         if member in self.players:
             self.players.remove(member)
@@ -777,7 +786,7 @@ class Blackjackplayers(menus.Menu):
             self.players.append(member)
 
     @menus.button("\U000023ed\N{variation selector-16}")
-    async def skipper(self, payload: discord.RawReactionActionEvent) -> None:
+    async def skipper(self, _) -> None:
         """Start the game ahead of time."""
         self.time = 5
         self.current_state = -1
@@ -798,7 +807,7 @@ class Games(commands.Cog):
     """Good games."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the games."""
+        """Initialize Games."""
         self.bot = bot
         self.blackjack_list = []
         self.blackjack_updater.start()
@@ -825,16 +834,18 @@ class Games(commands.Cog):
                 "SELECT * FROM public.business WHERE id=$1", ctx.author.id
             )
             if not row:
-                return await ctx.send(
+                await ctx.send(
                     "You don't have money. You can't run this command without "
                     "yourself having money"
                 )
+                return
             money = row["money"] + row["bank"]
             if money < cost:
-                return await ctx.send(
+                await ctx.send(
                     "Sorry, but you don't have enough money"
                     " to come to this table"
                 )
+                return
             new_players = Blackjackplayers(
                 ctx.author,
                 money,
@@ -845,7 +856,8 @@ class Games(commands.Cog):
             self.blackjack_list.append(new_players)
             players, money_dict = await new_players.prompt(ctx)
         if not players:
-            return await ctx.send("Nobody wants to play")
+            await ctx.send("Nobody wants to play")
+            return
         balance_dict = await Blackjack(
             players,
             money_dict,
@@ -908,5 +920,5 @@ class Games(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add games to the bot."""
+    """Load the Games cog."""
     bot.add_cog(Games(bot))

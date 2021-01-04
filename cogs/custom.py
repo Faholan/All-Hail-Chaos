@@ -22,19 +22,20 @@ SOFTWARE.
 """
 
 import asyncio
-from pytz import utc
 import re
 import textwrap
+import typing
 
 import discord
 from discord.ext import commands
+from pytz import utc
 
 
 class Custom(commands.Cog):
     """Create your own commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
-        """Initialize the cog."""
+        """Initialize Custom."""
         self.bot = bot
         self.type_name = {"user": "member", "server": "guild"}
         self.type_dict = {
@@ -69,19 +70,22 @@ class Custom(commands.Cog):
             name = await self.bot.wait_for("message", check=check)
             name = name.content
         except asyncio.TimeoutError:
-            return await ctx.send(
+            await ctx.send(
                 "You took too long to reply. I'm aborting this"
             )
+            return
 
         if " " in name:
-            return await ctx.send(
+            await ctx.send(
                 ":x: Well tried, but custom command names can't include spaces"
             )
+            return
 
         if name in self.bot.all_commands:
-            return await ctx.send(
+            await ctx.send(
                 ":x: Sorry, but a bot command already exists with this name"
             )
+            return
 
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
@@ -90,9 +94,10 @@ class Custom(commands.Cog):
                 ctx.guild.id,
             )
             if row:
-                return await ctx.send(
+                await ctx.send(
                     f"A custom command named {name} already exists"
                 )
+                return
 
         await ctx.send(
             f"So the name's {name}. What about the description "
@@ -102,9 +107,10 @@ class Custom(commands.Cog):
             description = await self.bot.wait_for("message", check=check)
             description = description.content
         except asyncio.TimeoutError:
-            return await ctx.send(
+            await ctx.send(
                 "You took too long to reply. I'm aborting this"
             )
+            return
 
         if description == "*":
             description = None
@@ -120,18 +126,20 @@ class Custom(commands.Cog):
             args = await self.bot.wait_for("message", check=check)
             args = args.content.split(" ")
         except asyncio.TimeoutError:
-            return await ctx.send(
+            await ctx.send(
                 "You took too long to reply. I'm aborting this"
             )
+            return
 
         arguments = []
 
         for raw_arg in args:
             if raw_arg.count(":") > 1:
-                return await ctx.send(
+                await ctx.send(
                     "An argument can contain only up to 1 time `:`. "
                     f"This is wrong : {raw_arg}"
                 )
+                return
             if raw_arg.count(":") == 1:
                 raw_name, raw_type = raw_arg.split(":")
             else:
@@ -139,9 +147,10 @@ class Custom(commands.Cog):
                 raw_type = "str"
 
             if not re.fullmatch("[A-Za-z_][A-Za-z0-9_]+", raw_name):
-                return await ctx.send(
+                await ctx.send(
                     f"{raw_name} isn't a valid argument name"
                 )
+                return
 
             raw_type = self.type_name.get(raw_type.lower(), raw_type.lower())
 
@@ -155,12 +164,14 @@ class Custom(commands.Cog):
             effect = await self.bot.wait_for("message", check=check)
             effect = effect.content
         except asyncio.TimeoutError:
-            return await ctx.send(
+            await ctx.send(
                 "You took too long to reply. I'm aborting this"
             )
+            return
 
         if '"""' in effect:
-            return await ctx.send(':x: Sorry but """ is forbidden.')
+            await ctx.send(':x: Sorry but """ is forbidden.')
+            return
 
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
@@ -169,9 +180,10 @@ class Custom(commands.Cog):
                 name,
             )
             if row:
-                return await ctx.send(
+                await ctx.send(
                     f":x: There is already a custom command named {name}"
                 )
+                return
             await database.execute(
                 "INSERT INTO public.custom VALUES ($1, $2, $3, $4, $5, $6)",
                 ctx.guild.id,
@@ -195,10 +207,11 @@ class Custom(commands.Cog):
                 ctx.author.id,
             )
             if not row:
-                return await ctx.send(
+                await ctx.send(
                     f"I didn't find any command named {name}. Are you sure "
                     "that it exists and you own it ?"
                 )
+                return
             await database.execute(
                 "DELETE FROM public.custom WHERE name=$1 AND guild_id=$2 "
                 "AND owner_id=$3",
@@ -218,9 +231,10 @@ class Custom(commands.Cog):
                 ctx.guild.id,
             )
         if not command:
-            return await ctx.send(
+            await ctx.send(
                 f"No custom command named {name} found in your guild"
             )
+            return
         embed = discord.Embed(
             title=f"Informations about custom command {name}",
             description=command["description"] if command["description"] else (
@@ -282,7 +296,7 @@ class Custom(commands.Cog):
                 )'''.strip("\n")
         )
 
-        env = {}
+        env: typing.Dict[str, typing.Any] = {}
 
         try:
             exec(to_compile, env)
@@ -291,14 +305,16 @@ class Custom(commands.Cog):
                 owner = self.bot.get_user(command["owner_id"]) or (
                     await self.bot.fetch_user(command["owner_id"])
                 )
-                return await message.channel.send(
+                await message.channel.send(
                     "The custom command raised an error. Please contact "
                     f"{owner.mention} about that issue"
                 )
+                return
             except discord.NotFound:
-                return await message.channel.send(
+                await message.channel.send(
                     "The custom command raised an error"
                 )
+                return
 
         func = env["func"]
 
@@ -313,20 +329,21 @@ class Custom(commands.Cog):
                 arg = args[arg_n]
                 arg_n += 1
                 converter = self.type_dict.get(raw_type, str)
-                if converter in (str, int):
+                if converter in {str, int}:
                     kwargs[name] = converter(arg)
                 else:
                     kwargs[name] = await converter().convert(ctx, arg)
         except ValueError:
-            return await message.channel.send(f"Couldn't convert {arg} to int")
+            await message.channel.send(f"Couldn't convert {arg} to int")
+            return
         except IndexError:
-            return await message.channel.send(
-                "You didn't provide enough arguments"
-            )
+            await message.channel.send("You didn't provide enough arguments")
+            return
         except commands.BadArgument:
-            return await message.channel.send(
+            await message.channel.send(
                 f"Couldn't convert {arg} into {raw_type.capitalize()}"
             )
+            return
 
         try:
             await message.channel.send(await func(message, **kwargs))
@@ -346,5 +363,5 @@ class Custom(commands.Cog):
 
 
 def setup(bot: commands.Bot) -> None:
-    """Add custom commands to the bot."""
+    """Load the Custom cog."""
     bot.add_cog(Custom(bot))
