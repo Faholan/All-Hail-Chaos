@@ -123,7 +123,10 @@ class Connect4(menus.Menu):
         _,
     ) -> discord.Message:
         """Send the first message."""
-        return await ctx.send(embed=self.get_embed())
+        return await ctx.send(
+            content=ctx.author.mention,
+            embed=self.get_embed(),
+        )
 
     async def action(
         self,
@@ -175,7 +178,10 @@ class Connect4(menus.Menu):
 
     async def embed_updating(self) -> None:
         """Update the embed."""
-        await self.message.edit(embed=self.get_embed())
+        await self.message.edit(
+            content=self.players[self.id_dict[self.next] - 1].mention,
+            embed=self.get_embed(),
+        )
 
     @menus.button("1\N{variation selector-16}\N{combining enclosing keycap}")
     async def column_1(self, payload: discord.RawReactionActionEvent) -> None:
