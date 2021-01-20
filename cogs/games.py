@@ -348,9 +348,9 @@ class Deck:
             def check(message: discord.Message) -> bool:
                 if message.author == ctx.author:
                     if message.channel == ctx.channel:
-                        return message.content.lower() in [
+                        return message.content.lower() in {
                             "y", "yes", "n", "no"
-                        ]
+                        }
                 return False
             message1 = await ctx.send(
                 f"You have a {card.name}. Do you want to split ? (y/n)"

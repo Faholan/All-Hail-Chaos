@@ -517,8 +517,8 @@ class Moderation(commands.Cog):
         You need the `ban members` permission
         Your highest role needs to be higher than the others'
         """
-        banning = []
-        roles = []
+        banning = set()
+        roles = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id
@@ -534,7 +534,7 @@ class Moderation(commands.Cog):
                     )
                 elif ctx.author.roles[-1] > banned:
                     if banned not in roles:
-                        roles.append(banned)
+                        roles.add(banned)
                         for member in banned.members:
                             if member == owner:
                                 await self.bot.httpcat(
@@ -544,7 +544,7 @@ class Moderation(commands.Cog):
                                 )
                             elif member != me:
                                 if member not in banning:
-                                    banning.append(member)
+                                    banning.add(member)
                             else:
                                 await self.bot.httpcat(
                                     ctx,
@@ -575,7 +575,7 @@ class Moderation(commands.Cog):
                         f"I cannot ban {banned.name} : he is the guild owner",
                     )
                 elif banned not in banning:
-                    banning.append(banned)
+                    banning.add(banned)
         newline = '\n -'
         if reason:
             await ctx.send(
@@ -660,8 +660,8 @@ class Moderation(commands.Cog):
         You need the `kick members` permission.
         Your highest role needs to be higher than the others'.
         """
-        kicking = []
-        roles = []
+        kicking = set()
+        roles = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id
@@ -683,7 +683,7 @@ class Moderation(commands.Cog):
                     )
                 elif ctx.author.roles[-1] > kicked:
                     if kicked not in roles:
-                        roles.append(kicked)
+                        roles.add(kicked)
                         for member in kicked.members:
                             if member == owner:
                                 await self.bot.httpcat(
@@ -693,7 +693,7 @@ class Moderation(commands.Cog):
                                 )
                             elif member != me:
                                 if member not in kicking:
-                                    kicking.append(member)
+                                    kicking.add(member)
                             else:
                                 await self.bot.httpcat(
                                     ctx,
@@ -728,7 +728,7 @@ class Moderation(commands.Cog):
                         f"I cannot kick {kicked.name} : he is the guild owner",
                     )
                 elif kicked not in kicking:
-                    kicking.append(kicked)
+                    kicking.add(kicked)
         newline = '\n -'
         if reason:
             await ctx.send(

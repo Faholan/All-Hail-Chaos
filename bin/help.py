@@ -103,7 +103,7 @@ class Help(commands.HelpCommand):
         """Retrieve the command's signature."""
         basis = f"{command.qualified_name}"
         for arg in command.clean_params.values():
-            if arg.kind in (Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL):
+            if arg.kind in {Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL}:
                 basis += f" [{arg.name}]"
             elif (
                 hasattr(getattr(arg.annotation, "type", None), "__args__")

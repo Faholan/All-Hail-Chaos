@@ -231,7 +231,7 @@ class Successes(commands.Cog):
     @commands.Cog.listener("on_command_completion")
     async def succ_sender(self, ctx: commands.Context) -> None:
         """Check and send the successes."""
-        if ctx.invoked_with in ("logout", "reboot"):
+        if ctx.invoked_with in {"logout", "reboot"}:
             return
         if not self._succ_conn:
             self._succ_conn = await self.bot.pool.acquire()

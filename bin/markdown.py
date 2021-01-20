@@ -50,7 +50,7 @@ class MarkdownParser(HTMLParser):
             self.a_end += ")"
         elif tag == "b":
             self.output += "**"
-        elif tag in ("i", "em"):
+        elif tag in {"i", "em"}:
             self.output += "*"
         elif tag == "script":
             self.output += "```\n"
@@ -62,7 +62,7 @@ class MarkdownParser(HTMLParser):
             self.a_end = ""
         elif tag == "b":
             self.output += "**"
-        elif tag in ("i", "em"):
+        elif tag in {"i", "em"}:
             self.output += "*"
         elif tag == "script":
             self.output += "\n```"
