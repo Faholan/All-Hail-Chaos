@@ -320,18 +320,17 @@ class Funny(commands.Cog):
         """Get a random Chuck Norris joke."""
         if randint(0, 1):
             async with self.bot.aio_session.get(
-                    "https://api.chucknorris.io/jokes/random"
-                        ) as response:
+                "https://api.chucknorris.io/jokes/random"
+            ) as response:
                 joke = await response.json()
                 await ctx.send(joke["value"])
-                return
-        if ctx.guild:
-            if not ctx.channel.is_nsfw():
-                url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
-                async with self.bot.aio_session.get(url) as response:
-                    joke = await response.json()
-                    await ctx.send(joke["value"]["joke"])
-                    return
+            return
+        if ctx.guild and not ctx.channel.is_nsfw():
+            url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
+            async with self.bot.aio_session.get(url) as response:
+                joke = await response.json()
+                await ctx.send(joke["value"]["joke"])
+            return
         async with self.bot.aio_session.get(
                 "http://api.icndb.com/jokes/random"
                 ) as response:

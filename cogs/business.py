@@ -78,9 +78,8 @@ class Businessguy():
 
     async def daily(self) -> str:
         """Get your daily money."""
-        if time() < self.last_daily + 172800:
-            if self.streak < 5:
-                self.streak += 1
+        if time() < self.last_daily + 172800 and self.streak < 5:
+            self.streak += 1
         else:
             self.streak = 1
         self.last_daily = round(time())

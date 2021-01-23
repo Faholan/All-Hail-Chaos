@@ -346,11 +346,12 @@ class Deck:
         """Add a card to the deck."""
         if card in self and self.cost < self.money and not ini:
             def check(message: discord.Message) -> bool:
-                if message.author == ctx.author:
-                    if message.channel == ctx.channel:
-                        return message.content.lower() in {
-                            "y", "yes", "n", "no"
-                        }
+                if message.author == ctx.author and (
+                    message.channel == ctx.channel
+                ):
+                    return message.content.lower() in {
+                        "y", "yes", "n", "no"
+                    }
                 return False
             message1 = await ctx.send(
                 f"You have a {card.name}. Do you want to split ? (y/n)"
@@ -386,8 +387,9 @@ class Deck:
 
             def check2(message: discord.Message) -> bool:
                 if message.author == ctx.author and (
-                        message.channel == ctx.channel
-                        and message.content.isdigit()):
+                    message.channel == ctx.channel
+                    and message.content.isdigit()
+                ):
                     try:
                         return self.cards[int(message.content) - 1].isvalid()
                     except Exception:

@@ -109,9 +109,8 @@ def hidden_commands() -> Functions:
         """Check for the success."""
         if not ctx.command.hidden:
             return False, data
-        if data:
-            if ctx.command.name in data:
-                return False, data
+        if data and ctx.command.name in data:
+            return False, data
         if data:
             data.append(ctx.command.name)
         else:
@@ -252,35 +251,34 @@ class Successes(commands.Cog):
                 )
             embeds = []
             for success in success_list:
-                if not result[success.state_column]:
-                    if await success.checker(
-                        ctx,
-                        result[success.column],
+                if not result[success.state_column] and await success.checker(
+                    ctx,
+                    result[success.column],
+                    ctx.author.id,
+                    self._succ_conn
+                ):
+                    embed = Embed(
+                        title="Succes unlocked !",
+                        description=success.name,
+                        colour=ctx.bot.get_color(),
+                    )
+                    embed.set_author(
+                        name=str(ctx.author),
+                        icon_url=str(ctx.author.avatar_url),
+                    )
+                    embed.set_thumbnail(
+                        url=ctx.bot.success_image)
+                    embed.add_field(
+                        name=success.description,
+                        value="Requirements met",
+                    )
+                    embeds.append(embed)
+                    await self._succ_conn.execute(
+                        "UPDATE public.successes SET "
+                        f"{success.state_column}=$1 WHERE id=$2",
+                        True,
                         ctx.author.id,
-                        self._succ_conn
-                    ):
-                        embed = Embed(
-                            title="Succes unlocked !",
-                            description=success.name,
-                            colour=ctx.bot.get_color(),
-                        )
-                        embed.set_author(
-                            name=str(ctx.author),
-                            icon_url=str(ctx.author.avatar_url),
-                        )
-                        embed.set_thumbnail(
-                            url=ctx.bot.success_image)
-                        embed.add_field(
-                            name=success.description,
-                            value="Requirements met",
-                        )
-                        embeds.append(embed)
-                        await self._succ_conn.execute(
-                            "UPDATE public.successes SET "
-                            f"{success.state_column}=$1 WHERE id=$2",
-                            True,
-                            ctx.author.id,
-                        )
+                    )
         i = 0
         for embed in embeds:
             i += 1

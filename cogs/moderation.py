@@ -533,17 +533,15 @@ class Moderation(commands.Cog):
                         f"I cannot ban the role {banned.name} : it is higher "
                         "than my highest role"
                     )
-                elif ctx.author.roles[-1] > banned:
-                    if banned not in roles:
-                        roles.add(banned)
-                        for member in banned.members:
-                            if member == owner:
-                                errors.add("I cannot ban the guild owner")
-                            elif member != me:
-                                if member not in banning:
-                                    banning.add(member)
-                            else:
-                                errors.add("I cannot ban myself")
+                elif ctx.author.roles[-1] > banned and banned not in roles:
+                    roles.add(banned)
+                    for member in banned.members:
+                        if member == owner:
+                            errors.add("I cannot ban the guild owner")
+                        elif member != me and member not in banning:
+                                banning.add(member)
+                        else:
+                            errors.add("I cannot ban myself")
                 else:
                     errors.add(
                         f"You cannot ban the role {banned.name} : it is "
@@ -648,21 +646,19 @@ class Moderation(commands.Cog):
                         f"I cannot kick the role {kicked.name} : "
                         "it is higher than my highest role"
                     )
-                elif ctx.author.roles[-1] > kicked:
-                    if kicked not in roles:
-                        roles.add(kicked)
-                        for member in kicked.members:
-                            if member == owner:
-                                errors.add(
-                                    "I cannot kick the guild owner"
-                                )
-                            elif member != me:
-                                if member not in kicking:
-                                    kicking.add(member)
-                            else:
-                                errors.add(
-                                    "I cannot kick myself"
-                                )
+                elif ctx.author.roles[-1] > kicked and kicked not in roles:
+                    roles.add(kicked)
+                    for member in kicked.members:
+                        if member == owner:
+                            errors.add(
+                                "I cannot kick the guild owner"
+                            )
+                        elif member != me and member not in kicking:
+                            kicking.add(member)
+                        else:
+                            errors.add(
+                                "I cannot kick myself"
+                            )
                 else:
                     errors.add(
                         f"You cannot kick the role {kicked.name} : it is "
@@ -1398,7 +1394,7 @@ class Moderation(commands.Cog):
         payload: discord.RawReactionActionEvent,
     ) -> None:
         """Remove the role."""
-        if self._role_remove:
+        if not self._role_remove:
             self._role_remove = await self.bot.pool.acquire()
             self._role_remove_lock = asyncio.Lock()
         async with self._role_remove_lock:
