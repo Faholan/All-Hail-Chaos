@@ -539,7 +539,7 @@ class Moderation(commands.Cog):
                         if member == owner:
                             errors.add("I cannot ban the guild owner")
                         elif member != me and member not in banning:
-                                banning.add(member)
+                            banning.add(member)
                         else:
                             errors.add("I cannot ban myself")
                 else:

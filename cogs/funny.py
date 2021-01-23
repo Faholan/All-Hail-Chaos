@@ -448,10 +448,12 @@ class Funny(commands.Cog):
                 if next_player.pv > 0 and fight[0].pv > 0:
 
                     def check(message: discord.Message) -> bool:
-                        if message.author.id == next_player.id:
-                            if message.content.lower().startswith(
-                                    f"defend {fight[0].display_name.lower()}"):
-                                return message.channel == ctx.channel
+                        if message.author.id == next_player.id and (
+                            message.content.lower().startswith(
+                                    f"defend {fight[0].display_name.lower()}"
+                            )
+                        ):
+                            return message.channel == ctx.channel
                         return False
 
                     await ctx.send(
