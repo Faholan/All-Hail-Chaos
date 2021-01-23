@@ -456,8 +456,14 @@ class Utility(commands.Cog):
 
         Only a server admin can use this
         """
-        await ctx.send("See you soon !")
-        await ctx.guild.leave()
+        try:
+            if await self.bot.fetch_confirmation(
+                ctx,
+                f"Do you really want me to leave {ctx.guild.name} ?"
+            ):
+                await ctx.guild.leave()
+        except asyncio.TimeoutError:
+            await ctx.send("Aborting")
 
     @commands.command(ignore_extra=True, aliases=["polls"])
     @commands.guild_only()

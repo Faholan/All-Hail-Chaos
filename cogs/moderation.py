@@ -523,12 +523,13 @@ class Moderation(commands.Cog):
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id
         )
+        errors = set()
         for banned in who:
             if isinstance(banned, discord.Role):
                 if banned.is_default():
-                    await ctx.send("You cannot ban the default role.")
+                    errors.add("You cannot ban the default role.")
                 elif me.roles[-1] <= banned:
-                    await ctx.send(
+                    errors.add(
                         f"I cannot ban the role {banned.name} : it is higher "
                         "than my highest role"
                     )
@@ -537,102 +538,73 @@ class Moderation(commands.Cog):
                         roles.add(banned)
                         for member in banned.members:
                             if member == owner:
-                                await self.bot.httpcat(
-                                    ctx,
-                                    403,
-                                    "I cannot ban the guild owner",
-                                )
+                                errors.add("I cannot ban the guild owner")
                             elif member != me:
                                 if member not in banning:
                                     banning.add(member)
                             else:
-                                await self.bot.httpcat(
-                                    ctx,
-                                    403,
-                                    "I cannot ban myself",
-                                )
+                                errors.add("I cannot ban myself")
                 else:
-                    await self.bot.httpcat(
-                        ctx,
-                        401,
+                    errors.add(
                         f"You cannot ban the role {banned.name} : it is "
                         "higher than your highest role"
                     )
             else:
                 if banned == me:
-                    await self.bot.httpcat(ctx, 403, "I cannot ban myself")
+                    errors.add("I cannot ban myself")
                 elif me.roles[-1] <= banned.roles[-1]:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
+                    errors.add(
                         f"I cannot ban {banned.name} : he has a higher "
                         "role than me"
                     )
                 elif banned == owner:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
-                        f"I cannot ban {banned.name} : he is the guild owner",
+                    errors.add(
+                        f"I cannot ban {banned.name} : he is the guild owner"
                     )
                 elif banned not in banning:
                     banning.add(banned)
-        newline = '\n -'
-        if reason:
+        newline = "\n -"
+        if errors:
             await ctx.send(
-                f"You're about to ban {len(banning)} members because of "
-                f"`{reason}` :\n "
-                f"-{newline.join([member.mention for member in banning])}\n\n"
-                "Do you want to proceed ? (y/n)"
+                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}"
             )
-        else:
-            await ctx.send(
-                f"You're about to ban {len(banning)} members :\n -"
-                f"{newline.join([member.mention for member in banning])}\n\n"
-                "Do you want to proceed ? (y/n)"
-            )
-
-        def check(message: discord.Message) -> bool:
-            """Check the answer."""
-            return message.author == ctx.author and (
-                message.content.lower().startswith('y') or (
-                    message.content.lower().startswith('n')
-                )
-            ) and message.channel == ctx.channel
         try:
-            msg = await self.bot.wait_for(
-                'message',
-                check=check,
-                timeout=30.0,
-            )
-            proceed = msg.content.lower().startswith('y')
+            if reason:
+                proceed = await self.bot.fetch_confirmation(
+                    ctx,
+                    f"You're about to ban {len(banning)} members because of "
+                    f"`{reason}` :\n "
+                    f"-{newline.join([member.mention for member in banning])}"
+                )
+            else:
+                proceed = await self.bot.fetch_confirmation(
+                    ctx,
+                    f"You're about to ban {len(banning)} members :\n -"
+                    f"{newline.join([member.mention for member in banning])}"
+                )
         except asyncio.TimeoutError:
             proceed = False
         if proceed:
             for member in banning:
                 await member.ban(reason=reason)
             if roles:
-                if reason:
-                    await ctx.send(
-                        f"You're about to delete {len(roles)} roles because"
-                        f" of `{reason}` :\n -"
-                        f"{newline.join([role.mention for role in roles])}\n\n"
-                        "Do you want to proceed ? (y/n)"
-                    )
-                else:
-                    await ctx.send(
-                        f"You're about to delete {len(roles)} roles :\n -"
-                        f"{newline.join([role.mention for role in roles])}\n\n"
-                        "Do you want to proceed ? (y/n)"
-                    )
                 try:
-                    msg = await self.bot.wait_for(
-                        'message',
-                        check=check,
-                        timeout=30.0,
-                    )
-                    proceed = msg.content.lower().startswith('y')
+                    if reason:
+                        proceed = await self.bot.fetch_confirmation(
+                            ctx,
+                            f"You're about to delete {len(roles)} roles "
+                            f"because of `{reason}` :\n -"
+                            f"{newline.join([role.mention for role in roles])}"
+                        )
+                    else:
+                        await self.bot.fetch_confirmation(
+                            ctx,
+                            f"You're about to delete {len(roles)} roles :\n -"
+                            f"{newline.join([role.mention for role in roles])}"
+                        )
                 except asyncio.TimeoutError:
                     proceed = False
+
                 if proceed:
                     for role in roles:
                         await role.delete(reason=reason)
@@ -666,126 +638,93 @@ class Moderation(commands.Cog):
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id
         )
+        errors = set()
         for kicked in who:
             if isinstance(kicked, discord.Role):
                 if kicked.is_default():
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
-                        "You cannot kick the default role."
-                    )
+                    errors.add("You cannot kick the default role.")
                 elif me.roles[-1] <= kicked:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
+                    errors.add(
                         f"I cannot kick the role {kicked.name} : "
-                        "it is higher than my highest role",
+                        "it is higher than my highest role"
                     )
                 elif ctx.author.roles[-1] > kicked:
                     if kicked not in roles:
                         roles.add(kicked)
                         for member in kicked.members:
                             if member == owner:
-                                await self.bot.httpcat(
-                                    ctx,
-                                    403,
-                                    "I cannot kick the guild owner",
+                                errors.add(
+                                    "I cannot kick the guild owner"
                                 )
                             elif member != me:
                                 if member not in kicking:
                                     kicking.add(member)
                             else:
-                                await self.bot.httpcat(
-                                    ctx,
-                                    403,
-                                    "I cannot kick myself",
+                                errors.add(
+                                    "I cannot kick myself"
                                 )
                 else:
-                    await self.bot.httpcat(
-                        ctx,
-                        401,
+                    errors.add(
                         f"You cannot kick the role {kicked.name} : it is "
-                        "higher than your highest role",
+                        "higher than your highest role"
                     )
             else:
                 if kicked == me:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
+                    errors.add(
                         "I cannot kick myself"
                     )
                 elif me.roles[-1] <= kicked.roles[-1]:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
+                    errors.add(
                         f"I cannot kick {kicked.name} : he has a higher "
-                        "role than me",
+                        "role than me"
                     )
                 elif kicked == owner:
-                    await self.bot.httpcat(
-                        ctx,
-                        403,
-                        f"I cannot kick {kicked.name} : he is the guild owner",
+                    errors.add(
+                        f"I cannot kick {kicked.name} : he is the guild owner"
                     )
                 elif kicked not in kicking:
                     kicking.add(kicked)
-        newline = '\n -'
-        if reason:
+        newline = "\n -"
+        if errors:
             await ctx.send(
-                f"You're about to kick {len(kicking)} members because of "
-                f"`{reason}` :\n -"
-                f"{newline.join([member.mention for member in kicking])}\n\n"
-                "Do you want to proceed ? (y/n)"
-            )
-        else:
-            await ctx.send(
-                f"You're about to kick {len(kicking)} members :\n -"
-                f"{newline.join([member.mention for member in kicking])}\n\n"
-                "Do you want to proceed ? (y/n)"
-            )
-
-        def check(message: discord.Message) -> bool:
-            """Check the answer."""
-            return message.author == ctx.author and (
-                message.content.lower().startswith('y') or (
-                    message.content.lower().startswith('n')
-                ) and message.channel == ctx.channel
+                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}"
             )
         try:
-            msg = await self.bot.wait_for(
-                'message',
-                check=check,
-                timeout=30.0,
-            )
-            proceed = msg.content.lower().startswith('y')
+            if reason:
+                proceed = await self.bot.fetch_confirmation(
+                    ctx,
+                    f"You're about to kick {len(kicking)} members because of "
+                    f"`{reason}` :\n -"
+                    f"{newline.join([member.mention for member in kicking])}"
+                )
+            else:
+                proceed = await self.bot.fetch_confirmation(
+                    ctx,
+                    f"You're about to kick {len(kicking)} members :\n -"
+                    f"{newline.join([member.mention for member in kicking])}"
+                )
         except asyncio.TimeoutError:
             proceed = False
         if proceed:
             for member in kicking:
                 await member.kick(reason=reason)
             if roles:
-                if reason:
-                    await ctx.send(
-                        f"{len(kicking)} members kicked\n\nYou're about to "
-                        f"delete {len(roles)} roles because of `{reason}` :\n "
-                        f"-{newline.join([role.mention for role in roles])}\n"
-                        "\nDo you want to proceed ? (y/n)"
-                    )
-                else:
-                    await ctx.send(
-                        f"You're about to delete {len(roles)} roles :\n -"
-                        f"{newline.join([role.mention for role in roles])}\n\n"
-                        "Do you want to proceed ? (y/n)"
-                    )
                 try:
-                    msg = await self.bot.wait_for(
-                        'message',
-                        check=check,
-                        timeout=30.0,
-                    )
-                    proceed = msg.content.lower().startswith('y')
+                    if reason:
+                        proceed = await self.bot.fetch_confirmation(
+                            ctx,
+                            f"{len(kicking)} members kicked\n\nYou're about to"
+                            f" delete {len(roles)} roles because of "
+                            f"`{reason}` :\n -"
+                            f"{newline.join([role.mention for role in roles])}"
+                        )
+                    else:
+                        await ctx.send(
+                            f"You're about to delete {len(roles)} roles :\n -"
+                            f"{newline.join([role.mention for role in roles])}"
+                        )
                 except asyncio.TimeoutError:
-                    await ctx.send('Cancelling the deletion')
+                    await ctx.send("Cancelling the deletion")
                     proceed = False
                 if proceed:
                     for role in roles:
@@ -1480,7 +1419,7 @@ class Moderation(commands.Cog):
                 except discord.DiscordException:
                     pass
 
-    @commands.Cog.listener('on_member_join')
+    @commands.Cog.listener("on_member_join")
     async def role_saver(self, member: discord.Member) -> None:
         """Give roles on join."""
         if not self._role_save:

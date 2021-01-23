@@ -273,6 +273,53 @@ class ChaoticBot(commands.Bot):
         except discord.Forbidden:
             pass
 
+    async def fetch_answer(
+        self,
+        ctx: commands.Context,
+        *content,
+        timeout: int = 30
+    ) -> discord.Message:
+        """Get an answer."""
+        def check(message: discord.Message) -> bool:
+            """Check the message."""
+            return message.author == ctx.author and (
+                message.channel == ctx.channel
+            ) and message.content.lower() in content
+        return await self.wait_for(
+            "message",
+            check=check,
+            timeout=timeout
+        )
+
+    async def fetch_confirmation(
+        self,
+        ctx: commands.Context,
+        question: str,
+        timeout: int = 30,
+    ) -> bool:
+        """Get a yes or no reaction-based answer."""
+        message = await ctx.send(question)
+        await message.add_reaction("\U00002705")  # ✅
+        await message.add_reaction("\U0000274c")  # ❌
+
+        def check(payload: discord.RawReactionActionEvent) -> bool:
+            """Decide whether or not to process the reaction."""
+            return (
+                payload.message_id,
+                payload.channel_id,
+                payload.user_id,
+            ) == (
+                message.id,
+                message.channel.id,
+                ctx.author.id,
+            ) and payload.emoji.name in {"\U00002705", "\U0000274c"}
+        payload = await self.wait_for(
+            "raw_reaction_add",
+            check=check,
+            timeout=timeout,
+        )
+        return payload.emoji.name == "\U00002705"
+
     @staticmethod
     def get_id(ctx: commands.Context) -> int:
         """Get a context's id."""
