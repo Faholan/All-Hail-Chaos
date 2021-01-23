@@ -1458,6 +1458,8 @@ class Moderation(commands.Cog):
         """Delete swear words."""
         if message.author == self.bot or not message.guild:
             return
+        if message.webhook_id:
+            return
         if message.channel.is_nsfw() or (
                 message.author.guild_permissions.manage_messages):
             return
