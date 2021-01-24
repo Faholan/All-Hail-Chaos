@@ -78,7 +78,7 @@ class Animals(commands.Cog):
     @commands.command(ignore_extra=True)
     async def dog(self, ctx: commands.Context) -> None:
         """Get random dog image."""
-        if choice({True, False}):
+        if choice((True, False)):
             await self.image_sender(
                 ctx,
                 await self.bot.ksoft_client.images.random_image(tag="dog"),
