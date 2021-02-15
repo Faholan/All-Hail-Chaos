@@ -23,8 +23,6 @@ SOFTWARE.
 
 import asyncio
 import re
-import textwrap
-import typing
 
 import discord
 from discord.ext import commands
