@@ -169,10 +169,6 @@ class Custom(commands.Cog):
             )
             return
 
-        if '"""' in effect:
-            await ctx.send(':x: Sorry but """ is forbidden.')
-            return
-
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
                 "SELECT * FROM public.custom WHERE guild_id=$1 AND name=$2",
@@ -276,47 +272,8 @@ class Custom(commands.Cog):
             if not command:
                 return
 
-        name = command["name"]
         effect = command["effect"]
         full_args = command["arguments"]
-        arguments = ", ".join([arg[0] for arg in command["arguments"]])
-        arguments_format = ", ".join(
-            [f"{arg[0]}={arg[0]}" for arg in command["arguments"]]
-        )
-
-        to_compile = textwrap.dedent(
-            f'''
-            async def func(message, {arguments}):
-                return """{effect}""".format(
-                    author=message.author,
-                    guild=message.guild,
-                    server=message.guild,
-                    message=message.content,
-                    {arguments_format}
-                )'''.strip("\n")
-        )
-
-        env: typing.Dict[str, typing.Any] = {}
-
-        try:
-            exec(to_compile, env)
-        except Exception:
-            try:
-                owner = self.bot.get_user(command["owner_id"]) or (
-                    await self.bot.fetch_user(command["owner_id"])
-                )
-                await message.channel.send(
-                    "The custom command raised an error. Please contact "
-                    f"{owner.mention} about that issue"
-                )
-                return
-            except discord.NotFound:
-                await message.channel.send(
-                    "The custom command raised an error"
-                )
-                return
-
-        func = env["func"]
 
         kwargs = {}
         args = message.content.split(" ")[1:]
@@ -346,8 +303,29 @@ class Custom(commands.Cog):
             return
 
         try:
-            await message.channel.send(await func(message, **kwargs))
-        except discord.DiscordException:
+            await message.channel.send(
+                effect.format(
+                    author=message.author,
+                    guild=message.guild,
+                    server=message.guild,
+                    message=message.content,
+                    **kwargs
+                )
+            )
+        except ValueError:
+            try:
+                owner = self.bot.get_user(command["owner_id"]) or (
+                    await self.bot.fetch_user(command["owner_id"])
+                )
+                await message.channel.send(
+                    "The custom command isn't correctly formatted. Please "
+                    f"contact {owner.mention} about that issue"
+                )
+            except discord.NotFound:
+                await message.channel.send(
+                    "The custom command raised an error"
+                )
+        except (discord.DiscordException, KeyError):
             try:
                 owner = self.bot.get_user(command["owner_id"]) or (
                     await self.bot.fetch_user(command["owner_id"])
