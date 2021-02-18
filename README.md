@@ -1,21 +1,40 @@
 # All Hail Chaos
 A bot I developed during quarantine
 
-## How to run a copy of Chaotic Bot
+## How to self host Chaotic Bot
 
+### Docker
+
+**Docker coming soon!**
+
+## Manual configuration and hosting
+
+You're going to need a Discord bot account to run it. Here's how to do it.
+
+### Creating a bot app on discord
+
+- Create bot on Discord's bot portal
+- Make a New Application
+- Go to Bot settings and click on Add Bot
+- Give Administrator permission to bot
+- You will find your bot TOKEN there, it is important that you save it
+- Go to OAuth2 and click bot, than add Administrator permissions
+- You can follow the link that will appear to add the bot to your discord server
+
+### Configuration info
 This bot has only one configuration file, `data/data.py`, that we are going to fill from top to bottom in this guide.
+To use it rename it from `data_sample.py` to `data.py`
 
-First of all, rename the sample file data_example.py to data.py.
+### API Keys
 
-You're going to need a Discord bot account to run it.
+This bot uses various APIs, for which you'll need tokens.
 
-Head to [Discord application](https://discord.com/developers/applications) and create an Application
+- [DiscordRep](https://discordrep.com/)
+- [Ksoft](https://api.ksoft.si/)
+- [NASA](https://www.nasa.gov/)
 
-Create a bot account for that application, and paste the bot's token in the `data.py` file (line 53).
 
-Create a logging channel dedicated to the bot, and paste its id. This is where guild join/leave messages will be sent, as well as error messages.
-
-We will now setup the two external dependencies : PostgreSQL and Lavalink.
+## Additional compulsary dependencies
 
 ### PostgreSQL
 
@@ -37,22 +56,11 @@ If that's not the case, make sure to select a secure password (I personally reco
 To run Lavalink itself, you'll need to do :
 
 ```bash
-
 $ cd All-Hail-Chaos
 $ java -jar Lavalink.jar
 ```
 
 I highly recommend you to setup Ipv6 rotation (see Optional Configuration)
-
-### APIs
-
-This bot uses various APIs, for which you'll need tokens.
-
-- [DiscordRep](https://discordrep.com/)
-- [Ksoft](https://api.ksoft.si/)
-- [NASA](https://www.nasa.gov/)
-
-Follow the instructions in the websites to get tokens. It's a pretty straightforward process
 
 ## Optional configuration
 
@@ -62,7 +70,7 @@ I highly recommend you to create a support server for your bot. The default invi
 
 You can also setup a channel for suggestions, and another for contact.
 
-#### Discord Bot lists
+### Discord Bot lists
 
 There is support for four major bot lists :
 
@@ -71,7 +79,7 @@ There is support for four major bot lists :
 - [Bots on discord](https://bots.ondiscord.xyz/)
 - [Discord Bot List](https://discordbotlist.com/)
 
-#### GitHub
+### GitHub
 
 You can link your fork of this bot, allowing users to setup a hook to get the latest commit informations through the `github` command.
 
@@ -79,13 +87,13 @@ You can link your fork of this bot, allowing users to setup a hook to get the la
 
 You can get detailed statistics of command usage and servers by creating the tables in the `stats.sql` file and enabling the `bin/stats.py` file (un-comment line 49 of data/data.py).
 
-For visualizing this data, I recommend [Grafana](https://grafana.com/), which creates amazing graphs.
+For visualizing this data, I recommend [Grafana](https://grafana.com/), which creates amazing graphs and awesome visualizations.
 
 ### Database manipulation
 
-To manipulate the database, like creating tables, etc..., I recommend you to use `OmniDB`, a web-based solution.
+To manipulate the database, like creating tables, etc.. I recommend you to use `OmniDB`, a web-based solution.
 
-### Ipv6 rotation
+### IPv6 Rotation
 
 Let's end this guide with what I deem the most important point : Ipv6 rotation.
 
@@ -103,9 +111,9 @@ If you don't have one, check [This guide](https://ramblings.fred.moe/2020/3/tunn
 If you have one, assuming it's /64, head to `application.yml` locate those lines and uncomment them :
 
 ```
-    #ratelimit:
-      #ipBlocks: ["1.0.0.0/8", "..."] # list of ip blocks
-      #strategy: "RotateOnBan" # RotateOnBan | LoadBalance | NanoSwitch | RotatingNanoSwitch
+#ratelimit:
+  #ipBlocks: ["1.0.0.0/8", "..."] # list of ip blocks
+  #strategy: "RotateOnBan" # RotateOnBan | LoadBalance | NanoSwitch | RotatingNanoSwitch
 ```
 
 Put your ip Block under ipBlocks, and, for /64, select the strategy "NanoSwitch".
