@@ -87,13 +87,13 @@ You can link your fork of this bot, allowing users to setup a hook to get the la
 
 You can get detailed statistics of command usage and servers by creating the tables in the `stats.sql` file and enabling the `bin/stats.py` file (un-comment line 49 of data/data.py).
 
-For visualizing this data, I recommend [Grafana](https://grafana.com/), which creates amazing graphs.
+For visualizing this data, I recommend [Grafana](https://grafana.com/), which creates amazing graphs and awesome visualizations.
 
 ### Database manipulation
 
-To manipulate the database, like creating tables, etc..., I recommend you to use `OmniDB`, a web-based solution.
+To manipulate the database, like creating tables, etc.. I recommend you to use `OmniDB`, a web-based solution.
 
-### Ipv6 rotation
+### IPv6 Rotation
 
 Let's end this guide with what I deem the most important point : Ipv6 rotation.
 
