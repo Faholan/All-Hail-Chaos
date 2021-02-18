@@ -46,13 +46,22 @@ def setup(bot):
         "bin.error",
         "bin.help",
         "bin.markdown",
-        "bin.stats",
+        # "bin.stats",
     ]
     if bot.first_on_ready:
+        # Discord configuration
+        bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
+
+        bot.log_channel_id = 00000000000000000
+
         bot.postgre_connection = {
             "user": "user",
             "password": "password",
+            "database": "chaotic",
+            "host": "127.0.0.1",
+            "port": 5432,
         }
+
         bot.lavalink_credentials = {
             "host": "127.0.0.1",
             "port": 2233,
@@ -61,33 +70,27 @@ def setup(bot):
             "resume_key": "default_node",
         }
 
-        bot.token = "THE BEAUTIFUL TOKEN OF MY DISCORD BOT"
-
-        bot.http.user_agent = "chaotic_bot"
-        bot.default_prefix = "€"
-
         bot.success_image = (
             "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
         )
 
-        bot.log_channel_id = 00000000000000000
-        bot.suggestion_channel_id = 00000000000000000
-        bot.contact_channel_id = 00000000000000000
-
-        bot.invite_permissions = 808527942
-        bot.support = "https://discord.gg/eFfjdyZ"
-
         bot.ksoft_client = ksoftapi.Client("MY KSOFT.SI TOKEN", bot.loop)
         bot.discord_rep = "MY DISCORDREP TOKEN"
         bot.nasa = "I AM HACKING THE NASA"  # NASA API token
+
+        # Optional configuration
+
+        bot.default_prefix = "€"
+
+        bot.support = "https://discord.gg/eFfjdyZ"
+
+        bot.suggestion_channel_id = 00000000000000000
+        bot.contact_channel_id = 00000000000000000
+
         bot.dbl_token = None  # Discord Bot List Token
         bot.discord_bots = None  # discord.bots.gg Token
         bot.xyz = None  # bots.ondiscord.xyz token
         bot.discord_bot_list = None  # discordbotlist.com token
-
-        bot.github_token = None  # Github token
-        bot.github_repo = None  # Github repo for webhooks
-        bot.github_link = "https://github.com/Faholan/All-Hail-Chaos"
 
         bot.top_gg = "https://top.gg/bot/636359675943583775"  # top.gg page
         bot.bots_on_discord = (
@@ -100,7 +103,15 @@ def setup(bot):
             "https://discordbotlist.com/bots/chaotic-bot"
         )  # discordbotlist.com page
 
-        bot.get_color = lambda: choice([
+        bot.github_token = None  # Github token
+        bot.github_repo = None  # Github repo for webhooks
+        bot.github_link = "https://github.com/Faholan/All-Hail-Chaos"
+
+        bot.http.user_agent = "chaotic_bot"
+
+        bot.invite_permissions = 808527942
+
+        bot.get_color = lambda: choice({
             0x11806a,
             0x2ecc71,
             0x1f8b4c,
@@ -116,4 +127,4 @@ def setup(bot):
             0xa84300,
             0xe74c3c,
             0x992d22,
-        ])
+        })

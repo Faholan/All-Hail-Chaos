@@ -101,8 +101,6 @@ class ChaoticBot(commands.Bot):
         if self.first_on_ready:
             self.first_on_ready = False
             self.pool = await asyncpg.create_pool(
-                database="chaotic",
-                host="127.0.0.1",
                 min_size=20,
                 max_size=100,
                 **self.postgre_connection
