@@ -56,7 +56,7 @@ If that's not the case, make sure to select a secure password (I personally reco
 To run Lavalink itself, you'll need to do :
 
 ```bash
-$ cd All-Hail-Chaos
+$ cd All-Hail-Chaos/lavalink
 $ java -jar Lavalink.jar
 ```
 
@@ -69,6 +69,11 @@ You can change the default bot prefix (it can be changed on a per-guild basis th
 I highly recommend you to create a support server for your bot. The default invite redirects to my server, which you're of course free to join.
 
 You can also setup a channel for suggestions, and another for contact.
+
+### Using systemd to run the bot
+
+If you wish to use systemd as a process manager to run the bot, you can use the config files under the `systemd` folder.
+This will allow it to start automatically on boot, and restart in case you run the `logout` command.
 
 ### Discord Bot lists
 

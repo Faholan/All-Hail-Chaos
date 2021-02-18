@@ -1,0 +1,14 @@
+[Unit]
+Description=Lavalink background task
+After=network.target
+
+[Service]
+WorkingDirectory=/home/user/github/All-Hail-Chaos/lavalink
+User=user
+Group=user
+ExecStart=/usr/bin/java -jar Lavalink.jar
+Type=simple
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Chaotic Bot background task
+Requires=postgresql.service
+Wants=network.target lavalink.service
+After=network.target lavalink.service
+
+[Service]
+WorkingDirectory=/home/user/github/All-Hail-Chaos
+ExecStart=/home/user/github/All-Hail-Chaos/startup.sh
+User=user
+Group=user
+Type=simple
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
