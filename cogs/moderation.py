@@ -501,7 +501,7 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.has_permissions(ban_members=True)
+    @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(
         self,
@@ -614,8 +614,8 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
-    @commands.bot_has_permissions(kick_members=True)
+    @commands.has_guild_permissions(kick_members=True)
+    @commands.bot_has_guild_permissions(kick_members=True)
     async def kick(
         self,
         ctx: commands.Context,
@@ -994,7 +994,7 @@ class Moderation(commands.Cog):
                 )
             else:
                 await database.execute(
-                    'INSERT INTO public.roles VALUES ($1, $2, $3, $5, $4)',
+                    "INSERT INTO public.roles VALUES ($1, $2, $3, $4, $5)",
                     payload.message_id,
                     payload.channel_id,
                     payload.guild_id,
@@ -1452,12 +1452,11 @@ class Moderation(commands.Cog):
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message: discord.Message) -> None:
         """Delete swear words."""
-        if message.author == self.bot or not message.guild:
-            return
-        if message.webhook_id:
+        if message.author == self.bot or isinstance(message.author, discord.User):
             return
         if message.channel.is_nsfw() or (
-                message.author.guild_permissions.manage_messages):
+            message.author.guild_permissions.manage_messages
+        ):
             return
         if not self._swear_conn:
             self._swear_conn = await self.bot.pool.acquire()
