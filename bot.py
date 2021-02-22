@@ -319,7 +319,7 @@ class ChaoticBot(commands.Bot):
         return payload.emoji.name == "\U00002705"
 
     @staticmethod
-    def get_id(ctx: commands.Context) -> int:
+    def get_id(ctx: typing.Union[commands.Context, discord.Message]) -> int:
         """Get a context's id."""
         if ctx.guild:
             return ctx.guild.id
