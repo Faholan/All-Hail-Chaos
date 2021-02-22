@@ -754,6 +754,9 @@ class Utility(commands.Cog):
     async def prefix(self, ctx: commands.Context, *, pref: str = None) -> None:
         """Change the bot's prefix for this guild or private channel."""
         if pref:
+            if pref.startswith(f"{self.bot.default_prefix}help"):
+                await ctx.send(f"You can't use {pref} as a prefix.")
+                return
             async with self.bot.pool.acquire(timeout=5) as database:
                 ctx_id = self.bot.get_id(ctx)
                 await database.execute(
