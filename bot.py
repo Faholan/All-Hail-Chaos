@@ -245,7 +245,8 @@ class ChaoticBot(commands.Bot):
         if message.content.startswith("¤") and not_print:
             return '¤'
         if message.content.startswith(
-                f"{self.default_prefix}help") and not_print:
+            f"{self.default_prefix}help"
+        ) and not_print:
             return self.default_prefix
         return self.prefix_dict.get(
             self.get_id(message),
