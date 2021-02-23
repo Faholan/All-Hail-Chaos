@@ -1405,7 +1405,12 @@ class Moderation(commands.Cog):
             )
             if result:
                 guild = self.bot.get_guild(payload.guild_id)
-                member = guild.get_member(payload.user_id)
+                try:
+                    member = guild.get_member(
+                        payload.user_id
+                    ) or await guild.fetch_member(payload.user_id)
+                except discord.HTTPException:
+                    return
                 roles = (guild.get_role(r) for r in result['roleids'])
                 try:
                     await member.remove_roles(
