@@ -57,6 +57,7 @@ class Custom(commands.Cog):
     @custom.command()
     async def create(self, ctx: commands.Context) -> None:
         """Interactively create a custom command."""
+
         def check(message: discord.Message) -> bool:
             """Check author and channel."""
             if message.author == ctx.author:
@@ -68,9 +69,7 @@ class Custom(commands.Cog):
             name = await self.bot.wait_for("message", check=check)
             name = name.content
         except asyncio.TimeoutError:
-            await ctx.send(
-                "You took too long to reply. I'm aborting this"
-            )
+            await ctx.send("You took too long to reply. I'm aborting this")
             return
 
         if " " in name:
@@ -80,9 +79,7 @@ class Custom(commands.Cog):
             return
 
         if name in self.bot.all_commands:
-            await ctx.send(
-                ":x: Sorry, but a bot command already exists with this name"
-            )
+            await ctx.send(":x: Sorry, but a bot command already exists with this name")
             return
 
         async with self.bot.pool.acquire() as database:
@@ -92,9 +89,7 @@ class Custom(commands.Cog):
                 ctx.guild.id,
             )
             if row:
-                await ctx.send(
-                    f"A custom command named {name} already exists"
-                )
+                await ctx.send(f"A custom command named {name} already exists")
                 return
 
         await ctx.send(
@@ -105,9 +100,7 @@ class Custom(commands.Cog):
             description = await self.bot.wait_for("message", check=check)
             description = description.content
         except asyncio.TimeoutError:
-            await ctx.send(
-                "You took too long to reply. I'm aborting this"
-            )
+            await ctx.send("You took too long to reply. I'm aborting this")
             return
 
         if description == "*":
@@ -124,9 +117,7 @@ class Custom(commands.Cog):
             args = await self.bot.wait_for("message", check=check)
             args = args.content.split(" ")
         except asyncio.TimeoutError:
-            await ctx.send(
-                "You took too long to reply. I'm aborting this"
-            )
+            await ctx.send("You took too long to reply. I'm aborting this")
             return
 
         arguments = []
@@ -145,9 +136,7 @@ class Custom(commands.Cog):
                 raw_type = "str"
 
             if not re.fullmatch("[A-Za-z_][A-Za-z0-9_]+", raw_name):
-                await ctx.send(
-                    f"{raw_name} isn't a valid argument name"
-                )
+                await ctx.send(f"{raw_name} isn't a valid argument name")
                 return
 
             raw_type = self.type_name.get(raw_type.lower(), raw_type.lower())
@@ -162,9 +151,7 @@ class Custom(commands.Cog):
             effect = await self.bot.wait_for("message", check=check)
             effect = effect.content
         except asyncio.TimeoutError:
-            await ctx.send(
-                "You took too long to reply. I'm aborting this"
-            )
+            await ctx.send("You took too long to reply. I'm aborting this")
             return
 
         async with self.bot.pool.acquire() as database:
@@ -174,9 +161,7 @@ class Custom(commands.Cog):
                 name,
             )
             if row:
-                await ctx.send(
-                    f":x: There is already a custom command named {name}"
-                )
+                await ctx.send(f":x: There is already a custom command named {name}")
                 return
             await database.execute(
                 "INSERT INTO public.custom VALUES ($1, $2, $3, $4, $5, $6)",
@@ -225,16 +210,14 @@ class Custom(commands.Cog):
                 ctx.guild.id,
             )
         if not command:
-            await ctx.send(
-                f"No custom command named {name} found in your guild"
-            )
+            await ctx.send(f"No custom command named {name} found in your guild")
             return
         embed = discord.Embed(
             title=f"Informations about custom command {name}",
-            description=command["description"] if command["description"] else (
-                discord.Embed.Empty
-            ),
-            colour=0x00008b,
+            description=command["description"]
+            if command["description"]
+            else (discord.Embed.Empty),
+            colour=0x00008B,
         )
         try:
             owner = ctx.guild.get_member(command["owner_id"]) or (
@@ -307,7 +290,7 @@ class Custom(commands.Cog):
                     guild=message.guild,
                     server=message.guild,
                     message=message.content,
-                    **kwargs
+                    **kwargs,
                 )
             )
         except ValueError:
@@ -320,9 +303,7 @@ class Custom(commands.Cog):
                     f"contact {owner.mention} about that issue"
                 )
             except discord.NotFound:
-                await message.channel.send(
-                    "The custom command raised an error"
-                )
+                await message.channel.send("The custom command raised an error")
         except (discord.DiscordException, KeyError):
             try:
                 owner = self.bot.get_user(command["owner_id"]) or (
@@ -333,9 +314,7 @@ class Custom(commands.Cog):
                     f"{owner.mention} about that issue"
                 )
             except discord.NotFound:
-                await message.channel.send(
-                    "The custom command raised an error"
-                )
+                await message.channel.send("The custom command raised an error")
 
 
 def setup(bot: commands.Bot) -> None:

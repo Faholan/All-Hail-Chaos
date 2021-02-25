@@ -23,21 +23,20 @@ SOFTWARE.
 
 import asyncio
 import codecs
-from datetime import datetime, timedelta
-import os
-from os import path
 import inspect
+import os
 import pathlib
+from datetime import datetime, timedelta
+from os import path
 from sys import version
 from textwrap import dedent
 from typing import Callable
 
 import discord
-from discord.ext import commands, menus, tasks
-from discord.utils import escape_mentions, get, sleep_until
 import humanize
 import psutil
-
+from discord.ext import commands, menus, tasks
+from discord.utils import escape_mentions, get, sleep_until
 
 ZWS = "\u200b"
 
@@ -60,7 +59,7 @@ class SnipeSource(menus.ListPageSource):
                 message_number=menu.current_page + 1,
                 max_number=self.get_max_pages(),
             ),
-            colour=0xffff00,
+            colour=0xFFFF00,
         )
         embed.set_author(
             name=page["author"]["name"],
@@ -82,10 +81,7 @@ class SauceSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page: str):
         """Format the page of code."""
         max_pages = self.get_max_pages()
-        embed = discord.Embed(
-            description=page,
-            colour=discord.Colour.purple()
-        )
+        embed = discord.Embed(description=page, colour=discord.Colour.purple())
         if max_pages > 1:
             embed.set_footer(text=f"Page {menu.current_page + 1}/{max_pages}")
         return embed
@@ -93,11 +89,13 @@ class SauceSource(menus.ListPageSource):
 
 def check_administrator() -> Callable:
     """Check for admin rights."""
+
     def predictate(ctx: commands.Context) -> bool:
         """Process the check."""
         if isinstance(ctx.channel, discord.TextChannel):
             return ctx.channel.permissions_for(ctx.author).administrator
         return True
+
     return commands.check(predictate)
 
 
@@ -180,26 +178,27 @@ class Utility(commands.Cog):
         total = 0
         file_amount = 0
         list_of_files = []
-        for filepath, _, files in os.walk('.'):
+        for filepath, _, files in os.walk("."):
             for name in files:
-                if name.endswith('.py'):
+                if name.endswith(".py"):
                     file_lines = 0
                     file_amount += 1
-                    with codecs.open('./' + str(pathlib.PurePath(
-                            filepath,
-                            name)), 'r', 'utf-8') as file:
+                    with codecs.open(
+                        "./" + str(pathlib.PurePath(filepath, name)
+                                   ), "r", "utf-8"
+                    ) as file:
                         for _, line in enumerate(file):
-                            if line.strip().startswith('#') or len(
-                                    line.strip()) == 0:
+                            if line.strip().startswith("#") or len(line.strip()) == 0:
                                 pass
                             else:
                                 total += 1
                                 file_lines += 1
                     final_path = filepath + path.sep + name
-                    list_of_files.append(final_path.split(
-                        '.' + path.sep
-                    )[-1] + f" : {file_lines} lines")
-        embed = discord.Embed(colour=0xffff00)
+                    list_of_files.append(
+                        final_path.split(
+                            "." + path.sep)[-1] + f" : {file_lines} lines"
+                    )
+        embed = discord.Embed(colour=0xFFFF00)
         embed.add_field(
             name=f"{self.bot.user.name}'s structure",
             value="\n".join(sorted(list_of_files)),
@@ -228,9 +227,7 @@ class Utility(commands.Cog):
             await channel.send(embed=embed)
             await ctx.send("Your message has been successfully sent")
         else:
-            await ctx.send(
-                "Sorry but my owner hasn't correctly configured this"
-            )
+            await ctx.send("Sorry but my owner hasn't correctly configured this")
 
     @commands.command(aliases=["convert"])
     async def currency(
@@ -247,15 +244,10 @@ class Utility(commands.Cog):
                 "wiki/ISO_4217#Active_codes"
             )
         async with self.bot.aio_session.get(
-                'https://api.ksoft.si/kumo/currency',
-                params={
-                    "from": original,
-                    "to": goal,
-                    "value": str(value)
-                },
-                headers={
-                    "Authorization": f"Token {self.bot.ksoft_token}"
-                }) as resp:
+            "https://api.ksoft.si/kumo/currency",
+            params={"from": original, "to": goal, "value": str(value)},
+            headers={"Authorization": f"Token {self.bot.ksoft_token}"},
+        ) as resp:
             data = await resp.json()
         if hasattr(data, "error"):
             return await ctx.send(data["message"])
@@ -279,14 +271,18 @@ class Utility(commands.Cog):
                 )
 
                 def check(message: discord.Message) -> bool:
-                    return message.author == ctx.author and (
-                        message.content.lower().startswith('y') or (
-                            message.content.lower().startswith('n')
+                    return (
+                        message.author == ctx.author
+                        and (
+                            message.content.lower().startswith("y")
+                            or (message.content.lower().startswith("n"))
                         )
-                    ) and message.channel == ctx.channel
+                        and message.channel == ctx.channel
+                    )
+
                 try:
                     msg = await self.bot.wait_for(
-                        'message',
+                        "message",
                         check=check,
                         timeout=30.0,
                     )
@@ -295,7 +291,7 @@ class Utility(commands.Cog):
                 if msg.content.lower().startswith("y"):
                     repo = self.bot.github.get_repo(self.bot.github_repo)
                     for webhook in repo.get_hooks():
-                        if webhook.config['url'].startswith(hook.url):
+                        if webhook.config["url"].startswith(hook.url):
                             webhook.delete()
                             break
                     await hook.delete()
@@ -307,10 +303,8 @@ class Utility(commands.Cog):
             name=f"{self.bot.user.name} GitHub updates"
         )
         repo.create_hook(
-            "web", {
-                "url": hook.url + "/github",
-                "content_type": "json"
-            },
+            "web",
+            {"url": hook.url + "/github", "content_type": "json"},
             [
                 "fork",
                 "create",
@@ -331,17 +325,17 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     async def info(self, ctx: commands.Context) -> None:
         """Get info about me."""
-        delta = datetime.utcnow()-self.bot.last_update
+        delta = datetime.utcnow() - self.bot.last_update
         link = discord.utils.oauth_url(
             str(self.bot.user.id),
-            permissions=discord.Permissions(self.bot.invite_permissions)
+            permissions=discord.Permissions(self.bot.invite_permissions),
         )
         app = await self.bot.application_info()
         embed = discord.Embed(
             title=f"Informations about {self.bot.user}",
             description=(
                 f'[Invite Link]({link} "Please stay at home and use bots")'
-                f'\n[Support Server Invite]({self.bot.support})'
+                f"\n[Support Server Invite]({self.bot.support})"
             ),
             colour=self.bot.get_color(),
         )
@@ -358,9 +352,9 @@ class Utility(commands.Cog):
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.add_field(
             name=f"My owner{'s' if app.team else ''} :",
-            value=", ".join(
-                [str(member) for member in app.team.members]
-            ) if app.team else str(app.owner),
+            value=", ".join([str(member) for member in app.team.members])
+            if app.team
+            else str(app.owner),
             inline=False,
         )
         artist = self.bot.get_user(372336190919147522)
@@ -389,19 +383,18 @@ class Utility(commands.Cog):
         embed.add_field(
             name="GitHub repository",
             value=(
-                f'[It\'s open source !]({self.bot.github_link} "Yeah click me'
-                ' !")'
+                f"[It's open source !]({self.bot.github_link} \"Yeah click me" ' !")'
             ),
         )
         embed.add_field(
             name="Description page :",
             value=(
                 f'[top.gg page]({self.bot.top_gg} "Description on top.gg")\n'
-                f'[bots on discord page]({self.bot.bots_on_discord} '
+                f"[bots on discord page]({self.bot.bots_on_discord} "
                 '"Description on bots on discord")\n'
-                f'[Discord bots page]({self.bot.discord_bots_page} '
+                f"[Discord bots page]({self.bot.discord_bots_page} "
                 '"Description on discord bots")\n'
-                f'[Discord bot list page]({self.bot.discord_bot_list_page} '
+                f"[Discord bot list page]({self.bot.discord_bot_list_page} "
                 '"Description on discord bot list")'
             ),
             inline=False,
@@ -417,7 +410,7 @@ class Utility(commands.Cog):
                 '\n[discord.py](https://discordapp.com/ "More exactly '
                 'discord.ext.commands") : Basically this whole bot\n'
                 '[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : '
-                'Whole NASA Cog'
+                "Whole NASA Cog"
             ),
             inline=False,
         )
@@ -448,8 +441,7 @@ class Utility(commands.Cog):
     @commands.command(ignore_extra=True)
     @commands.guild_only()
     @commands.check_any(
-        commands.is_owner(),
-        commands.has_permissions(administrator=True)
+        commands.is_owner(), commands.has_permissions(administrator=True)
     )
     async def quit(self, ctx: commands.Context) -> None:
         """Make the bot quit the server.
@@ -458,8 +450,7 @@ class Utility(commands.Cog):
         """
         try:
             if await self.bot.fetch_confirmation(
-                ctx,
-                f"Do you really want me to leave {ctx.guild.name} ?"
+                ctx, f"Do you really want me to leave {ctx.guild.name} ?"
             ):
                 await ctx.guild.leave()
         except asyncio.TimeoutError:
@@ -478,9 +469,8 @@ class Utility(commands.Cog):
 
         def check(message: discord.Message) -> bool:
             """Check the message, first version."""
-            return message.author == ctx.author and (
-                message.channel == ctx.channel
-            )
+            return message.author == ctx.author and (message.channel == ctx.channel)
+
         try:
             subj_message = await self.bot.wait_for(
                 "message",
@@ -492,9 +482,7 @@ class Utility(commands.Cog):
         subject = subj_message.content
         messages_to_delete.append(subj_message)
         messages_to_delete.append(
-            await ctx.send(
-                "Now, how many possibilities does your poll have (2-10) ?"
-            )
+            await ctx.send("Now, how many possibilities does your poll have (2-10) ?")
         )
 
         def check2(message: discord.Message) -> bool:
@@ -502,6 +490,7 @@ class Utility(commands.Cog):
             return message.author == ctx.author and (
                 message.channel == ctx.channel and message.content.isdigit()
             )
+
         try:
             num_message = await self.bot.wait_for(
                 "message",
@@ -526,9 +515,7 @@ class Utility(commands.Cog):
                     timeout=120,
                 )
             except asyncio.TimeoutError:
-                return await ctx.send(
-                    "You didn't answer in time. I'm so sad !"
-                )
+                return await ctx.send("You didn't answer in time. I'm so sad !")
             answers.append(message_subj.content)
             messages_to_delete.append(message_subj)
         messages_to_delete.append(
@@ -555,11 +542,7 @@ class Utility(commands.Cog):
 
         days = int(message_days.content)
 
-        messages_to_delete.append(
-            await ctx.send(
-                "How many hours will the poll last ?"
-            )
-        )
+        messages_to_delete.append(await ctx.send("How many hours will the poll last ?"))
 
         try:
             message_hours = await self.bot.wait_for(
@@ -573,9 +556,7 @@ class Utility(commands.Cog):
         hours = int(message_hours.content)
 
         messages_to_delete.append(
-            await ctx.send(
-                "How many minutes will the poll last ?"
-            )
+            await ctx.send("How many minutes will the poll last ?")
         )
 
         try:
@@ -627,8 +608,8 @@ class Utility(commands.Cog):
         message = await ctx.send(embed=embed)
         for i in range(1, min(10, len(answers) + 1)):
             await message.add_reaction(
-                str(i)
-                + "\N{variation selector-16}\N{combining enclosing keycap}"
+                str(i) +
+                "\N{variation selector-16}\N{combining enclosing keycap}"
             )
         if len(answers) == 10:
             await message.add_reaction("\N{keycap ten}")
@@ -645,15 +626,17 @@ class Utility(commands.Cog):
                 subject,
             )
 
-        task = asyncio.create_task(self.poll_generator(
-            message.id,
-            ctx.channel.id,
-            ctx.guild.id,
-            ctx.author.id,
-            timestamp,
-            answers,
-            subject,
-        )())
+        task = asyncio.create_task(
+            self.poll_generator(
+                message.id,
+                ctx.channel.id,
+                ctx.guild.id,
+                ctx.author.id,
+                timestamp,
+                answers,
+                subject,
+            )()
+        )
         self.poll_tasks.append(task)
         for message in messages_to_delete:
             try:
@@ -679,6 +662,7 @@ class Utility(commands.Cog):
         subject: str,
     ):
         """Generate a poll coroutine."""
+
         async def predictate():
             """End the poll."""
             await sleep_until(timestamp)
@@ -697,18 +681,19 @@ class Utility(commands.Cog):
                 if i != 9:
                     reaction = get(
                         message.reactions,
-                        emoji=str(i + 1) + (
-                            "\N{variation selector-16}"
-                            "\N{combining enclosing keycap}"
+                        emoji=str(i + 1)
+                        + (
+                            "\N{variation selector-16}" "\N{combining enclosing keycap}"
                         ),
                     )
                     if reaction:
-                        final.append((
-                            reaction.count - 1 if reaction.me else (
-                                reaction.count
-                            ),
-                            j,
-                        ))
+                        final.append(
+                            (
+                                reaction.count -
+                                1 if reaction.me else (reaction.count),
+                                j,
+                            )
+                        )
                     else:
                         final.append((0, j))
                 else:
@@ -717,12 +702,13 @@ class Utility(commands.Cog):
                         emoji="\N{keycap ten}",
                     )
                     if reaction:
-                        final.append((
-                            reaction.count - 1 if reaction.me else (
-                                reaction.count
-                            ),
-                            j,
-                        ))
+                        final.append(
+                            (
+                                reaction.count -
+                                1 if reaction.me else (reaction.count),
+                                j,
+                            )
+                        )
                     else:
                         final.append((0, j))
             final = sorted(final, key=lambda two: two[0], reverse=True)
@@ -747,6 +733,7 @@ class Utility(commands.Cog):
                     inline=False,
                 )
             await channel.send(embed=embed)
+
         return predictate
 
     @commands.command()
@@ -767,8 +754,7 @@ class Utility(commands.Cog):
                 )
                 self.bot.prefix_dict[ctx_id] = pref
                 return await ctx.send(
-                    "Prefix changed to "
-                    f"`{discord.utils.escape_markdown(pref)}`"
+                    "Prefix changed to " f"`{discord.utils.escape_markdown(pref)}`"
                 )
         old_prefix = discord.utils.escape_markdown(
             await self.bot.get_m_prefix(ctx.message, False)
@@ -830,9 +816,8 @@ class Utility(commands.Cog):
         else:
             await ctx.send("I don't have any record for this channel yet")
 
-    @commands.Cog.listener('on_message_edit')
-    async def snipe_edit(
-            self, before: discord.Message, after: discord.Message) -> None:
+    @commands.Cog.listener("on_message_edit")
+    async def snipe_edit(self, before: discord.Message, after: discord.Message) -> None:
         """Log edited messages."""
         if before.content != after.content:
             embed_dicts = self.snipe_list.get(before.channel.id, [])
@@ -840,13 +825,11 @@ class Utility(commands.Cog):
                 "title": "Message edited ({message_number}/{max_number})",
                 "author": {
                     "name": str(before.author),
-                    "icon_url": str(before.author.avatar_url)
+                    "icon_url": str(before.author.avatar_url),
                 },
                 "fields": [],
             }
-            original = before.content.replace(
-                "```", f"`{ZWS}`{ZWS}`"
-            )[:1016]
+            original = before.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
             embed_dict["fields"] += [
                 {
                     "name": "Original message",
@@ -854,9 +837,7 @@ class Utility(commands.Cog):
                 }
             ]
 
-            new = after.content.replace(
-                "```", f"`{ZWS}`{ZWS}`"
-            )[:1016]
+            new = after.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
             embed_dict["fields"] += [
                 {
                     "name": "Edited message",
@@ -868,7 +849,7 @@ class Utility(commands.Cog):
             embed_dicts = [embed_dict] + embed_dicts
             self.snipe_list[before.channel.id] = embed_dicts[:20]
 
-    @commands.Cog.listener('on_message_delete')
+    @commands.Cog.listener("on_message_delete")
     async def snipe_delete(self, message: discord.Message) -> None:
         """Log deleted messages."""
         if message.content:
@@ -877,13 +858,11 @@ class Utility(commands.Cog):
                 "title": "Message deleted ({message_number}/{max_number})",
                 "author": {
                     "name": str(message.author),
-                    "icon_url": str(message.author.avatar_url)
+                    "icon_url": str(message.author.avatar_url),
                 },
                 "fields": [],
             }
-            content = message.content.replace(
-                "```", f"`{ZWS}`{ZWS}`"
-            )[:1016]
+            content = message.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
             embed_dict["fields"] += [
                 {
                     "name": "Original message",
@@ -910,9 +889,8 @@ class Utility(commands.Cog):
         embed = discord.Embed(
             title=f"Suggestion for **{subject}**",
             description=(
-                f"Subject of <@{ctx.author.id}>'s suggestion : {subject}"
-            ),
-            colour=0xffff00,
+                f"Subject of <@{ctx.author.id}>'s suggestion : {subject}"),
+            colour=0xFFFF00,
         )
         embed.set_author(
             name=str(ctx.author),
@@ -940,8 +918,7 @@ class Utility(commands.Cog):
     async def xyz(self):
         """Update the profile on bots.ondiscord.xyz."""
         await self.bot.aio_session.post(
-            "https://bots.ondiscord.xyz/bot-api/bots/"
-            f"{self.bot.user.id}/guilds",
+            "https://bots.ondiscord.xyz/bot-api/bots/" f"{self.bot.user.id}/guilds",
             json={"guildCount": len(self.bot.guilds)},
             headers={"Authorization": self.bot.xyz},
         )

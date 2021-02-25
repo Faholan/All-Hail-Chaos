@@ -73,8 +73,9 @@ class NASA(commands.Cog):
     async def apod_update(self) -> None:
         """Update the APOD in the cache."""
         async with self.bot.aio_session.get(
-                "https://api.nasa.gov/planetary/apod",
-                params={"hd": "True", "api_key": self.api_key}) as response:
+            "https://api.nasa.gov/planetary/apod",
+            params={"hd": "True", "api_key": self.api_key},
+        ) as response:
             self.apod_pic = await response.json()
 
     @commands.command(ignore_extra=True)
@@ -91,8 +92,7 @@ class NASA(commands.Cog):
             else:
                 preview = self.apod_pic.get("url").split("=")[-1]
             embed.set_image(
-                url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg"
-            )
+                url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
             embed.description += (
                 "\nWatch the video using [This link]("
                 f'{self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
@@ -111,7 +111,8 @@ class NASA(commands.Cog):
         You can specify a maximum number of images to retrieve (default : 1)
         """
         async with self.bot.aio_session.get(
-                "https://epic.gsfc.nasa.gov/api/images.php") as response:
+            "https://epic.gsfc.nasa.gov/api/images.php"
+        ) as response:
             json = await response.json()
             for i in range(min(max_n, len(json))):
                 embed = discord.Embed(
@@ -147,12 +148,11 @@ class NASA(commands.Cog):
         if rover.lower() not in {"curiosity", "opportunity", "spirit"}:
             return await ctx.send("Sorry but this rover doesn't exist")
         async with self.bot.aio_session.get(
-                "https://api.nasa.gov/mars-photos/api/v1/rovers/"
-                + rover.lower()+"/photos",
-                params={
-                    "earth_date": date,
-                    "api_key": self.api_key
-                }) as response:
+            "https://api.nasa.gov/mars-photos/api/v1/rovers/"
+            + rover.lower()
+            + "/photos",
+            params={"earth_date": date, "api_key": self.api_key},
+        ) as response:
             images = await response.json()
             if not images.get("photos"):
                 return await self.bot.httpcat(
@@ -181,15 +181,15 @@ class NASA(commands.Cog):
     async def nasasearch(self, ctx: commands.Context, *, query: str) -> None:
         """Search for an image in the NASA database."""
         async with self.bot.aio_session.get(
-                "https://images-api.nasa.gov/search",
-                params={"q": query, "media_type": "image"}) as result:
+            "https://images-api.nasa.gov/search",
+            params={"q": query, "media_type": "image"},
+        ) as result:
             jresult = await result.json()
         try:
             data = jresult["collection"]["items"][0]["data"][0]
         except (KeyError, IndexError):
             return await ctx.send(
-                "I didn't find anything for your query "
-                f"`{escape_markdown(query)}`"
+                "I didn't find anything for your query " f"`{escape_markdown(query)}`"
             )
         converter = self.bot.markdownhtml()
         description = converter.feed(data["description"])
@@ -202,8 +202,8 @@ class NASA(commands.Cog):
             url=f"https://images.nasa.gov/details-{data['nasa_id']}",
         )
         async with self.bot.aio_session.get(
-                "https://images-api.nasa.gov/asset/" + data["nasa_id"]
-                ) as imageq:
+            "https://images-api.nasa.gov/asset/" + data["nasa_id"]
+        ) as imageq:
             imagej = await imageq.json()
         embed.set_image(url=imagej["collection"]["items"][0]["href"])
         await ctx.send(embed=embed)
