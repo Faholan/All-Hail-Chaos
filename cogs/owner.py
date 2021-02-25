@@ -22,11 +22,11 @@ SOFTWARE.
 """
 
 import asyncio
-from contextlib import redirect_stdout
 import io
 import textwrap
 import traceback
 import typing
+from contextlib import redirect_stdout
 
 import discord
 from discord.ext import commands
@@ -50,11 +50,11 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     def cleanup_code(content: str) -> str:
         """Automatically removes code blocks from the code."""
         # remove ```py\n```
-        if content.startswith('```') and content.endswith('```'):
-            return '\n'.join(content.split('\n')[1:-1])
+        if content.startswith("```") and content.endswith("```"):
+            return "\n".join(content.split("\n")[1:-1])
 
         # remove `foo`
-        return content.strip('` \n')
+        return content.strip("` \n")
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         """Decide if you can run the command."""
@@ -62,8 +62,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             return True
         raise OwnerError()
 
-    async def cog_command_error(
-            self, ctx: commands.Context, error: Exception) -> None:
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         """Call that on error."""
         if isinstance(error, OwnerError):
             await ctx.bot.httpcat(
@@ -80,17 +79,17 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             asyncio.create_task(self.bot.pool.release(self._stat_conn))
         self.bot.remove_listener(self.stats_listener)
 
-    @commands.command(name='eval')
+    @commands.command(name="eval")
     async def _eval(self, ctx: commands.Context, *, body: str) -> None:
         """Evaluate a Python code."""
         env = {
-            'bot': self.bot,
-            'ctx': ctx,
-            'channel': ctx.channel,
-            'author': ctx.author,
-            'guild': ctx.guild,
-            'message': ctx.message,
-            '_': self._last_result
+            "bot": self.bot,
+            "ctx": ctx,
+            "channel": ctx.channel,
+            "author": ctx.author,
+            "guild": ctx.guild,
+            "message": ctx.message,
+            "_": self._last_result,
         }
 
         env.update(globals())
@@ -103,31 +102,29 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         try:
             exec(to_compile, env)
         except Exception as error:
-            await ctx.send(
-                f'```py\n{error.__class__.__name__}: {error}\n```'
-            )
+            await ctx.send(f"```py\n{error.__class__.__name__}: {error}\n```")
             return
 
-        func = env['func']
+        func = env["func"]
         try:
             with redirect_stdout(stdout):
                 ret = await func()
         except Exception:
             value = stdout.getvalue()
-            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+            await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
         else:
             value = stdout.getvalue()
             try:
-                await ctx.message.add_reaction('\u2705')
+                await ctx.message.add_reaction("\u2705")
             except discord.DiscordException:
                 pass
 
             if ret is None:
                 if value:
-                    await ctx.send(f'```py\n{value}\n```')
+                    await ctx.send(f"```py\n{value}\n```")
             else:
                 self._last_result = ret
-                await ctx.send(f'```py\n{value}{ret}\n```')
+                await ctx.send(f"```py\n{value}{ret}\n```")
 
     @commands.command()
     async def system(
@@ -143,7 +140,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             return
         async with self.bot.pool.acquire() as database:
             result = await database.fetchrow(
-                'SELECT * FROM block WHERE id=$1',
+                "SELECT * FROM block WHERE id=$1",
                 user.id,
             )
             if result:
@@ -181,16 +178,14 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
     @commands.command(ignore_extra=True)
     async def logout(self, ctx: commands.Context) -> None:
         """Kill the bot."""
-        await ctx.send('Logging out...')
+        await ctx.send("Logging out...")
         await self.bot.close()
 
     @commands.command(ignore_extra=True)
     async def load(self, ctx: commands.Context, *extensions) -> None:
         """Load an extension."""
         if not extensions:
-            await ctx.send(
-                "Please specify at least one extension to unload"
-            )
+            await ctx.send("Please specify at least one extension to unload")
             return
         total_ext = len(extensions)
         report = []
@@ -223,7 +218,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 f"{'extension was' if failure == 1 else 'extensions were'}"
                 " not loaded"
             ),
-            description='\n'.join(report),
+            description="\n".join(report),
             colour=discord.Color.green(),
         )
         await self.bot.log_channel.send(embed=embed)
@@ -292,9 +287,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             await ctx.send("You shouldn't unload me")
             return
         if not extensions:
-            await ctx.send(
-                "Please specify at least one extension to unload"
-            )
+            await ctx.send("Please specify at least one extension to unload")
             return
         total_ext = len(extensions)
         report = []
@@ -316,7 +309,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 f"{'extension was' if failure == 1 else 'extensions were'} "
                 "not unloaded"
             ),
-            description='\n'.join(report),
+            description="\n".join(report),
             colour=discord.Color.green(),
         )
         await self.bot.log_channel.send(embed=embed)

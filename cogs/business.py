@@ -33,19 +33,19 @@ def p_vol(streak: int) -> int:
     return 75 - (25 * 0.8 ** streak)
 
 
-class Businessguy():
+class Businessguy:
     """A guy that does business lol."""
 
     def __init__(self, sql: dict, user: discord.User, database) -> None:
         """Initialize the guy."""
         self.database = database
         if sql:
-            self.money = sql['money']
-            self.bank = sql['bank']
-            self.bank_max = sql['bank_max']
-            self.streak = sql['streak']
-            self.last_daily = sql['last_daily']
-            self.steal_streak = sql['steal_streak']
+            self.money = sql["money"]
+            self.bank = sql["bank"]
+            self.bank_max = sql["bank_max"]
+            self.streak = sql["streak"]
+            self.last_daily = sql["last_daily"]
+            self.steal_streak = sql["steal_streak"]
         else:
             self.money = 0
             self.bank = 0
@@ -95,10 +95,10 @@ class Businessguy():
 
     def money_out(self) -> discord.Embed:
         """How much money do I have."""
-        embed = discord.Embed(title=f"{self.name}'s bank :", colour=0x00008b)
+        embed = discord.Embed(title=f"{self.name}'s bank :", colour=0x00008B)
         embed.set_author(name=self.name, icon_url=self.avatar_url)
-        embed.add_field(name='Banked :', value=f"{self.bank}/{self.bank_max}")
-        embed.add_field(name='Pocketed :', value=str(self.money))
+        embed.add_field(name="Banked :", value=f"{self.bank}/{self.bank_max}")
+        embed.add_field(name="Pocketed :", value=str(self.money))
         return embed
 
     async def deposit(self, money: int) -> str:
@@ -174,9 +174,8 @@ class Business(commands.Cog):
         """Get the guild's 500 GP of daily gift."""
         async with self.bot.pool.acquire(timeout=5) as database:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database),
-                ctx.author,
-                database)
+                await self._fetcher(ctx.author.id, database), ctx.author, database
+            )
             await ctx.send(await business.gift(ctx.guild.name))
 
     @commands.command(ignore_extra=True)
@@ -214,9 +213,7 @@ class Business(commands.Cog):
             )
             if pickpocket == stolen:
                 self.steal.reset_cooldown(ctx)
-                await ctx.send(
-                    "Are you seriously tring to steal yourself ?"
-                )
+                await ctx.send("Are you seriously tring to steal yourself ?")
                 return
             if stolen.money == 0:
                 self.steal.reset_cooldown(ctx)

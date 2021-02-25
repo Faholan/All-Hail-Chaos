@@ -36,31 +36,26 @@ def check_channel(channel: discord.abc.Messageable) -> bool:
 
 def sha(message: str) -> str:
     """Use SHA-256 to hash a string."""
+
     def sha_et(part1: str, part2: str) -> str:
-        return "".join([
-            str(int(part1[i]) and int(part2[i])) for i in range(len(part1))
-        ])
+        return "".join(
+            [str(int(part1[i]) and int(part2[i])) for i in range(len(part1))]
+        )
 
     def sha_ou(part1: str, part2: str) -> str:
-        return "".join([
-            str(int(part1[i]) or int(part2[i])) for i in range(len(part1))
-        ])
+        return "".join([str(int(part1[i]) or int(part2[i])) for i in range(len(part1))])
 
     def sha_xor(part1: str, part2: str) -> str:
-        return "".join([
-            str(int(part1[i]) ^ int(part2[i])) for i in range(len(part1))
-        ])
+        return "".join([str(int(part1[i]) ^ int(part2[i])) for i in range(len(part1))])
 
     def complement(part1: str) -> str:
-        return "".join([
-            str((int(part1[i]) + 1) % 2) for i in range(len(part1))
-        ])
+        return "".join([str((int(part1[i]) + 1) % 2) for i in range(len(part1))])
 
     def dec_g(part1: str, number: int) -> str:
         return part1[number:] + "0" * number
 
     def dec_d(part1: str, number: int) -> str:
-        return "0" * number + part1[:len(part1) - number]
+        return "0" * number + part1[: len(part1) - number]
 
     def sha_shr(number: int, part1: str) -> str:
         return dec_g(part1, number)
@@ -102,99 +97,99 @@ def sha(message: str) -> str:
         )
 
     constants_k = [
-        '428a2f98',
-        '71374491',
-        'b5c0fbcf',
-        'e9b5dba5',
-        '3956c25b',
-        '59f111f1',
-        '923f82a4',
-        'ab1c5ed5',
-        'd807aa98',
-        '12835b01',
-        '243185be',
-        '550c7dc3',
-        '72be5d74',
-        '80deb1fe',
-        '9bdc06a7',
-        'c19bf174',
-        'e49b69c1',
-        'efbe4786',
-        '0fc19dc6',
-        '240ca1cc',
-        '2de92c6f',
-        '4a7484aa',
-        '5cb0a9dc',
-        '76f988da',
-        '983e5152',
-        'a831c66d',
-        'b00327c8',
-        'bf597fc7',
-        'c6e00bf3',
-        'd5a79147',
-        '06ca6351',
-        '14292967',
-        '27b70a85',
-        '2e1b2138',
-        '4d2c6dfc',
-        '53380d13',
-        '650a7354',
-        '766a0abb',
-        '81c2c92e',
-        '92722c85',
-        'a2bfe8a1',
-        'a81a664b',
-        'c24b8b70',
-        'c76c51a3',
-        'd192e819',
-        'd6990624',
-        'f40e3585',
-        '106aa070',
-        '19a4c116',
-        '1e376c08',
-        '2748774c',
-        '34b0bcb5',
-        '391c0cb3',
-        '4ed8aa4a',
-        '5b9cca4f',
-        '682e6ff3',
-        '748f82ee',
-        '78a5636f',
-        '84c87814',
-        '8cc70208',
-        '90befffa',
-        'a4506ceb',
-        'bef9a3f7',
-        'c67178f2',
+        "428a2f98",
+        "71374491",
+        "b5c0fbcf",
+        "e9b5dba5",
+        "3956c25b",
+        "59f111f1",
+        "923f82a4",
+        "ab1c5ed5",
+        "d807aa98",
+        "12835b01",
+        "243185be",
+        "550c7dc3",
+        "72be5d74",
+        "80deb1fe",
+        "9bdc06a7",
+        "c19bf174",
+        "e49b69c1",
+        "efbe4786",
+        "0fc19dc6",
+        "240ca1cc",
+        "2de92c6f",
+        "4a7484aa",
+        "5cb0a9dc",
+        "76f988da",
+        "983e5152",
+        "a831c66d",
+        "b00327c8",
+        "bf597fc7",
+        "c6e00bf3",
+        "d5a79147",
+        "06ca6351",
+        "14292967",
+        "27b70a85",
+        "2e1b2138",
+        "4d2c6dfc",
+        "53380d13",
+        "650a7354",
+        "766a0abb",
+        "81c2c92e",
+        "92722c85",
+        "a2bfe8a1",
+        "a81a664b",
+        "c24b8b70",
+        "c76c51a3",
+        "d192e819",
+        "d6990624",
+        "f40e3585",
+        "106aa070",
+        "19a4c116",
+        "1e376c08",
+        "2748774c",
+        "34b0bcb5",
+        "391c0cb3",
+        "4ed8aa4a",
+        "5b9cca4f",
+        "682e6ff3",
+        "748f82ee",
+        "78a5636f",
+        "84c87814",
+        "8cc70208",
+        "90befffa",
+        "a4506ceb",
+        "bef9a3f7",
+        "c67178f2",
     ]
     constants_k = [bin(int(i, base=16))[2:] for i in constants_k]
-    constants_k = ['0' * (32 - len(i)) + i for i in constants_k]
+    constants_k = ["0" * (32 - len(i)) + i for i in constants_k]
 
     list_h = [
-        '6a09e667',
-        'bb67ae85',
-        '3c6ef372',
-        'a54ff53a',
-        '510e527f',
-        '9b05688c',
-        '1f83d9ab',
-        '5be0cd19'
+        "6a09e667",
+        "bb67ae85",
+        "3c6ef372",
+        "a54ff53a",
+        "510e527f",
+        "9b05688c",
+        "1f83d9ab",
+        "5be0cd19",
     ]
     list_h = [bin(int(i, base=16))[2:] for i in list_h]
-    list_h = ['0' * (32 - len(i)) + i for i in list_h]
+    list_h = ["0" * (32 - len(i)) + i for i in list_h]
 
     if not isinstance(message, str):
-        raise TypeError('Message must be of type str')
+        raise TypeError("Message must be of type str")
 
-    message = bin(int(bytes(message, encoding='utf-8').hex(), base=16))[2:]
+    message = bin(int(bytes(message, encoding="utf-8").hex(), base=16))[2:]
 
     completion = bin(len(message))[2:]
-    completion = '0' * (64 - len(completion)) + completion
+    completion = "0" * (64 - len(completion)) + completion
 
-    message += '1' + '0' * ((447 - len(message)) % 512) + completion
+    message += "1" + "0" * ((447 - len(message)) % 512) + completion
 
     M = [
-        [message[i:i + 512][32 * j:32 * (j + 1)] for j in range(16)]
+        [message[i: i + 512][32 * j: 32 * (j + 1)] for j in range(16)]
         for i in range(0, len(message), 512)
     ]
 
@@ -203,13 +198,14 @@ def sha(message: str) -> str:
         for t in range(16, 64):
             w = bin(
                 (
-                    int(sha_o_1(W[t-2]), base=2)
-                    + int(W[t-7], base=2)
+                    int(sha_o_1(W[t - 2]), base=2)
+                    + int(W[t - 7], base=2)
                     + int(sha_o_0(W[t - 15]), base=2)
                     + int(W[t - 16], base=2)
-                ) % 2 ** 32
+                )
+                % 2 ** 32
             )[2:]
-            W.append('0' * (32 - len(w)) + w)
+            W.append("0" * (32 - len(w)) + w)
         a, b, c, d, e, f, g, h = list_h
         for t in range(64):
             T1 = bin(
@@ -217,44 +213,29 @@ def sha(message: str) -> str:
                     int(h, base=2)
                     + int(sha_e_1(e), base=2)
                     + int(sha_ch(e, f, g), base=2)
-                    + int(constants_k[t], base=2) + int(W[t], base=2)
-                ) % 2 ** 32
+                    + int(constants_k[t], base=2)
+                    + int(W[t], base=2)
+                )
+                % 2 ** 32
             )[2:]
-            T1 = '0' * (32 - len(T1)) + T1
+            T1 = "0" * (32 - len(T1)) + T1
             T2 = bin(
-                (
-                    int(sha_e_0(a), base=2)
-                    + int(sha_maj(a, b, c), base=2)
-                ) % 2 ** 32
+                (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) % 2 ** 32
             )[2:]
-            T2 = '0' * (32 - len(T2)) + T2
+            T2 = "0" * (32 - len(T2)) + T2
             h, g, f = g, f, e
-            e = bin(
-                (
-                    int(d, base=2)
-                    + int(T1, base=2)
-                ) % 2 ** 32
-            )[2:]
-            e = '0' * (32 - len(e)) + e
+            e = bin((int(d, base=2) + int(T1, base=2)) % 2 ** 32)[2:]
+            e = "0" * (32 - len(e)) + e
             d, c, b = c, b, a
-            a = bin(
-                (
-                    int(T1, base=2)
-                    + int(T2, base=2)
-                ) % 2 ** 32
-            )[2:]
-            a = '0' * (32 - len(a)) + a
+            a = bin((int(T1, base=2) + int(T2, base=2)) % 2 ** 32)[2:]
+            a = "0" * (32 - len(a)) + a
         for j in range(8):
             list_h[j] = bin(
-                (
-                    int([a, b, c, d, e, f, g, h][i], base=2)
-                    + int(list_h[j], base=2)
-                ) % 2 ** 32
+                (int([a, b, c, d, e, f, g, h][i], base=2) + int(list_h[j], base=2))
+                % 2 ** 32
             )[2:]
-            list_h[j] = '0' * (32 - len(list_h[j])) + list_h[j]
-    return ''.join(
-        [hex(int(list_h[i], base=2))[2:] for i in range(len(list_h))]
-    )
+            list_h[j] = "0" * (32 - len(list_h[j])) + list_h[j]
+    return "".join([hex(int(list_h[i], base=2))[2:] for i in range(len(list_h))])
 
 
 class Pic:
@@ -349,14 +330,12 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def koala(self, ctx) -> None:
         """Get a random picture of a koala."""
         async with self.bot.aio_session.get(
-                "https://some-random-api.ml/img/koala"
+            "https://some-random-api.ml/img/koala"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    title="Random Koala",
-                    color=discord.Color.gold()
-                )
+                    title="Random Koala", color=discord.Color.gold())
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
@@ -372,14 +351,11 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def image_nsfw(self, ctx: commands.Context) -> None:
         """Retrieve the list of all available NSFW tags."""
         tag_list = await self.bot.ksoft_client.images.tags()
-        embed = discord.Embed(
-            timestamp=datetime.utcnow(),
-            color=self.bot.get_color()
-        )
-        embed.add_field(name="NSFW tags", value='\n'.join(tag_list.nsfw_tags))
+        embed = discord.Embed(timestamp=datetime.utcnow(),
+                              color=self.bot.get_color())
+        embed.add_field(name="NSFW tags", value="\n".join(tag_list.nsfw_tags))
         embed.set_author(
-            name=ctx.author.display_name,
-            icon_url=str(ctx.author.avatar_url)
+            name=ctx.author.display_name, icon_url=str(ctx.author.avatar_url)
         )
         await ctx.send(embed=embed)
 
@@ -406,9 +382,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         """
         async with self.bot.aio_session.get(
             "https://api.ksoft.si/images/random-nsfw",
-            headers={
-                "Authorization": f"Bearer {self.bot.ksoft_client.api_key}"
-            }
+            headers={"Authorization": f"Bearer {self.bot.ksoft_client.api_key}"},
         ) as response:
             await self.reddit_sender(
                 ctx,
@@ -443,9 +417,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
-                await ctx.send(
-                    f"Something went boom! :( [CODE: {resp.status}]"
-                )
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
                 await self.bot.log_channel.send(f"Code {resp.status} in panda")
 
     @commands.command(ignore_extra=True)
@@ -459,15 +431,12 @@ class Images(commands.Cog):  # Thanks KSoft.si
 
         This command may return NSFW results only in NSFW channels
         """
-        sub = subreddit.split('r/')[-1]
+        sub = subreddit.split("r/")[-1]
         try:
             async with self.bot.aio_session.get(
                 f"https://api.ksoft.si/images/rand-reddit/{sub}",
-                headers={
-                    "Authorization": (
-                        f"Bearer {self.bot.ksoft_client.api_key}"
-                    )
-                },
+                headers={"Authorization": (
+                    f"Bearer {self.bot.ksoft_client.api_key}")},
                 params={
                     "remove_nsfw": str(not check_channel(ctx.channel)),
                     "span": "week",
@@ -507,10 +476,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def rand_im(self, tag: str, nsfw: bool = False) -> object:
         """Random image lol."""
         try:
-            return await self.bot.ksoft_client.images.random_image(
-                tag=tag,
-                nsfw=nsfw
-            )
+            return await self.bot.ksoft_client.images.random_image(tag=tag, nsfw=nsfw)
         except Exception:
             return PicError()
 
@@ -541,14 +507,14 @@ class Images(commands.Cog):  # Thanks KSoft.si
         if not image.image_url:
             return await self.bot.httpcat(ctx, 404)
         embed.set_image(url=image.image_url)
-        embed.set_footer(text=(
-            f"👍 {image.upvotes} | 👎 {image.downvotes} |"
-            f" 💬 {image.comments}"
-        ))
+        embed.set_footer(
+            text=(
+                f"👍 {image.upvotes} | 👎 {image.downvotes} |" f" 💬 {image.comments}")
+        )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
             icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",
-            url="https://reddit.com"+image.author,
+            url="https://reddit.com" + image.author,
         )
         await ctx.send(embed=embed)
 
