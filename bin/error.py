@@ -44,7 +44,7 @@ def secondes(num_seconds: int) -> str:
         num_seconds %= 60
     if num_seconds > 0:
         human_readable.append(f"{num_seconds} seconds")
-    return ', '.join(human_readable)
+    return ", ".join(human_readable)
 
 
 async def error_manager(
@@ -75,7 +75,7 @@ async def error_manager(
             commands.BucketType.channel: "channel",
             commands.BucketType.member: "member",
             commands.BucketType.category: "category",
-            commands.BucketType.role: "role"
+            commands.BucketType.role: "role",
         }
         await ctx.bot.httpcat(
             ctx,
@@ -84,21 +84,17 @@ async def error_manager(
                 f"This command can only be used {error.number} "
                 f"time{'s' if error.number > 1 else ''} per {pers[error.per]} "
                 "concurrently."
-            )
+            ),
         )
     elif isinstance(error, commands.MissingRequiredArgument):
         returned = True
         await ctx.bot.httpcat(
-            ctx,
-            400,
-            f"Hmmmm, looks like an argument is missing : {error.param.name}"
+            ctx, 400, f"Hmmmm, looks like an argument is missing : {error.param.name}"
         )
     elif isinstance(error, commands.PrivateMessageOnly):
         returned = True
         await ctx.bot.httpcat(
-            ctx,
-            403,
-            "You must be in a private channel to use this command."
+            ctx, 403, "You must be in a private channel to use this command."
         )
     elif isinstance(error, commands.NoPrivateMessage):
         returned = True
@@ -146,8 +142,8 @@ async def error_manager(
             ctx,
             401,
             "\n-".join(
-                ["Try again with the following permission(s) :"]
-                + error.missing_perms
+                ["Try again with the following permission(s) :"] +
+                error.missing_perms
             ),
         )
     elif isinstance(error, commands.BotMissingPermissions):
@@ -190,7 +186,7 @@ async def error_manager(
         await ctx.bot.httpcat(
             ctx,
             400,
-            "You must separate the quoted argument from the others with spaces"
+            "You must separate the quoted argument from the others with spaces",
         )
     elif isinstance(error, commands.ExpectedClosingQuoteError):
         returned = True
@@ -234,9 +230,7 @@ async def error_manager(
     elif isinstance(ctx.channel, discord.DMChannel):
         embed.description += f"\nin a Private Channel ({ctx.channel.id})"
     else:
-        embed.description += (
-            f"\nin the Group {ctx.channel.name} ({ctx.channel.id})"
-        )
+        embed.description += f"\nin the Group {ctx.channel.name} ({ctx.channel.id})"
     formatted_traceback = "".join(traceback.format_tb(error.__traceback__))
     embed.description += f"```\n{formatted_traceback}```"
     embed.set_footer(
@@ -254,6 +248,7 @@ async def error_manager(
 
 def generator(bot: commands.Bot) -> Callable:
     """Generate an on_error for the bot."""
+
     async def predictate(event: str, *args, **kwargs) -> None:
         """Process the on_error event."""
         if event == "on_command_error" or not bot.log_channel:
@@ -277,10 +272,11 @@ def generator(bot: commands.Bot) -> Callable:
             pass
         await bot.log_channel.send("Please check the Python logs")
         raise
+
     return predictate
 
 
 def setup(bot: commands.Bot) -> None:
     """Add error managing."""
-    bot.add_listener(error_manager, 'on_command_error')
+    bot.add_listener(error_manager, "on_command_error")
     bot.on_error = generator(bot)

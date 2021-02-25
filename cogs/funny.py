@@ -22,9 +22,9 @@ SOFTWARE.
 """
 
 import asyncio
-from os import path
-from random import randint, choice
 import typing
+from os import path
+from random import choice, randint
 
 import discord
 from discord.ext import commands
@@ -38,7 +38,7 @@ with open(f"data{path.sep}weapons.txt", "r", encoding="utf-8") as file:
     weapons = file.readlines()
 
 
-class Fighter():  # Class for the fight command
+class Fighter:  # Class for the fight command
     """Imma hit you."""
 
     def __init__(self, user) -> None:
@@ -52,16 +52,7 @@ class Fighter():  # Class for the fight command
     def hit(self, weapon, pbonus=0) -> tuple:
         """Ouch you hit me."""
         if len(weapon) == 8:
-            (
-                name,
-                touche,
-                min_damage,
-                max_damage,
-                prob,
-                rate,
-                url,
-                url2
-            ) = weapon
+            (name, touche, min_damage, max_damage, prob, rate, url, url2) = weapon
         elif len(weapon) == 7:
             name, touche, min_damage, max_damage, prob, rate, url = weapon
             url2 = url
@@ -117,7 +108,7 @@ def combustion(
             "{attacking} suddenly bursts into a fireball, losing 100 HP",
             "",
             "Spontaneous combustion",
-            "https://i.ytimg.com/vi/ymsiLGVsi_k/maxresdefault.jpg"
+            "https://i.ytimg.com/vi/ymsiLGVsi_k/maxresdefault.jpg",
         ),
         victim.hit(choice(weapon_list).split("|")),
     )
@@ -132,7 +123,7 @@ def election(_, victim: Fighter, weapon_list: list) -> tuple:
             " {attacking} and {defending}. He must kip his turn",
             "",
             "Donald Trump's election",
-            "https://d.newsweek.com/en/full/607858/adsgads.jpg"
+            "https://d.newsweek.com/en/full/607858/adsgads.jpg",
         ),
         victim.hit(choice(weapon_list).split("|")),
     )
@@ -195,8 +186,7 @@ def intervention(
 def fumble(attacking: Fighter, _, weapon_list: list) -> tuple:
     """Oh shit."""
     message, damage, attack, url = attacking.hit(
-        choice(weapon_list).split("|")
-    )
+        choice(weapon_list).split("|"))
     return (
         (
             "{attacking} just hurt himself !",
@@ -222,7 +212,7 @@ def armor(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
     if damage == "":
         damage = 0
-    attacking.pv -= round(int(damage)/2)
+    attacking.pv -= round(int(damage) / 2)
     return (
         (
             "{defending} wore a thorny armor, and {attacking} thus hurt"
@@ -230,7 +220,7 @@ def armor(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
             "",
             "Thorny armor",
             "https://66.media.tumblr.com/e68eb510217f17f96e1a7249294a01ee/"
-            "tumblr_p7yj5oWrO91rvzucio1_1280.jpg"
+            "tumblr_p7yj5oWrO91rvzucio1_1280.jpg",
         ),
         (
             message,
@@ -272,7 +262,7 @@ def depression(_, victim: Fighter, weapon_list: list) -> tuple:
             "totally false, by the way), making him pretty much easier to hit",
             "",
             "Depression",
-            victim.avatar_url
+            victim.avatar_url,
         ),
         victim.hit(choice(weapon_list).split("|"), 10),
     )
@@ -332,8 +322,8 @@ class Funny(commands.Cog):
                 await ctx.send(joke["value"]["joke"])
             return
         async with self.bot.aio_session.get(
-                "http://api.icndb.com/jokes/random"
-                ) as response:
+            "http://api.icndb.com/jokes/random"
+        ) as response:
             joke = await response.json()
             await ctx.send(joke["value"]["joke"].replace("&quote", '"'))
 
@@ -341,7 +331,8 @@ class Funny(commands.Cog):
     async def dad(self, ctx: commands.Context) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
-                "https://icanhazdadjoke.com/slack") as response:
+            "https://icanhazdadjoke.com/slack"
+        ) as response:
             joke = await response.json()
             await ctx.send(joke["attachments"][0]["text"])
 
@@ -355,8 +346,7 @@ class Funny(commands.Cog):
         if not dick:
             dick = ctx.author
         await ctx.send(
-            f"{dick.mention}'s magnum dong is this long : 8"
-            f"{'=' * randint(0, 10)}>"
+            f"{dick.mention}'s magnum dong is this long : 8" f"{'=' * randint(0, 10)}>"
         )
 
     @commands.command(ignore_extra=True)
@@ -394,8 +384,7 @@ class Funny(commands.Cog):
             await self.bot.httpcat(
                 ctx,
                 403,
-                "You cannot fight alone. Try asking a friend you don't like "
-                "much.",
+                "You cannot fight alone. Try asking a friend you don't like " "much.",
             )
         elif defender.id == self.bot.user.id:
             await self.bot.httpcat(
@@ -412,14 +401,14 @@ class Funny(commands.Cog):
                 if randint(1, 100) >= 85:
                     data = choice(chaos)(fight[0], next_player, weapons)
                 else:
-                    data = ([next_player.hit(choice(weapons).split("|"))])
+                    data = [next_player.hit(choice(weapons).split("|"))]
                 for message, damage, attack, url in data:
                     embed = discord.Embed(
                         title=attack,
                         description=message.format(
                             attacking=fight[0].display_name,
                             defending=next_player.display_name,
-                            damage=damage
+                            damage=damage,
                         ),
                         colour=self.bot.get_color(),
                     )
@@ -441,16 +430,15 @@ class Funny(commands.Cog):
                     colour=self.bot.get_color(),
                 )
                 embed.set_thumbnail(url=next_player.avatar_url)
-                embed.add_field(
-                    name="Remaining HP :", value=str(next_player.pv)
-                )
+                embed.add_field(name="Remaining HP :",
+                                value=str(next_player.pv))
                 await ctx.send(embed=embed)
                 if next_player.pv > 0 and fight[0].pv > 0:
 
                     def check(message: discord.Message) -> bool:
                         if message.author.id == next_player.id and (
                             message.content.lower().startswith(
-                                    f"defend {fight[0].display_name.lower()}"
+                                f"defend {fight[0].display_name.lower()}"
                             )
                         ):
                             return message.channel == ctx.channel
@@ -468,9 +456,7 @@ class Funny(commands.Cog):
                             timeout=30.0,
                         )
                     except asyncio.TimeoutError:
-                        await ctx.send(
-                            f"{next_player.display_name} is just a coward."
-                        )
+                        await ctx.send(f"{next_player.display_name} is just a coward.")
                         combat = False
                 elif next_player.pv < fight[0].pv:
                     combat = False
@@ -489,13 +475,12 @@ class Funny(commands.Cog):
     async def joke(self, ctx: commands.Context) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
-                "https://mrwinson.me/api/jokes/random"
+            "https://mrwinson.me/api/jokes/random"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    description=data["joke"],
-                    color=discord.Color.gold()
+                    description=data["joke"], color=discord.Color.gold()
                 )
                 await ctx.send(embed=embed)
             else:
@@ -514,10 +499,15 @@ class Funny(commands.Cog):
         If you have an idea for an horrible death, use €suggestion fight [idea]
         """
         await ctx.send(
-            "\n".join([choice(death).format(
-                author=ctx.message.author.display_name,
-                victim=dead,
-            ) for dead in [kill] + list(kills)])
+            "\n".join(
+                [
+                    choice(death).format(
+                        author=ctx.message.author.display_name,
+                        victim=dead,
+                    )
+                    for dead in [kill] + list(kills)
+                ]
+            )
         )
 
     @commands.command(aliases=["dice"])
@@ -536,9 +526,7 @@ class Funny(commands.Cog):
                 )
                 return
         if not expr[0].isdigit() or not expr[-1].isdigit():
-            await ctx.send(
-                "The first and last characters must be digits"
-            )
+            await ctx.send("The first and last characters must be digits")
             return
         before = ""
         after = ""
@@ -560,9 +548,7 @@ class Funny(commands.Cog):
                     before += i
             else:
                 if before == "" or after == "+":
-                    await ctx.send(
-                        "You cannot roll empty dices or empty times a dice"
-                    )
+                    await ctx.send("You cannot roll empty dices or empty times a dice")
                     return
                 if after == "":
                     total.append(sign + before)
@@ -573,17 +559,14 @@ class Funny(commands.Cog):
                     return
                 else:
                     total.append(
-                        [sign + str(randint(1, int(after))) for _ in range(
-                            int(before)
-                        )]
+                        [sign + str(randint(1, int(after)))
+                         for _ in range(int(before))]
                     )
                     after = ""
                     before = ""
                     sign = i
         if before == "":
-            await ctx.send(
-                "You cannot roll empty dices or empty times a dice"
-            )
+            await ctx.send("You cannot roll empty dices or empty times a dice")
             return
         if after == "":
             total.append(sign + before)
@@ -592,9 +575,8 @@ class Funny(commands.Cog):
             return
         else:
             total.append(
-                [sign + str(randint(1, int(after))) for _ in range(
-                    int(before)
-                )]
+                [sign + str(randint(1, int(after)))
+                 for _ in range(int(before))]
             )
         await ctx.send(self.summer(total, ctx.author.mention))
 
@@ -613,9 +595,8 @@ class Funny(commands.Cog):
             else:
                 plus = sum([int(i) for i in number])
                 k.append(
-                    "".join(
-                        [f"{j[0]} {j[1:]} " for j in number]
-                    )[1:] + f"= {plus}"
+                    "".join([f"{j[0]} {j[1:]} " for j in number])[
+                        1:] + f"= {plus}"
                 )
                 total += plus
         nice_print = ",   ".join(k)

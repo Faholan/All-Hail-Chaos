@@ -21,28 +21,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from inspect import Parameter
 import textwrap
 import typing
+from inspect import Parameter
 
 import discord
-from discord.ext import commands, menus
 import discord.utils
+from discord.ext import commands, menus
 
 
 class HelpSource(menus.ListPageSource):
     """The Help menu."""
 
     def __init__(
-            self,
-            signature: typing.Callable[[commands.Command], str],
-            filter_commands: typing.Callable[
-                [typing.List[commands.Command]],
-                typing.Awaitable,
-            ],
-            prefix: str,
-            author: discord.User,
-            cogs: typing.Dict[commands.Cog, typing.List[commands.Command]],
+        self,
+        signature: typing.Callable[[commands.Command], str],
+        filter_commands: typing.Callable[
+            [typing.List[commands.Command]],
+            typing.Awaitable,
+        ],
+        prefix: str,
+        author: discord.User,
+        cogs: typing.Dict[commands.Cog, typing.List[commands.Command]],
     ) -> None:
         """Create the menu."""
         self.get_command_signature = signature
@@ -50,26 +50,27 @@ class HelpSource(menus.ListPageSource):
         self.prefix = prefix
         self.menu_author = author
         super().__init__(
-            [(cog, cogs[cog]) for cog in sorted(
-                cogs,
-                key=lambda cog: cog.qualified_name if cog else "ZZ"
-            ) if cogs[cog] and [
-                command for command in cogs[cog] if not command.hidden
-            ]],
+            [
+                (cog, cogs[cog])
+                for cog in sorted(
+                    cogs, key=lambda cog: cog.qualified_name if cog else "ZZ"
+                )
+                if cogs[cog]
+                and [command for command in cogs[cog] if not command.hidden]
+            ],
             per_page=1,
         )
 
     async def format_page(
-            self,
-            menu: menus.Menu,
-            page: typing.Tuple[commands.Cog, typing.List[commands.Command]],
+        self,
+        menu: menus.Menu,
+        page: typing.Tuple[commands.Cog, typing.List[commands.Command]],
     ) -> discord.Embed:
         """Format the pages."""
         cog, command_list = page
         embed = discord.Embed(
             title=(
-                "Help for "
-                f"{cog.qualified_name if cog else 'unclassified commands'}"
+                "Help for " f"{cog.qualified_name if cog else 'unclassified commands'}"
             ),
             description=textwrap.dedent(
                 f"""
@@ -78,7 +79,7 @@ class HelpSource(menus.ListPageSource):
                 {cog.description if cog else ""}
                 """
             ),
-            color=0xffff00,
+            color=0xFFFF00,
         )
         embed.set_author(
             name=self.menu_author.display_name,
@@ -91,8 +92,7 @@ class HelpSource(menus.ListPageSource):
                 inline=False,
             )
         embed.set_footer(
-            text=f"Page {menu.current_page+1}/{self.get_max_pages()}"
-        )
+            text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
         return embed
 
 
@@ -120,8 +120,7 @@ class Help(commands.HelpCommand):
         return basis
 
     async def send_bot_help(
-        self,
-        mapping: typing.Dict[commands.Cog, typing.List[commands.Command]]
+        self, mapping: typing.Dict[commands.Cog, typing.List[commands.Command]]
     ) -> None:
         """Send the global help."""
         ctx = self.context
@@ -215,9 +214,7 @@ class Help(commands.HelpCommand):
         )
         embed = discord.Embed(
             title=(
-                f"Help for group {prefix}"
-                f"{self.get_command_signature(group)}"
-            ),
+                f"Help for group {prefix}" f"{self.get_command_signature(group)}"),
             description=(
                 "Help syntax : `<Required argument>`. "
                 f"`[Optional argument]`\n{group.help}"
@@ -257,7 +254,7 @@ def setup(bot: commands.Bot) -> None:
     bot.old_help_command = bot.help_command
     bot.help_command = Help(
         verify_checks=False,
-        command_attrs={'hidden': True},
+        command_attrs={"hidden": True},
     )
 
 

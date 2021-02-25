@@ -21,9 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import typing
 from asyncio import all_tasks
 from datetime import datetime
-import typing
 
 import aiohttp
 import asyncpg
@@ -101,9 +101,7 @@ class ChaoticBot(commands.Bot):
         if self.first_on_ready:
             self.first_on_ready = False
             self.pool = await asyncpg.create_pool(
-                min_size=20,
-                max_size=100,
-                **self.postgre_connection
+                min_size=20, max_size=100, **self.postgre_connection
             )
             query = "SELECT * FROM public.prefixes"
             async with self.pool.acquire(timeout=5) as database:
@@ -112,8 +110,7 @@ class ChaoticBot(commands.Bot):
             self.aio_session = aiohttp.ClientSession()
             self.log_channel = self.get_channel(self.log_channel_id)
             self.suggestion_channel = self.get_channel(
-                self.suggestion_channel_id
-            )
+                self.suggestion_channel_id)
             report = []
             success = 0
             for ext in self.extensions_list:
@@ -183,14 +180,12 @@ class ChaoticBot(commands.Bot):
                             self.reload_extension(ext)
                             success += 1
                             report.append(
-                                f"✅ | **Extension reloaded** : `{ext}`"
-                            )
+                                f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
                             success += 1
                             report.append(
-                                f"✅ | **Extension loaded** : `{ext}`"
-                            )
+                                f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as error:
                         report.append(
                             f"❌ | **Extension error** : `{ext}` "
@@ -237,21 +232,17 @@ class ChaoticBot(commands.Bot):
         await ctx.send(embed=embed)
 
     async def get_m_prefix(
-        self, _,
+        self,
+        _,
         message: discord.Message,
         not_print: bool = True,
     ) -> str:
         """Get the prefix from a message."""
         if message.content.startswith("¤") and not_print:
-            return '¤'
-        if message.content.startswith(
-            f"{self.default_prefix}help"
-        ) and not_print:
+            return "¤"
+        if message.content.startswith(f"{self.default_prefix}help") and not_print:
             return self.default_prefix
-        return self.prefix_dict.get(
-            self.get_id(message),
-            self.default_prefix
-        )
+        return self.prefix_dict.get(self.get_id(message), self.default_prefix)
 
     async def httpcat(
         self,
@@ -262,9 +253,7 @@ class ChaoticBot(commands.Bot):
     ) -> None:
         """Funny error picture."""
         embed = discord.Embed(
-            title=title,
-            color=discord.Color.red(),
-            description=description
+            title=title, color=discord.Color.red(), description=description
         )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
         try:
@@ -273,22 +262,19 @@ class ChaoticBot(commands.Bot):
             pass
 
     async def fetch_answer(
-        self,
-        ctx: commands.Context,
-        *content,
-        timeout: int = 30
+        self, ctx: commands.Context, *content, timeout: int = 30
     ) -> discord.Message:
         """Get an answer."""
+
         def check(message: discord.Message) -> bool:
             """Check the message."""
-            return message.author == ctx.author and (
-                message.channel == ctx.channel
-            ) and message.content.lower() in content
-        return await self.wait_for(
-            "message",
-            check=check,
-            timeout=timeout
-        )
+            return (
+                message.author == ctx.author
+                and (message.channel == ctx.channel)
+                and message.content.lower() in content
+            )
+
+        return await self.wait_for("message", check=check, timeout=timeout)
 
     async def fetch_confirmation(
         self,
@@ -303,15 +289,12 @@ class ChaoticBot(commands.Bot):
 
         def check(payload: discord.RawReactionActionEvent) -> bool:
             """Decide whether or not to process the reaction."""
-            return (
-                payload.message_id,
-                payload.channel_id,
-                payload.user_id,
-            ) == (
+            return (payload.message_id, payload.channel_id, payload.user_id,) == (
                 message.id,
                 message.channel.id,
                 ctx.author.id,
             ) and payload.emoji.name in {"\U00002705", "\U0000274c"}
+
         payload = await self.wait_for(
             "raw_reaction_add",
             check=check,

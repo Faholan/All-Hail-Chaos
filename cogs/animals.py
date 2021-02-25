@@ -28,7 +28,7 @@ import discord
 from discord.ext import commands, tasks
 
 
-class Pic():
+class Pic:
     """Picture placeholder."""
 
     def __init__(self, url: str, tag: str = discord.Embed.Empty) -> None:
@@ -127,9 +127,7 @@ class Animals(commands.Cog):
         embed.set_image(url=image.image_url)
         embed.set_footer(
             text=(
-                f"👍 {image.upvotes} | 👎 {image.downvotes}"
-                f" | 💬 {image.comments}"
-            ),
+                f"👍 {image.upvotes} | 👎 {image.downvotes}" f" | 💬 {image.comments}"),
         )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
