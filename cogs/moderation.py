@@ -993,11 +993,9 @@ class Moderation(commands.Cog):
             counter = -1
             reaction = find(
                 lambda reaction: getattr(
-                    reaction.emoji,
-                    "name",
-                    reaction.emoji
-                ) == emoji,
-                message.reactions
+                    reaction.emoji, "name", reaction.emoji)
+                == emoji,
+                message.reactions,
             )
             if not reaction:
                 await ctx.send("The rule has been successfully updated")
