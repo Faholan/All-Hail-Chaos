@@ -889,14 +889,13 @@ class Utility(commands.Cog):
         embed = discord.Embed(
             title=f"Suggestion for **{subject}**",
             description=(
-                f"Subject of <@{ctx.author.id}>'s suggestion : {subject}"),
+                f"{ctx.author.mention} ({ctx.author.id})'s idea: {idea}"),
             colour=0xFFFF00,
         )
         embed.set_author(
             name=str(ctx.author),
             icon_url=str(ctx.author.avatar_url),
         )
-        embed.add_field(name=f"<@{ctx.author.id}>'s idea", value=idea)
         if self.bot.suggestion_channel:
             await self.bot.suggestion_channel.send(embed=embed)
             await ctx.send("Thanks for your participation in this project !")
