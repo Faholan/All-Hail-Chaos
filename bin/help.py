@@ -99,7 +99,8 @@ class HelpSource(menus.ListPageSource):
 class Help(commands.HelpCommand):
     """The Help cog."""
 
-    def get_command_signature(self, command: commands.Command) -> str:
+    @staticmethod
+    def get_command_signature(command: commands.Command) -> str:
         """Retrieve the command's signature."""
         basis = f"{command.qualified_name}"
         for arg in command.clean_params.values():
