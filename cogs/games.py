@@ -42,7 +42,7 @@ class Connect4(menus.Menu):
         self.id_dict = {players[i].id: i + 1 for i in range(len(players))}
         self.ids = cycle(list(self.id_dict))
         self.players = players
-        self.next = next(self.ids)
+        self.next = next(self.ids, None)
         self.status = [":black_large_square:",
                        ":green_circle:", ":red_circle:"]
         self.state = [[0 for _ in range(6)] for __ in range(7)]
@@ -134,7 +134,7 @@ class Connect4(menus.Menu):
         """Do something."""
         if 0 not in self.state[number]:
             return
-        self.next = next(self.ids)
+        self.next = next(self.ids, None)
         next_id = self.id_dict[payload.user_id]
         self.state[number][self.state[number].index(0)] = next_id
         await self.embed_updating()
@@ -413,8 +413,8 @@ class Blackjack(menus.Menu):
         super().__init__(**kwargs)
         self.ids = cycle([player.id for player in players])
         self.index = cycle(range(len(players)))
-        self.next = next(self.ids)
-        self.next_index = next(self.index)
+        self.next = next(self.ids, None)
+        self.next_index = next(self.index, None)
 
         self.player_dict = {player.id: player for player in players}
         self.money_dict = money_dict
@@ -493,9 +493,9 @@ class Blackjack(menus.Menu):
                         for i in self.money_dict]
         self.dealer = BRow()
         self.dealer.append(self.card)
-        for i in range(len(self.players)):
+        for player in self.players:
             for _ in range(2):
-                await self.players[i].add(self.card, None, True)
+                await player.add(self.card, None, True)
         self.next_card = self.card
 
     def generate_embed(self) -> discord.Embed:
@@ -533,8 +533,8 @@ class Blackjack(menus.Menu):
     async def update_embed(self, new_turn: bool = False) -> None:
         """Update the embed."""
         if new_turn:
-            self.next = next(self.ids)
-            self.next_index = next(self.index)
+            self.next = next(self.ids, None)
+            self.next_index = next(self.index, None)
             if self.next_index == 0:
                 return await self.result()
         else:
