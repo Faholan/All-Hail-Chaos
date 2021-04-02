@@ -40,6 +40,7 @@ def setup(bot):
         "cogs.moderation",
         "cogs.music",
         "cogs.nasa",
+        "cogs.owner",
         "cogs.success",
         "cogs.tags",
         "cogs.utility",
