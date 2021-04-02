@@ -63,7 +63,8 @@ class Connect4(menus.Menu):
         except Exception as error:
             embed = discord.Embed(color=0xFF0000)
             embed.set_author(
-                name=str(self.ctx.author), icon_url=str(self.ctx.author.avatar_url)
+                name=str(self.ctx.author),
+                icon_url=str(self.ctx.author.avatar_url),
             )
             embed.title = f"{self.ctx.author.id} caused an error in connect 4"
             embed.description = f"{type(error).__name__} : {error}"
@@ -74,7 +75,7 @@ class Connect4(menus.Menu):
                     f"({self.ctx.channel.id})"
                 )
             elif isinstance(self.ctx.channel, discord.DMChannel):
-                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
+                embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"  # noqa
             else:
                 embed.description += (
                     f"\nin the Group {self.ctx.channel.name} "
@@ -90,7 +91,9 @@ class Connect4(menus.Menu):
             try:
                 await self.bot.log_channel.send(embed=embed)
             except Exception:
-                await self.bot.log_channel.send("Please check the logs for connect 4")
+                await self.bot.log_channel.send(
+                    "Please check the logs for connect 4"
+                )
                 raise error from None
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
