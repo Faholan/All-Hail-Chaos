@@ -6,3 +6,4 @@ dblpy
 pygithub
 psutil
 asyncpg
+humanize
