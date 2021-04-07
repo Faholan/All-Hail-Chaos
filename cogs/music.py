@@ -189,7 +189,7 @@ class Music(commands.Cog):
             )
         else:
             if int(player.channel_id) != ctx.author.voice.channel.id:
-                return await ctx.send("You need to be in my voicechannel.")
+                await ctx.send("You need to be in my voicechannel.")
 
     @commands.command(aliases=["dc"])
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -214,7 +214,8 @@ class Music(commands.Cog):
                 color=discord.Color.red(),
             )
             self.formatter(embed, ctx)
-            return await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
+            return
 
         player.queue.clear()
         await player.stop()
@@ -460,7 +461,8 @@ class Music(commands.Cog):
                 color=discord.Color.red(),
             )
             self.formatter(embed, ctx)
-            return await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
+            return
 
         player.repeat = not player.repeat
         embed = discord.Embed(
@@ -502,7 +504,8 @@ class Music(commands.Cog):
                 title=f"{PAUSE_EMOJI} | Nothing playing.", color=discord.Color.red()
             )
             self.formatter(embed, ctx)
-            return await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
+            return
         player.shuffle = not player.shuffle
         embed = discord.Embed(
             title=f"{SHUFFLE_EMOJI} | Shuffle "

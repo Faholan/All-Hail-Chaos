@@ -115,7 +115,8 @@ class Animals(commands.Cog):
     async def reddit_sender(self, ctx: commands.Context, image) -> None:
         """Embeds a Reddit image then sends it."""
         if hasattr(image, "error"):
-            return await ctx.send(image.message)
+            await ctx.send(image.message)
+            return
         embed = discord.Embed(
             title=image.title,
             url=image.source,

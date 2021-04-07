@@ -483,9 +483,11 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def image_sender(self, ctx: commands.Context, image) -> None:
         """Embeds an image then sends it."""
         if hasattr(image, "code"):
-            return await self.bot.httpcat(ctx, image["code"])
+            await self.bot.httpcat(ctx, image["code"])
+            return
         if not image.url:
-            return await self.bot.httpcat(ctx, 404)
+            await self.bot.httpcat(ctx, 404)
+            return
         embed = discord.Embed(
             title=image.tag,
             timestamp=datetime.utcnow(),
@@ -497,7 +499,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def reddit_sender(self, ctx: commands.Context, image) -> None:
         """Embeds a Reddit image then sends it."""
         if hasattr(image, "error"):
-            return await ctx.send(image.message)
+            await ctx.send(image.message)
+            return
         embed = discord.Embed(
             title=image.title,
             url=image.source,
@@ -505,7 +508,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
             colour=discord.Color.blue(),
         )
         if not image.image_url:
-            return await self.bot.httpcat(ctx, 404)
+            await self.bot.httpcat(ctx, 404)
+            return
         embed.set_image(url=image.image_url)
         embed.set_footer(
             text=(

@@ -239,7 +239,8 @@ async def error_manager(
     )
     embed.timestamp = datetime.datetime.utcnow()
     try:
-        return await ctx.bot.log_channel.send(embed=embed)
+        await ctx.bot.log_channel.send(embed=embed)
+        return
     except discord.DiscordException:
         pass
     await ctx.bot.log_channel.send("Please check the Python logs")
@@ -267,7 +268,8 @@ def generator(bot: commands.Bot) -> Callable:
         )
         embed.timestamp = datetime.datetime.utcnow()
         try:
-            return await bot.log_channel.send(embed=embed)
+            await bot.log_channel.send(embed=embed)
+            return
         except discord.DiscordException:
             pass
         await bot.log_channel.send("Please check the Python logs")

@@ -594,7 +594,7 @@ class Blackjack(menus.Menu):
                         )
             embed.add_field(
                 name=(
-                    f"{self.player_dict[player.player_id]} : {player.money}" " GP"),
+                    f"{self.player_dict[player.player_id]} : {player.money} GP"),
                 value="\n".join(numbers),
                 inline=False,
             )
@@ -816,7 +816,7 @@ class Games(commands.Cog):
             money = row["money"] + row["bank"]
             if money < cost:
                 await ctx.send(
-                    "Sorry, but you don't have enough money" " to come to this table"
+                    "Sorry, but you don't have enough money to come to this table"
                 )
                 return
             new_players = Blackjackplayers(
@@ -841,7 +841,7 @@ class Games(commands.Cog):
             for player_id in balance_dict:
                 if balance_dict[player_id] >= 0:
                     await database.execute(
-                        "UPDATE public.business SET money=money+$2 WHERE " "id=$1",
+                        "UPDATE public.business SET money=money+$2 WHERE id=$1",
                         player_id,
                         balance_dict[player_id],
                     )
@@ -851,7 +851,7 @@ class Games(commands.Cog):
                     )
                     if row["money"] >= -balance_dict[player_id]:
                         await database.execute(
-                            "UPDATE public.business SET money=money+$2 WHERE " "id=$1",
+                            "UPDATE public.business SET money=money+$2 WHERE id=$1",
                             player_id,
                             balance_dict[player_id],
                         )

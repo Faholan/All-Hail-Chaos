@@ -384,7 +384,7 @@ class Funny(commands.Cog):
             await self.bot.httpcat(
                 ctx,
                 403,
-                "You cannot fight alone. Try asking a friend you don't like " "much.",
+                "You cannot fight alone. Try asking a friend you don't like much.",
             )
         elif defender.id == self.bot.user.id:
             await self.bot.httpcat(

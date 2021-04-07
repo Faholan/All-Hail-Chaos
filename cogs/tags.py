@@ -94,22 +94,25 @@ class Tags(commands.Cog):
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
             if not row:
                 rows = await self.search_tag(name, location_id, database)
                 if rows:
-                    return await ctx.send(f"Tag not found. Did you mean :\n{rows}")
-                return await ctx.send("Tag not found")
+                    await ctx.send(f"Tag not found. Did you mean :\n{rows}")
+                    return
+                await ctx.send("Tag not found")
+                return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
                 row["tag_id"],
             )
             if not tag:
                 await ctx.send("Tag not found")
-                return await self.delete_aliases(row["tag_id"], database)
+                await self.delete_aliases(row["tag_id"], database)
+                return
             await database.execute(
                 "UPDATE public.tags SET use_count=use_count+1 WHERE id=$1",
                 tag["id"],
@@ -134,12 +137,13 @@ class Tags(commands.Cog):
             location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
             if row:
-                return await ctx.send("A tag already exists with that name")
+                await ctx.send("A tag already exists with that name")
+                return
             await database.execute(
                 "INSERT INTO public.tags VALUES ($1, $2, $3, $4)",
                 location_id,
@@ -180,26 +184,29 @@ class Tags(commands.Cog):
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE location_id=$1 and " "name=$2",
+                "SELECT * FROM public.tag_lookup WHERE location_id=$1 and name=$2",
                 location_id,
                 name,
             )
             if not row:
-                return await ctx.send(f"No tag named {name} found")
+                await ctx.send(f"No tag named {name} found")
+                return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
                 row["tag_id"],
             )
             if not tag:
                 await ctx.send(f"No tag named {name} found")
-                return await self.delete_aliases(row["tag_id"], database)
+                await self.delete_aliases(row["tag_id"], database)
+                return
             existing_alias = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE location_id=$1 and " "name=$2",
+                "SELECT * FROM public.tag_lookup WHERE location_id=$1 and name=$2",
                 location_id,
                 alias,
             )
             if existing_alias:
-                return await ctx.send(f"An alias named {alias} already exists")
+                await ctx.send(f"An alias named {alias} already exists")
+                return
             await database.execute(
                 "INSERT INTO public.tag_lookup VALUES ($1, $2, $3, $4)",
                 alias,
@@ -221,12 +228,13 @@ class Tags(commands.Cog):
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             alias = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
             if not alias:
-                return await ctx.send(f"No tag or alias named {name} found")
+                await ctx.send(f"No tag or alias named {name} found")
+                return
             try:
                 owner = ctx.guild.get_member(
                     alias["owner_id"]
@@ -235,9 +243,10 @@ class Tags(commands.Cog):
                 owner = None
 
             if owner:
-                return await ctx.send(
+                await ctx.send(
                     f"{name} isn't unclaimed : {owner} has claimed it"
                 )
+                return
 
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
@@ -245,7 +254,8 @@ class Tags(commands.Cog):
             )
             if not tag:
                 await ctx.send(f"No tag or alias named {name} found")
-                return await self.delete_aliases(alias["tag_id"], database)
+                await self.delete_aliases(alias["tag_id"], database)
+                return
 
             try:
                 owner = ctx.guild.get_member(
@@ -268,9 +278,10 @@ class Tags(commands.Cog):
                     tag["id"],
                 )
                 waswere = f"and alias {name} were" if name != tag["name"] else "was"
-                return await ctx.send(
+                await ctx.send(
                     f"Tag {tag['name']} " f"{waswere} successfully claimed"
                 )
+                return
             await ctx.send(f"Alias {name} successfully claimed")
 
     @tag.command(name="create")
@@ -285,7 +296,8 @@ class Tags(commands.Cog):
         """Create a tag with the given name and content."""
         location_id = self.bot.get_id(ctx)
         if not self.check_tag(name, location_id, ctx.author.id):
-            return await ctx.send("Someone is already making a tag with this name")
+            await ctx.send("Someone is already making a tag with this name")
+            return
         self.tags_being_made[(location_id, name)] = ctx.author.id
         await self.create_tag(ctx, name, content)
         await ctx.send(f"Tag {name} created successfully")
@@ -322,10 +334,11 @@ class Tags(commands.Cog):
                     ctx.author.id,
                 )
             if not alias:
-                return await ctx.send(
+                await ctx.send(
                     f"No tag or alias named {name} found. Are you sure that "
                     "it exists and that you own it ?"
                 )
+                return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
                 alias["tag_id"],
@@ -335,7 +348,8 @@ class Tags(commands.Cog):
                     f"No tag or alias named {name} found. Are you sure that "
                     "it exists and that you own it ?",
                 )
-                return await self.delete_aliases(alias["tag_id"], database)
+                await self.delete_aliases(alias["tag_id"], database)
+                return
             if tag["name"] == alias["name"]:
                 await ctx.send(
                     f"Tag {name} and associated aliases successfully deleted"
@@ -348,7 +362,7 @@ class Tags(commands.Cog):
             else:
                 await ctx.send(f"Alias {tag} deleted successfully")
                 await database.execute(
-                    "DELETE FROM public.tag_lookup WHERE location_id=$1 AND" " name=$2",
+                    "DELETE FROM public.tag_lookup WHERE location_id=$1 AND name=$2",
                     location_id,
                     alias["name"],
                 )
@@ -365,19 +379,21 @@ class Tags(commands.Cog):
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
             if not row:
-                return await ctx.send(f"No tag named {name} found")
+                await ctx.send(f"No tag named {name} found")
+                return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
                 row["tag_id"],
             )
             if not tag:
                 await ctx.send(f"No tag named {name} found")
-                return await self.delete_aliases(row["tag_id"], database)
+                await self.delete_aliases(row["tag_id"], database)
+                return
 
             aliases = await database.fetch(
                 "SELECT * FROM public.tag_lookup WHERE tag_id=$1",
@@ -435,7 +451,8 @@ class Tags(commands.Cog):
         try:
             name = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
-            return await ctx.send("You took too long to answer. Cancelling.")
+            await ctx.send("You took too long to answer. Cancelling.")
+            return
 
         original = ctx.message
         converter = TagName()
@@ -443,27 +460,30 @@ class Tags(commands.Cog):
             ctx.message = name
             name = await converter.convert(ctx, name.content)
         except commands.BadArgument as error:
-            return await ctx.send(
+            await ctx.send(
                 f'{error}. Redo the command "{ctx.prefix}tag make" to retry.'
             )
+            return
         finally:
             ctx.message = original
 
         if not self.check_tag(name, location_id, ctx.author.id):
-            return await ctx.send(
-                "Someone is already making a tag with that name. " "Try again later."
+            await ctx.send(
+                "Someone is already making a tag with that name. Try again later."
             )
+            return
 
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 " "AND location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
             if row:
-                return await ctx.send(
-                    "A tag, or an alias to a tag, already exists with that " "name"
+                await ctx.send(
+                    "A tag, or an alias to a tag, already exists with that name"
                 )
+                return
 
         self.tags_being_made[(location_id, name)] = ctx.author.id
 
@@ -475,12 +495,14 @@ class Tags(commands.Cog):
             msg = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
             del self.tags_being_made[(location_id, name)]
-            return await ctx.send("You took too long. I'm canelling this")
+            await ctx.send("You took too long. I'm canelling this")
+            return
 
         content = msg.content
         if content == f"{ctx.prefix}abort":
             del self.tags_being_made[(location_id, name)]
-            return await ctx.send("Aborted")
+            await ctx.send("Aborted")
+            return
         clean_content = await commands.clean_content().convert(ctx, content)
         if msg.attachments:
             clean_content += f"\n{msg.attachments[0].url}"
@@ -500,7 +522,7 @@ class Tags(commands.Cog):
         counter = 0
         async with self.bot.pool.acquire() as database:
             for tag in await database.fetch(
-                "SELECT * FROM public.tags WHERE owner_id=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tags WHERE owner_id=$1 AND location_id=$2",
                 member.id,
                 location_id,
             ):
@@ -554,10 +576,11 @@ class Tags(commands.Cog):
                 ctx.author.id,
             )
             if not alias:
-                return await ctx.send(
+                await ctx.send(
                     f"No tag or alias named {name} found. Are  you sure that"
                     " it exists and you own it ?"
                 )
+                return
 
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE name=$1 AND owner_id=$2 AND "
@@ -581,7 +604,8 @@ class Tags(commands.Cog):
                     name,
                     location_id,
                 )
-                return await ctx.send("Tag successfully transferred")
+                await ctx.send("Tag successfully transferred")
+                return
             await ctx.send("Alias successfully transferred")
 
     @tag.group(name="global", invoke_without_command=True)
@@ -609,29 +633,32 @@ class Tags(commands.Cog):
                 location_id,
             )
             if not aliasrow:
-                return await ctx.send(
+                await ctx.send(
                     f"I didn't find any tag with the name {alias}. Are you "
                     "sure that it exists and that you own it ?"
                 )
+                return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1 AND owner_id=$2",
                 aliasrow["tag_id"],
                 ctx.author.id,
             )
             if not tag:
-                return await ctx.send(
+                await ctx.send(
                     f"I didn't find any tag with the name {alias}. "
                     "Are you sure that it exists and that you own it ?"
                 )
+                return
             already_existing = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE name=$1 AND location_id=0",
                 alias,
             )
             if already_existing:
-                return await ctx.send(
+                await ctx.send(
                     "A global tag with that name already exists. Try creating "
                     "an alias to your tag and globalizing it under this name"
                 )
+                return
             await self.create_tag(ctx, alias, tag["content"], 0)
         await ctx.send(f"Global tag {alias} created successfully")
 
@@ -656,10 +683,11 @@ class Tags(commands.Cog):
                 ctx.author.id,
             )
             if not aliasrow:
-                return await ctx.send(
+                await ctx.send(
                     f"No global tag named {name} found. Are you sure that it "
                     "exists and you own it ?"
                 )
+                return
             await database.execute(
                 "DELETE FROM public.tags WHERE id=$1",
                 aliasrow["tag_id"],
@@ -686,14 +714,16 @@ class Tags(commands.Cog):
             if not tag:
                 rows = await self.search_tag(name, 0, database)
                 if rows:
-                    return await ctx.send(f"Global tag not found. Did you mean\n{rows}")
-                return await ctx.send(f"No global tag named {name} found")
+                    await ctx.send(f"Global tag not found. Did you mean\n{rows}")
+                    return
+                await ctx.send(f"No global tag named {name} found")
+                return
             await database.execute(
                 "UPDATE public.tags SET use_count=use_count+1 WHERE id=$1",
                 tag["id"],
             )
             already_exists = await database.fetchrow(
-                "SELECT * FROM public.tag_lookup WHERE name=$1 AND " "location_id=$2",
+                "SELECT * FROM public.tag_lookup WHERE name=$1 AND location_id=$2",
                 name,
                 location_id,
             )
@@ -717,7 +747,8 @@ class Tags(commands.Cog):
                         timeout=300,
                     )
                 except asyncio.TimeoutError:
-                    return await ctx.send("You didn't reply in time. Aborting")
+                    await ctx.send("You didn't reply in time. Aborting")
+                    return
 
                 converter = TagName()
                 original = ctx.message
@@ -726,17 +757,19 @@ class Tags(commands.Cog):
                     ctx.message = alias
                     alias = await converter.convert(ctx, alias.content)
                 except commands.BadArgument as error:
-                    return await ctx.send(
+                    await ctx.send(
                         f'{error}. Redo the command "{ctx.prefix}tag global '
                         'retrieve" to retry.'
                     )
+                    return
                 finally:
                     ctx.message = original
 
                 if not self.check_tag(alias, ctx.guild.id, ctx.author.id):
-                    return await ctx.send(
+                    await ctx.send(
                         "Someone is already making a tag with that name. Sorry"
                     )
+                    return
 
                 already_exists = await database.fetchrow(
                     "SELECT * FROM public.tag_lookup WHERE name=$1 AND "
@@ -745,9 +778,10 @@ class Tags(commands.Cog):
                     location_id,
                 )
                 if already_exists:
-                    return await ctx.send(
+                    await ctx.send(
                         "A tag with that name already exists. Aborting"
                     )
+                    return
 
             await self.create_tag(ctx, alias, tag["content"])
             await ctx.send(f"Tag {alias} created successfully")

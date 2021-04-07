@@ -146,7 +146,8 @@ class NASA(commands.Cog):
             rover = choice(("curiosity", "opportunity", "spirit"))
 
         if rover.lower() not in {"curiosity", "opportunity", "spirit"}:
-            return await ctx.send("Sorry but this rover doesn't exist")
+            await ctx.send("Sorry but this rover doesn't exist")
+            return
         async with self.bot.aio_session.get(
             "https://api.nasa.gov/mars-photos/api/v1/rovers/"
             + rover.lower()
@@ -155,13 +156,14 @@ class NASA(commands.Cog):
         ) as response:
             images = await response.json()
             if not images.get("photos"):
-                return await self.bot.httpcat(
+                await self.bot.httpcat(
                     ctx,
                     404,
                     "I didn't find anything for your query. It's probably "
                     f"because the rover {rover.capitalize()} wasn't in "
                     "activity at this time",
                 )
+                return
             for i in range(min(number, len(images["photos"]))):
                 embed = discord.Embed(
                     title=f"Picture from {rover.capitalize()}",
@@ -188,9 +190,10 @@ class NASA(commands.Cog):
         try:
             data = jresult["collection"]["items"][0]["data"][0]
         except (KeyError, IndexError):
-            return await ctx.send(
-                "I didn't find anything for your query " f"`{escape_markdown(query)}`"
+            await ctx.send(
+                f"I didn't find anything for your query `{escape_markdown(query)}`"
             )
+            return
         converter = self.bot.markdownhtml()
         description = converter.feed(data["description"])
         if len(description) > 2048:

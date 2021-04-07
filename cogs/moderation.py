@@ -552,7 +552,7 @@ class Moderation(commands.Cog):
                     errors.add("I cannot ban myself")
                 elif me.roles[-1] <= banned.roles[-1]:
                     errors.add(
-                        f"I cannot ban {banned.name} : he has a higher " "role than me"
+                        f"I cannot ban {banned.name} : he has a higher role than me"
                     )
                 elif banned == owner:
                     errors.add(
@@ -661,7 +661,7 @@ class Moderation(commands.Cog):
                     errors.add("I cannot kick myself")
                 elif me.roles[-1] <= kicked.roles[-1]:
                     errors.add(
-                        f"I cannot kick {kicked.name} : he has a higher " "role than me"
+                        f"I cannot kick {kicked.name} : he has a higher role than me"
                     )
                 elif kicked == owner:
                     errors.add(
@@ -731,9 +731,10 @@ class Moderation(commands.Cog):
         You can refer to him if he's in the same server, or just paste his ID
         """
         if not self.bot.ksoft_client or not self.bot.discord_rep:
-            return await ctx.send(
+            await ctx.send(
                 "Sorry, but my owner hasn't correctly configured this command"
             )
+            return
         if isinstance(other, int):
             user_id = str(other)
             name = f"User {user_id}"
@@ -747,11 +748,12 @@ class Moderation(commands.Cog):
             f"https://discordrep.com/u/{user_id}"
         ) as response:
             if response.status != 200:
-                return await self.bot.httpcat(
+                await self.bot.httpcat(
                     ctx,
                     404,
                     "I couldn't find this user.",
                 )
+                return
 
         async with self.bot.aio_session.get(
             f"https://discordrep.com/api/v3/rep/{user_id}",
@@ -883,9 +885,10 @@ class Moderation(commands.Cog):
                         timeout=30,
                     )
                 except asyncio.TimeoutError:
-                    return await ctx.send(
+                    await ctx.send(
                         "You didn't answer in time, I'm giving up on this"
                     )
+                    return
 
                 roles = message.role_mentions
 
@@ -907,9 +910,10 @@ class Moderation(commands.Cog):
                     timeout=30,
                 )
             except asyncio.TimeoutError:
-                return await ctx.send(
+                await ctx.send(
                     "You didn't react in time, I'm giving up on this."
                 )
+                return
 
             message = await self.bot.get_channel(payload.channel_id).fetch_message(
                 payload.message_id
@@ -967,7 +971,8 @@ class Moderation(commands.Cog):
                         timeout=30,
                     )
                 except asyncio.TimeoutError:
-                    return await ctx.send("Cancelling the command...")
+                    await ctx.send("Cancelling the command...")
+                    return
                 if answer.content.lower().startswith("add"):
                     roles += ini_roles
                 await database.execute(
@@ -1157,9 +1162,10 @@ class Moderation(commands.Cog):
                         timeout=30,
                     )
                 except asyncio.TimeoutError:
-                    return await ctx.send(
+                    await ctx.send(
                         "You didn't answer in time. I'm ignoring this command"
                     )
+                    return
 
                 role_numbers = [
                     int(k) for k in message.content.replace(" ", "").split(",")
@@ -1172,7 +1178,7 @@ class Moderation(commands.Cog):
                     )
                 else:
                     await database.execute(
-                        "UPDATE public.roles set roleids=$1 WHERE " "message_id=$2",
+                        "UPDATE public.roles set roleids=$1 WHERE message_id=$2",
                         [
                             roles[i][0]
                             for i in range(len(roles))
@@ -1189,10 +1195,11 @@ class Moderation(commands.Cog):
                     "DELETE FROM public.roles WHERE message_id=$1",
                     result["message_id"],
                 )
-                return await ctx.send(
+                await ctx.send(
                     "The message associated with this rule has been deleted. "
                     "I thus removed the rule."
                 )
+                return
 
     @commands.command()
     @commands.guild_only()
@@ -1243,7 +1250,7 @@ class Moderation(commands.Cog):
                             await ctx.send("Autodetection turned off")
                         else:
                             await database.execute(
-                                "UPDATE public.swear SET autoswear=True WHERE " "id=$1",
+                                "UPDATE public.swear SET autoswear=True WHERE id=$1",
                                 ctx.guild.id,
                             )
                             await ctx.send("Autodetection turned on")
@@ -1345,7 +1352,7 @@ class Moderation(commands.Cog):
                 )
                 embed.add_field(
                     name=(
-                        "Alert message status (in case I cannot delete a " "message)"
+                        "Alert message status (in case I cannot delete a message)"
                     ),
                     value="Enabled" if status["notification"] else "Disabled",
                 )
