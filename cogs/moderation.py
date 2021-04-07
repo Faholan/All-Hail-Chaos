@@ -1063,7 +1063,7 @@ class Moderation(commands.Cog):
                                 '"Link to the original message") | '
                                 f'{output[i]["emoji"]} |'
                                 ", ".join([r_n(ID)
-                                           for ID in output[i]["roleids"]])
+                                          for ID in output[i]["roleids"]])
                             )
                             for i in range(len(output))
                         ]
