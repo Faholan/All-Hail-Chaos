@@ -26,7 +26,7 @@ import codecs
 import inspect
 import os
 import pathlib
-from datetime import datetime, timedelta
+from datetime import datetime
 from os import path
 from sys import version
 from textwrap import dedent
@@ -36,9 +36,15 @@ import discord
 import humanize
 import psutil
 from discord.ext import commands, menus, tasks
-from discord.utils import escape_mentions, get, sleep_until
+from discord.utils import escape_markdown
 
 ZWS = "\u200b"
+POLL_INDEXES = [str(i + 1) for i in range(10)] + list("ABCDEFGHIJKLMNO")
+POLL_EMOJIS = [
+    str(i) + "\N{variation selector-16}\N{combining enclosing keycap}"
+    for i in range(1, 10)
+] + ["\N{keycap ten}"] + [chr(0x1f1e6 + i) for i in range(0xf)]
+# :regional_indicator_a: up to o
 
 
 class SnipeSource(menus.ListPageSource):
@@ -129,15 +135,6 @@ class Utility(commands.Cog):
             self.xyz.start()
         if self.bot.discord_bot_list:
             self.discord_bot_list.start()
-
-        self.poll_tasks = []
-        asyncio.create_task(self.poll_initial())
-
-    def cog_unload(self):
-        """Do some cleanup."""
-        for task in self.poll_tasks:
-            if not task.done():
-                task.cancel()
 
     @commands.command(ignore_extra=True)
     async def add(self, ctx: commands.Context) -> None:
@@ -239,10 +236,11 @@ class Utility(commands.Cog):
     ) -> None:
         """Convert money from one currency to another one."""
         if not len(original) == len(goal) == 3:
-            return await ctx.send(
+            await ctx.send(
                 "To get currency codes, refer to https://en.wikipedia.org/"
                 "wiki/ISO_4217#Active_codes"
             )
+            return
         async with self.bot.aio_session.get(
             "https://api.ksoft.si/kumo/currency",
             params={"from": original, "to": goal, "value": str(value)},
@@ -250,7 +248,8 @@ class Utility(commands.Cog):
         ) as resp:
             data = await resp.json()
         if hasattr(data, "error"):
-            return await ctx.send(data["message"])
+            await ctx.send(data["message"])
+            return
         await ctx.send(f"The value of {value} {original} is {data['pretty']}")
 
     @commands.command()
@@ -260,9 +259,10 @@ class Utility(commands.Cog):
     async def github(self, ctx: commands.Context) -> None:
         """Create or delete a webhook to get updates about the bot."""
         if not hasattr(self.bot, "github") or not self.bot.github_repo:
-            return await ctx.send(
+            await ctx.send(
                 "This command hasn't been configured by the developer yet"
             )
+            return
         for hook in await ctx.channel.webhooks():
             if hook.user == self.bot.user:
                 await ctx.send(
@@ -287,7 +287,8 @@ class Utility(commands.Cog):
                         timeout=30.0,
                     )
                 except asyncio.TimeoutError:
-                    return await ctx.send("The webhook wasn't deleted")
+                    await ctx.send("The webhook wasn't deleted")
+                    return
                 if msg.content.lower().startswith("y"):
                     repo = self.bot.github.get_repo(self.bot.github_repo)
                     for webhook in repo.get_hooks():
@@ -295,8 +296,10 @@ class Utility(commands.Cog):
                             webhook.delete()
                             break
                     await hook.delete()
-                    return await ctx.send("Webhook deleted")
-                return await ctx.send("The webhook wasn't deleted")
+                    await ctx.send("Webhook deleted")
+                    return
+                await ctx.send("The webhook wasn't deleted")
+                return
 
         repo = self.bot.github.get_repo(self.bot.github_repo)
         hook = await ctx.channel.create_webhook(
@@ -383,19 +386,16 @@ class Utility(commands.Cog):
         embed.add_field(
             name="GitHub repository",
             value=(
-                f"[It's open source !]({self.bot.github_link} \"Yeah click me" ' !")'
+                f"[It's open source !]({self.bot.github_link})"
             ),
         )
         embed.add_field(
             name="Description page :",
             value=(
-                f'[top.gg page]({self.bot.top_gg} "Description on top.gg")\n'
-                f"[bots on discord page]({self.bot.bots_on_discord} "
-                '"Description on bots on discord")\n'
-                f"[Discord bots page]({self.bot.discord_bots_page} "
-                '"Description on discord bots")\n'
-                f"[Discord bot list page]({self.bot.discord_bot_list_page} "
-                '"Description on discord bot list")'
+                f'[top.gg page]({self.bot.top_gg})\n'
+                f"[bots on discord page]({self.bot.bots_on_discord})\n"
+                f"[Discord bots page]({self.bot.discord_bots_page})\n"
+                f"[Discord bot list page]({self.bot.discord_bot_list_page})"
             ),
             inline=False,
         )
@@ -456,285 +456,43 @@ class Utility(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("Aborting")
 
-    @commands.command(ignore_extra=True, aliases=["polls"])
+    @commands.command(aliases=["polls"])
     @commands.guild_only()
-    async def poll(self, ctx: commands.Context) -> None:
-        """Make a poll interactively."""
-        messages_to_delete = [
+    async def poll(self, ctx: commands.Context, title, *options) -> None:
+        """Make a poll with the given options.
+
+        If an option or the title contains whitespaces, wrap it in quotes.
+        For example :
+        €poll "Which is better?" Lotr "Honor Harrington" "Harry Potter"
+        """
+        if len(options) < 2:
             await ctx.send(
-                "Welcome to the poll creation tool !\nPlease tell me what this"
-                " poll will be about"
+                "I cannot create a poll with less than two answers."
             )
-        ]
-
-        def check(message: discord.Message) -> bool:
-            """Check the message, first version."""
-            return message.author == ctx.author and (message.channel == ctx.channel)
-
-        try:
-            subj_message = await self.bot.wait_for(
-                "message",
-                check=check,
-                timeout=120,
-            )
-        except asyncio.TimeoutError:
-            return await ctx.send("You didn't answer in time. I'm so sad !")
-        subject = subj_message.content
-        messages_to_delete.append(subj_message)
-        messages_to_delete.append(
-            await ctx.send("Now, how many possibilities does your poll have (2-10) ?")
-        )
-
-        def check2(message: discord.Message) -> bool:
-            """Check the message, second version."""
-            return message.author == ctx.author and (
-                message.channel == ctx.channel and message.content.isdigit()
-            )
-
-        try:
-            num_message = await self.bot.wait_for(
-                "message",
-                check=check2,
-                timeout=120,
-            )
-        except asyncio.TimeoutError:
-            return await ctx.send("You didn't answer in time. I'm so sad !")
-        num = int(num_message.content)
-        if not 1 < num < 11:
-            return await ctx.send("Invalid number passed !")
-        messages_to_delete.append(num_message)
-        answers = []
-        for i in range(num):
-            messages_to_delete.append(
-                await ctx.send(f"What will be the content of option {i+1} ?")
-            )
-            try:
-                message_subj = await self.bot.wait_for(
-                    "message",
-                    check=check,
-                    timeout=120,
-                )
-            except asyncio.TimeoutError:
-                return await ctx.send("You didn't answer in time. I'm so sad !")
-            answers.append(message_subj.content)
-            messages_to_delete.append(message_subj)
-        messages_to_delete.append(
-            await ctx.send(
-                "Now, tell me how long the poll is going to last (days, "
-                "minutes, seconds)\n\nHow many days will the poll last ?"
-            )
-        )
-
-        def check3(message: discord.Message) -> bool:
-            """Check the message, third version."""
-            return message.author == ctx.author and (
-                message.channel == ctx.channel and message.content.isdigit()
-            )
-
-        try:
-            message_days = await self.bot.wait_for(
-                "message",
-                check=check3,
-                timeout=120,
-            )
-        except asyncio.TimeoutError:
-            return await ctx.send("You didn't answer in time. I'm so sad !")
-
-        days = int(message_days.content)
-
-        messages_to_delete.append(await ctx.send("How many hours will the poll last ?"))
-
-        try:
-            message_hours = await self.bot.wait_for(
-                "message",
-                check=check3,
-                timeout=120,
-            )
-        except asyncio.TimeoutError:
-            return await ctx.send("You didn't answer in time. I'm so sad !")
-
-        hours = int(message_hours.content)
-
-        messages_to_delete.append(
-            await ctx.send("How many minutes will the poll last ?")
-        )
-
-        try:
-            message_minutes = await self.bot.wait_for(
-                "message",
-                check=check3,
-                timeout=120,
-            )
-        except asyncio.TimeoutError:
-            return await ctx.send("You didn't answer in time. I'm so sad !")
-
-        minutes = int(message_minutes.content)
-
-        messages_to_delete.append(message_days)
-        messages_to_delete.append(message_hours)
-        messages_to_delete.append(message_minutes)
-
-        if days == hours == minutes == 0:
-            return await ctx.send("A poll must last at least 1 minute")
-
-        timestamp = datetime.utcnow() + timedelta(
-            days=days,
-            hours=hours,
-            minutes=minutes,
-        )
-
+            return
+        if len(options) > 25:
+            await ctx.send("I cannot create a poll with more than 25 answers.")
+            return
         embed = discord.Embed(
-            title=(
-                "Poll lasting for"
-                f"{' ' + str(days) + 'days' if days else ''}"
-                f"{' ' + str(hours) + 'hours' if hours or days else ''} "
-                f"{minutes} minutes"
-            ),
-            description=escape_mentions(subject),
-            colour=self.bot.get_color(),
+            title=title,
+            color=discord.Color.random(),
         )
         embed.set_author(
             name=ctx.author.display_name,
             icon_url=ctx.author.avatar_url_as(format="jpg"),
         )
-        embed.timestamp = timestamp
-        for i, j in enumerate(answers):
+        embed.timestamp = datetime.utcnow()
+
+        for i, value in enumerate(options):
             embed.add_field(
-                name=f"Answer {i + 1}",
-                value=escape_mentions(j),
+                name=f"Answer {POLL_INDEXES[i]}",
+                value=value,
                 inline=False,
             )
 
         message = await ctx.send(embed=embed)
-        for i in range(1, min(10, len(answers) + 1)):
-            await message.add_reaction(
-                str(i) +
-                "\N{variation selector-16}\N{combining enclosing keycap}"
-            )
-        if len(answers) == 10:
-            await message.add_reaction("\N{keycap ten}")
-
-        async with self.bot.pool.acquire(timeout=5) as database:
-            await database.execute(
-                "INSERT INTO public.polls VALUES ($1, $2, $3, $4, $5, $6, $7)",
-                message.id,
-                ctx.channel.id,
-                ctx.guild.id,
-                ctx.author.id,
-                timestamp,
-                answers,
-                subject,
-            )
-
-        task = asyncio.create_task(
-            self.poll_generator(
-                message.id,
-                ctx.channel.id,
-                ctx.guild.id,
-                ctx.author.id,
-                timestamp,
-                answers,
-                subject,
-            )()
-        )
-        self.poll_tasks.append(task)
-        for message in messages_to_delete:
-            try:
-                await message.delete()
-            except discord.DiscordException:
-                continue
-
-    async def poll_initial(self):
-        """Create back all polls."""
-        async with self.bot.pool.acquire() as database:
-            for poll in await database.fetch("SELECT * FROM public.polls"):
-                task = asyncio.create_task(self.poll_generator(**dict(poll))())
-                self.poll_tasks.append(task)
-
-    def poll_generator(
-        self,
-        message_id: int,
-        channel_id: int,
-        guild_id: int,
-        author_id: int,
-        timestamp: datetime,
-        answers: list,
-        subject: str,
-    ):
-        """Generate a poll coroutine."""
-
-        async def predictate():
-            """End the poll."""
-            await sleep_until(timestamp)
-            async with self.bot.pool.acquire(timeout=5) as database:
-                await database.execute(
-                    "DELETE FROM public.polls WHERE message_id=$1",
-                    message_id,
-                )
-            channel = self.bot.get_guild(guild_id).get_channel(channel_id)
-            try:
-                message = await channel.fetch_message(message_id)
-            except discord.DiscordException:
-                return
-            final = []
-            for i, j in enumerate(answers):
-                if i != 9:
-                    reaction = get(
-                        message.reactions,
-                        emoji=str(i + 1)
-                        + (
-                            "\N{variation selector-16}" "\N{combining enclosing keycap}"
-                        ),
-                    )
-                    if reaction:
-                        final.append(
-                            (
-                                reaction.count -
-                                1 if reaction.me else (reaction.count),
-                                j,
-                            )
-                        )
-                    else:
-                        final.append((0, j))
-                else:
-                    reaction = get(
-                        message.reactions,
-                        emoji="\N{keycap ten}",
-                    )
-                    if reaction:
-                        final.append(
-                            (
-                                reaction.count -
-                                1 if reaction.me else (reaction.count),
-                                j,
-                            )
-                        )
-                    else:
-                        final.append((0, j))
-            final = sorted(final, key=lambda two: two[0], reverse=True)
-            embed = discord.Embed(
-                title=f'The poll "{escape_mentions(subject)}" is finished !',
-                description=(
-                    f"*Vox populi, vox dei !*\n\nThe winner is : {final[0][1]}"
-                ),
-                colour=self.bot.get_color(),
-            )
-            embed.timestamp = timestamp
-            author = channel.guild.get_member(author_id)
-            if author:
-                embed.set_author(
-                    name=author.display_name,
-                    icon_url=author.avatar_url_as(format="jpg"),
-                )
-            for i, j in final:
-                embed.add_field(
-                    name=j,
-                    value=f"{i} people voted for that option !",
-                    inline=False,
-                )
-            await channel.send(embed=embed)
-
-        return predictate
+        for i in range(len(options)):
+            await message.add_reaction(POLL_EMOJIS[i])
 
     @commands.command()
     @check_administrator()
@@ -753,10 +511,11 @@ class Utility(commands.Cog):
                     pref,
                 )
                 self.bot.prefix_dict[ctx_id] = pref
-                return await ctx.send(
-                    "Prefix changed to " f"`{discord.utils.escape_markdown(pref)}`"
+                await ctx.send(
+                    f"Prefix changed to `{escape_markdown(pref)}`"
                 )
-        old_prefix = discord.utils.escape_markdown(
+                return
+        old_prefix = escape_markdown(
             await self.bot.get_m_prefix(ctx.bot, ctx.message, False)
         )
         await ctx.send(f"The prefix for this channel is `{old_prefix}`")

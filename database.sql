@@ -85,24 +85,6 @@ ALTER TABLE level_members ADD CONSTRAINT primary_level_members
 
 ALTER TABLE level_members OWNER TO chaotic;
 
-CREATE TABLE polls (
-    message_id bigint NOT NULL,
-    channel_id bigint NOT NULL,
-    guild_id bigint NOT NULL,
-    author_id bigint NOT NULL,
-    "timestamp" timestamp without time zone NOT NULL,
-    answers text[] NOT NULL,
-    subject text NOT NULL
-);
-
-
-ALTER TABLE polls ADD CONSTRAINT message_id_u
-  UNIQUE (message_id);
-ALTER TABLE polls ADD CONSTRAINT message_id_p
-  PRIMARY KEY (message_id);
-
-ALTER TABLE polls OWNER TO chaotic;
-
 CREATE TABLE prefixes (
     ctx_id bigint NOT NULL,
     prefix text NOT NULL
