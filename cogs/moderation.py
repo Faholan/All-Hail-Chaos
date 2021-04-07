@@ -1015,16 +1015,16 @@ class Moderation(commands.Cog):
             else:
                 await ctx.send("The rule has been successfully updated")
 
-    @role.command()
+    @role.command(aliases=["list", "status"])
     async def info(self, ctx: commands.Context) -> None:
-        """Get a list of all rules defined for this guild."""
+        """Get a list of all the role rules defined for this guild."""
         async with self.bot.pool.acquire() as database:
             result = await database.fetch(
                 "SELECT * FROM public.roles WHERE guild_id=$1",
                 ctx.guild.id,
             )
             deleted = 0
-            message_content = (
+            content = (
                 "No rules are currently defined for this guild. Create the "
                 f"first one with `{ctx.prefix}role add`"
             )
@@ -1039,7 +1039,7 @@ class Moderation(commands.Cog):
                             ID for ID in output[-1]["roleids"] if ctx.guild.get_role(ID)
                         ]
                         await database.execute(
-                            "UPDATE public.roles SET roleids=$1 WHERE " "message_id=$2",
+                            "UPDATE public.roles SET roleids=$1 WHERE message_id=$2",
                             output[-1]["roleids"],
                             key["message_id"],
                         )
@@ -1051,21 +1051,22 @@ class Moderation(commands.Cog):
                         )
                 if output:
 
-                    def r_n(role_id: int) -> str:  # role name
-                        return ctx.guild.get_role(role_id).name
+                    def r_m(role_id: int) -> str:  # role mention
+                        return ctx.guild.get_role(role_id).mention
 
-                    message_content = "\n".join(
+                    content = "\n".join(
                         [
                             (
-                                f"- Rule number {i + 1} : [Message](https://discord."
-                                f'com/channels/{output[i]["guild_id"]}/'
-                                f'{output[i]["channel_id"]}/{output[i]["message_id"]} '
-                                '"Link to the original message") | '
-                                f'{output[i]["emoji"]} |'
-                                ", ".join([r_n(ID)
-                                          for ID in output[i]["roleids"]])
+                                f"- Rule {i + 1} : "
+                                "[Message](https://discord.com/channels/"
+                                f"{val['guild_id']}/{val['channel_id']}/"
+                                f"{val['message_id']} \"Original message\") | "
+                                f"{val['emoji']} | "
+                                + ", ".join(
+                                    [r_m(ID) for ID in val["roleids"]]
+                                )
                             )
-                            for i in range(len(output))
+                            for i, val in enumerate(output)
                         ]
                     )
 
@@ -1073,33 +1074,33 @@ class Moderation(commands.Cog):
                 title=f"Rules for guild {ctx.guild.name}",
                 color=discord.Color.blue(),
                 description=(
-                    "List of all the rules defined. You need the rule number "
-                    "for the `delete` action."
+                    "You need the rule number for the `remove` action."
                     + (
                         (
-                            f" {deleted} rules were deleted because the original "
-                            "message didn't exist anymore"
+                            f" {deleted} rules were deleted because the "
+                            "original message didn't exist anymore"
                         )
                         if deleted
                         else ""
-                    )
+                    ) + "\n\n" + content
                 ),
             )
-            embed.add_field(name="The rules :", value=message_content)
             await ctx.send(embed=embed)
 
-    @role.command()
+    @role.command(aliases=["delete"])
     async def remove(self, ctx: commands.Context, number: int) -> None:
         """Remove the rule associated with the number specified."""
         async with self.bot.pool.acquire() as database:
             try:
-                result = (
-                    await database.fetch(
-                        "SELECT * FROM public.roles WHERE guild_id=$1", ctx.guild.id
-                    )
+                result = await database.fetch(
+                    "SELECT * FROM public.roles WHERE guild_id=$1",
+                    ctx.guild.id,
                 )[number - 1]
             except IndexError:
-                return await ctx.send("The rule you are trying to delete doesn't exist")
+                await ctx.send(
+                    "The rule you are trying to delete doesn't exist"
+                )
+                return
             try:
                 await self.bot.get_channel(result["channel_id"]).fetch_message(
                     result["message_id"]
