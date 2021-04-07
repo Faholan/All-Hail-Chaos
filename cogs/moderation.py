@@ -1003,7 +1003,8 @@ class Moderation(commands.Cog):
             async for user in reaction.users():
                 counter += 1
                 try:
-                    await user.add_roles(*roles)
+                    if isinstance(user, discord.Member):
+                        await user.add_roles(*roles)
                 except discord.DiscordException:
                     pass
             if counter:
