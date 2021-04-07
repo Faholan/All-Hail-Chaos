@@ -885,9 +885,7 @@ class Moderation(commands.Cog):
                         timeout=30,
                     )
                 except asyncio.TimeoutError:
-                    await ctx.send(
-                        "You didn't answer in time, I'm giving up on this"
-                    )
+                    await ctx.send("You didn't answer in time, I'm giving up on this")
                     return
 
                 roles = message.role_mentions
@@ -910,9 +908,7 @@ class Moderation(commands.Cog):
                     timeout=30,
                 )
             except asyncio.TimeoutError:
-                await ctx.send(
-                    "You didn't react in time, I'm giving up on this."
-                )
+                await ctx.send("You didn't react in time, I'm giving up on this.")
                 return
 
             message = await self.bot.get_channel(payload.channel_id).fetch_message(
@@ -1351,9 +1347,7 @@ class Moderation(commands.Cog):
                     value="Online" if status["autoswear"] else "Offline",
                 )
                 embed.add_field(
-                    name=(
-                        "Alert message status (in case I cannot delete a message)"
-                    ),
+                    name=("Alert message status (in case I cannot delete a message)"),
                     value="Enabled" if status["notification"] else "Disabled",
                 )
                 embed.add_field(
