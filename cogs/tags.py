@@ -243,9 +243,7 @@ class Tags(commands.Cog):
                 owner = None
 
             if owner:
-                await ctx.send(
-                    f"{name} isn't unclaimed : {owner} has claimed it"
-                )
+                await ctx.send(f"{name} isn't unclaimed : {owner} has claimed it")
                 return
 
             tag = await database.fetchrow(
@@ -278,9 +276,7 @@ class Tags(commands.Cog):
                     tag["id"],
                 )
                 waswere = f"and alias {name} were" if name != tag["name"] else "was"
-                await ctx.send(
-                    f"Tag {tag['name']} " f"{waswere} successfully claimed"
-                )
+                await ctx.send(f"Tag {tag['name']} " f"{waswere} successfully claimed")
                 return
             await ctx.send(f"Alias {name} successfully claimed")
 
@@ -778,9 +774,7 @@ class Tags(commands.Cog):
                     location_id,
                 )
                 if already_exists:
-                    await ctx.send(
-                        "A tag with that name already exists. Aborting"
-                    )
+                    await ctx.send("A tag with that name already exists. Aborting")
                     return
 
             await self.create_tag(ctx, alias, tag["content"])

@@ -40,10 +40,14 @@ from discord.utils import escape_markdown
 
 ZWS = "\u200b"
 POLL_INDEXES = [str(i + 1) for i in range(10)] + list("ABCDEFGHIJKLMNO")
-POLL_EMOJIS = [
-    str(i) + "\N{variation selector-16}\N{combining enclosing keycap}"
-    for i in range(1, 10)
-] + ["\N{keycap ten}"] + [chr(0x1f1e6 + i) for i in range(0xf)]
+POLL_EMOJIS = (
+    [
+        str(i) + "\N{variation selector-16}\N{combining enclosing keycap}"
+        for i in range(1, 10)
+    ]
+    + ["\N{keycap ten}"]
+    + [chr(0x1F1E6 + i) for i in range(0xF)]
+)
 # :regional_indicator_a: up to o
 
 
@@ -259,9 +263,7 @@ class Utility(commands.Cog):
     async def github(self, ctx: commands.Context) -> None:
         """Create or delete a webhook to get updates about the bot."""
         if not hasattr(self.bot, "github") or not self.bot.github_repo:
-            await ctx.send(
-                "This command hasn't been configured by the developer yet"
-            )
+            await ctx.send("This command hasn't been configured by the developer yet")
             return
         for hook in await ctx.channel.webhooks():
             if hook.user == self.bot.user:
@@ -385,14 +387,12 @@ class Utility(commands.Cog):
         )
         embed.add_field(
             name="GitHub repository",
-            value=(
-                f"[It's open source !]({self.bot.github_link})"
-            ),
+            value=(f"[It's open source !]({self.bot.github_link})"),
         )
         embed.add_field(
             name="Description page :",
             value=(
-                f'[top.gg page]({self.bot.top_gg})\n'
+                f"[top.gg page]({self.bot.top_gg})\n"
                 f"[bots on discord page]({self.bot.bots_on_discord})\n"
                 f"[Discord bots page]({self.bot.discord_bots_page})\n"
                 f"[Discord bot list page]({self.bot.discord_bot_list_page})"
@@ -466,9 +466,7 @@ class Utility(commands.Cog):
         €poll "Which is better?" Lotr "Honor Harrington" "Harry Potter"
         """
         if len(options) < 2:
-            await ctx.send(
-                "I cannot create a poll with less than two answers."
-            )
+            await ctx.send("I cannot create a poll with less than two answers.")
             return
         if len(options) > 25:
             await ctx.send("I cannot create a poll with more than 25 answers.")
@@ -511,9 +509,7 @@ class Utility(commands.Cog):
                     pref,
                 )
                 self.bot.prefix_dict[ctx_id] = pref
-                await ctx.send(
-                    f"Prefix changed to `{escape_markdown(pref)}`"
-                )
+                await ctx.send(f"Prefix changed to `{escape_markdown(pref)}`")
                 return
         old_prefix = escape_markdown(
             await self.bot.get_m_prefix(ctx.bot, ctx.message, False)
