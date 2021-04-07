@@ -1062,9 +1062,7 @@ class Moderation(commands.Cog):
                                 f"{val['guild_id']}/{val['channel_id']}/"
                                 f"{val['message_id']} \"Original message\") | "
                                 f"{val['emoji']} | "
-                                + ", ".join(
-                                    [r_m(ID) for ID in val["roleids"]]
-                                )
+                                + ", ".join([r_m(ID) for ID in val["roleids"]])
                             )
                             for i, val in enumerate(output)
                         ]
@@ -1082,7 +1080,9 @@ class Moderation(commands.Cog):
                         )
                         if deleted
                         else ""
-                    ) + "\n\n" + content
+                    )
+                    + "\n\n"
+                    + content
                 ),
             )
             await ctx.send(embed=embed)
@@ -1097,9 +1097,7 @@ class Moderation(commands.Cog):
                     ctx.guild.id,
                 )[number - 1]
             except IndexError:
-                await ctx.send(
-                    "The rule you are trying to delete doesn't exist"
-                )
+                await ctx.send("The rule you are trying to delete doesn't exist")
                 return
             try:
                 await self.bot.get_channel(result["channel_id"]).fetch_message(
