@@ -489,7 +489,9 @@ auto_swear_detection = frozenset(
 class RoleSource(menus.ListPageSource):
     """Source for the role rule list."""
 
-    def __init__(self, contents: typing.List[str], guild_name: str, del_msg: str) -> None:
+    def __init__(
+        self, contents: typing.List[str], guild_name: str, del_msg: str
+    ) -> None:
         """Initialize RoleSource."""
         self.guild_name = guild_name
         self.del_msg = del_msg
@@ -510,8 +512,7 @@ class RoleSource(menus.ListPageSource):
             ),
         )
         embed.set_footer(
-            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
-        )
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 
@@ -919,7 +920,9 @@ class Moderation(commands.Cog):
 
                 roles = message.role_mentions
 
-            await ctx.send("React with an emoji in the next 30 seconds to a message to set up the assignation !")
+            await ctx.send(
+                "React with an emoji in the next 30 seconds to a message to set up the assignation !"
+            )
 
             def check2(payload: discord.RawReactionActionEvent) -> bool:
                 """Check the reaction."""
@@ -937,7 +940,9 @@ class Moderation(commands.Cog):
                 await ctx.send("You didn't react in time, I'm giving up on this.")
                 return
 
-            message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+            message = await self.bot.get_channel(payload.channel_id).fetch_message(
+                payload.message_id
+            )
             emoji = payload.emoji.name
 
             result = await database.fetchrow(
@@ -1077,7 +1082,7 @@ class Moderation(commands.Cog):
                     description=(
                         "No rules are currently defined for this guild. "
                         f"Create the first one with `{ctx.prefix}role add`"
-                    )
+                    ),
                 )
                 await ctx.send(embed=embed)
                 return
@@ -1091,16 +1096,20 @@ class Moderation(commands.Cog):
                     "[Message](https://discord.com/channels/"
                     f"{val['guild_id']}/{val['channel_id']}/"
                     f"{val['message_id']} \"Original message\") | "
-                    f"{val['emoji']} | "
-                    + ", ".join([r_m(ID) for ID in val["roleids"]])
+                    f"{val['emoji']} | " +
+                    ", ".join([r_m(ID) for ID in val["roleids"]])
                 )
                 for i, val in enumerate(output)
             ]
 
             del_msg = (
-                f" {deleted} rules were deleted because the "
-                "original message didn't exist anymore"
-            ) if deleted else ""
+                (
+                    f" {deleted} rules were deleted because the "
+                    "original message didn't exist anymore"
+                )
+                if deleted
+                else ""
+            )
 
             final = [content[0]]
             cur_len = len(content[0])
