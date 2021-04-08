@@ -26,7 +26,7 @@ import typing
 from datetime import datetime
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
 from discord.utils import find
 
 auto_swear_detection = frozenset(
@@ -486,6 +486,35 @@ auto_swear_detection = frozenset(
 )
 
 
+class RoleSource(menus.ListPageSource):
+    """Source for the role rule list."""
+
+    def __init__(self, contents: typing.List[str], guild_name: str, del_msg: str) -> None:
+        """Initialize RoleSource."""
+        self.guild_name = guild_name
+        self.del_msg = del_msg
+        super().__init__(contents, per_page=1)
+
+    async def format_page(
+        self,
+        menu: menus.Menu,
+        page: str,
+    ) -> discord.Embed:
+        """Create the embed."""
+        embed = discord.Embed(
+            title=f"Rules for guild {self.guild_name}",
+            color=discord.Color.blue(),
+            description=(
+                "You need the rule number for the `remove` action."
+                f"{self.del_msg}\n\n{page}"
+            ),
+        )
+        embed.set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}"
+        )
+        return embed
+
+
 class Moderation(commands.Cog):
     """Manage your server like never before."""
 
@@ -800,7 +829,7 @@ class Moderation(commands.Cog):
             if not check_ban:
                 embed.add_field(
                     name="Bans",
-                    value=("This user hasn't been banned from DiscordRep or KSoft"),
+                    value="This user hasn't been banned from DiscordRep or KSoft",
                     inline=False,
                 )
             else:
@@ -890,10 +919,7 @@ class Moderation(commands.Cog):
 
                 roles = message.role_mentions
 
-            await ctx.send(
-                "React with an emoji in the next 30 seconds to a message to "
-                "set up the assignation !"
-            )
+            await ctx.send("React with an emoji in the next 30 seconds to a message to set up the assignation !")
 
             def check2(payload: discord.RawReactionActionEvent) -> bool:
                 """Check the reaction."""
@@ -911,9 +937,7 @@ class Moderation(commands.Cog):
                 await ctx.send("You didn't react in time, I'm giving up on this.")
                 return
 
-            message = await self.bot.get_channel(payload.channel_id).fetch_message(
-                payload.message_id
-            )
+            message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
             emoji = payload.emoji.name
 
             result = await database.fetchrow(
@@ -1025,12 +1049,8 @@ class Moderation(commands.Cog):
                 ctx.guild.id,
             )
             deleted = 0
-            content = (
-                "No rules are currently defined for this guild. Create the "
-                f"first one with `{ctx.prefix}role add`"
-            )
+            output = []
             if result:
-                output = []
                 for key in result:
                     try:
                         channel = self.bot.get_channel(key["channel_id"])
@@ -1050,43 +1070,65 @@ class Moderation(commands.Cog):
                             "DELETE FROM public.roles WHERE message_id=$1",
                             key["message_id"],
                         )
-                if output:
-
-                    def r_m(role_id: int) -> str:  # role mention
-                        return ctx.guild.get_role(role_id).mention
-
-                    content = "\n".join(
-                        [
-                            (
-                                f"- Rule {i + 1} : "
-                                "[Message](https://discord.com/channels/"
-                                f"{val['guild_id']}/{val['channel_id']}/"
-                                f"{val['message_id']} \"Original message\") | "
-                                f"{val['emoji']} | "
-                                + ", ".join([r_m(ID) for ID in val["roleids"]])
-                            )
-                            for i, val in enumerate(output)
-                        ]
+            if not output:
+                embed = discord.Embed(
+                    title=f"Rules for guild {ctx.guild.name}",
+                    color=discord.Color.blue(),
+                    description=(
+                        "No rules are currently defined for this guild. "
+                        f"Create the first one with `{ctx.prefix}role add`"
                     )
+                )
+                await ctx.send(embed=embed)
+                return
 
-            embed = discord.Embed(
-                title=f"Rules for guild {ctx.guild.name}",
-                color=discord.Color.blue(),
-                description=(
-                    "You need the rule number for the `remove` action."
-                    + (
-                        (
-                            f" {deleted} rules were deleted because the "
-                            "original message didn't exist anymore"
-                        )
-                        if deleted
-                        else ""
-                    )
-                    + "\n\n"
-                    + content
-                ),
-            )
-            await ctx.send(embed=embed)
+            def r_m(role_id: int) -> str:  # role mention
+                return ctx.guild.get_role(role_id).mention
+
+            content = [
+                (
+                    f"- Rule {i + 1} : "
+                    "[Message](https://discord.com/channels/"
+                    f"{val['guild_id']}/{val['channel_id']}/"
+                    f"{val['message_id']} \"Original message\") | "
+                    f"{val['emoji']} | "
+                    + ", ".join([r_m(ID) for ID in val["roleids"]])
+                )
+                for i, val in enumerate(output)
+            ]
+
+            del_msg = (
+                f" {deleted} rules were deleted because the "
+                "original message didn't exist anymore"
+            ) if deleted else ""
+
+            final = [content[0]]
+            cur_len = len(content[0])
+            for elem in content[1:]:
+                if len(elem) + cur_len > 1996 - len(del_msg):
+                    final.append(elem)
+                    cur_len = len(elem)
+                else:
+                    cur_len += len(elem) + 1
+                    final[-1] += f"\n{elem}"
+                # No more than 2048 characters per embed
+
+            if len(final) == 1:
+                embed = discord.Embed(
+                    title=f"Rules for guild {ctx.guild.name}",
+                    color=discord.Color.blue(),
+                    description=(
+                        "You need the rule number for the `remove` action."
+                        f"{del_msg}\n\n{final[0]}"
+                    ),
+                )
+                await ctx.send(embed=embed)
+            else:
+                pages = menus.MenuPages(
+                    source=RoleSource(final, ctx.guild.name, del_msg),
+                    clear_reactions_after=True,
+                )
+                await pages.start(ctx)
 
     @role.command(aliases=["delete"])
     async def remove(self, ctx: commands.Context, number: int) -> None:
