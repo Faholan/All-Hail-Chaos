@@ -39,16 +39,8 @@ from discord.ext import commands, menus, tasks
 from discord.utils import escape_markdown
 
 ZWS = "\u200b"
-POLL_INDEXES = [str(i + 1) for i in range(10)] + list("ABCDEFGHIJKLMNO")
-POLL_EMOJIS = (
-    [
-        str(i) + "\N{variation selector-16}\N{combining enclosing keycap}"
-        for i in range(1, 10)
-    ]
-    + ["\N{keycap ten}"]
-    + [chr(0x1F1E6 + i) for i in range(0xF)]
-)
-# :regional_indicator_a: up to o
+POLL_EMOJIS = [chr(0x1F1E6 + i) for i in range(0x1A)]
+# :regional_indicator_a: up to :regional_indicator_z
 
 
 class SnipeSource(menus.ListPageSource):
@@ -468,26 +460,25 @@ class Utility(commands.Cog):
         if len(options) < 2:
             await ctx.send("I cannot create a poll with less than two answers.")
             return
-        if len(options) > 25:
-            await ctx.send("I cannot create a poll with more than 25 answers.")
+        if len(options) > 26:
+            await ctx.send("I cannot create a poll with more than 26 answers.")
             return
         embed = discord.Embed(
             title=title,
             color=discord.Color.random(),
+            description="\n".join(
+                [
+                    f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(
+                        options
+                    )
+                ]
+            )
         )
         embed.set_author(
             name=ctx.author.display_name,
             icon_url=ctx.author.avatar_url_as(format="jpg"),
         )
         embed.timestamp = datetime.utcnow()
-
-        for i, value in enumerate(options):
-            embed.add_field(
-                name=f"Answer {POLL_INDEXES[i]}",
-                value=value,
-                inline=False,
-            )
-
         message = await ctx.send(embed=embed)
         for i in range(len(options)):
             await message.add_reaction(POLL_EMOJIS[i])
