@@ -467,12 +467,9 @@ class Utility(commands.Cog):
             title=title,
             color=discord.Color.random(),
             description="\n".join(
-                [
-                    f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(
-                        options
-                    )
-                ]
-            )
+                [f"{POLL_EMOJIS[i]} {value}" for i,
+                    value in enumerate(options)]
+            ),
         )
         embed.set_author(
             name=ctx.author.display_name,
