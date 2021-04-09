@@ -466,14 +466,10 @@ class Utility(commands.Cog):
         embed = discord.Embed(
             title=title,
             color=discord.Color.random(),
-            description="\n".join(
+            description="\n\n\n".join(
                 [f"{POLL_EMOJIS[i]} {value}" for i,
                     value in enumerate(options)]
             ),
-        )
-        embed.set_author(
-            name=ctx.author.display_name,
-            icon_url=ctx.author.avatar_url_as(format="jpg"),
         )
         embed.timestamp = datetime.utcnow()
         message = await ctx.send(embed=embed)
