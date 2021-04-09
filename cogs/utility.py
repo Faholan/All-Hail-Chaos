@@ -463,13 +463,19 @@ class Utility(commands.Cog):
         if len(options) > 26:
             await ctx.send("I cannot create a poll with more than 26 answers.")
             return
+
+        description = "\n\n\n".join(
+            [f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(options)]
+        )
+
+        if len(description) > 2048:
+            await ctx.send("Error: formatted message is over 2048 characters.")
+            return
+
         embed = discord.Embed(
             title=title,
             color=discord.Color.random(),
-            description="\n\n\n".join(
-                [f"{POLL_EMOJIS[i]} {value}" for i,
-                    value in enumerate(options)]
-            ),
+            description=description,
         )
         embed.timestamp = datetime.utcnow()
         message = await ctx.send(embed=embed)
