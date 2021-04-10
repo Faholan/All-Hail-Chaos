@@ -18,17 +18,18 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE."""
+SOFTWARE.
+"""
 
 from random import choice, randint
 
 from discord.ext import commands
 
-green = ":green_square:"
-blue = ":blue_square:"
-red = ":red_square:"
-white = ":white_large_square:"
-black = ":black_large_square:"
+GREEN = ":green_square:"
+BLUE = ":blue_square:"
+RED = ":red_square:"
+WHITE = ":white_large_square:"
+BLACK = ":black_large_square:"
 
 
 class Battleship(commands.Cog):
@@ -47,7 +48,7 @@ class Battleship(commands.Cog):
 
     def j2_boats(self):
         j2, boats = [[0] * 10 for _ in range(10)], []
-        for i, k in self.boat_size:
+        for i, _ in self.boat_size:
             test = True
             while test:
                 test = False
@@ -161,15 +162,15 @@ class Battleship(commands.Cog):
             + [
                 "".join(
                     [
-                        green
+                        GREEN
                         if (grid[i][j] == 1 and player)
-                        else white
+                        else WHITE
                         if grid[i][j] == -1
-                        else red
+                        else RED
                         if grid[i][j] == -2
-                        else black
+                        else BLACK
                         if grid[i][j] == -3
-                        else blue
+                        else BLUE
                         for j in range(len(grid[i]))
                     ]
                     + [" " + self.column[i].upper()]
@@ -232,7 +233,8 @@ class Battleship(commands.Cog):
             while invalid:
                 msg = await self.bot.wait_for("message", check=check)
                 if msg.content.lower() == "quit":
-                    return await ctx.send("Maybe we can play together another time")
+                    await ctx.send("Maybe we can play together another time")
+                    return
                 if (
                     msg.content.lower()[0] not in self.column
                     or not msg.content[1:-1].isdigit()
@@ -399,7 +401,7 @@ class Battleship(commands.Cog):
         enemy_state = [1] * len(self.boat_size)
         enemy_fire = self.grille_de_tir(dist, not_possible)
 
-        def check(m):
+        def check2(m):
             return (
                 m.author == ctx.author
                 and m.channel == ctx.channel
@@ -412,7 +414,7 @@ class Battleship(commands.Cog):
             await ctx.send("You can now fire upon me !")
             player_turn = True
             while player_turn:
-                msg = await self.bot.wait_for("message", check=check)
+                msg = await self.bot.wait_for("message", check=check2)
                 if msg.content.lower() == "quit":
                     return await ctx.send("Maybe we can play together another day")
                 if (
@@ -445,7 +447,8 @@ class Battleship(commands.Cog):
                                         enemy_grid[j[0]][j[1]] = -3
                                     enemy_state[enemy_boats.index(b)] = 0
                                     if sum(enemy_state) == 0:
-                                        return await ctx.send("You won !!")
+                                        await ctx.send("You won !!")
+                                        return
                                 break
                     else:
                         await ctx.send("You cannot fire twice in the same place !")
@@ -511,7 +514,8 @@ class Battleship(commands.Cog):
                                 for j in player_boats[i]:
                                     player_grid[j[0]][j[1]] = -3
                                 if sum(player_state) == 0:
-                                    return await ctx.send("I won !")
+                                    await ctx.send("I won !")
+                                    return
                     if sunk:
                         must_fire.append(2)
                         must_fire.append(original)
@@ -605,7 +609,8 @@ class Battleship(commands.Cog):
                                 for j in player_boats[i]:
                                     player_grid[j[0]][j[1]] = -3
                                 if sum(player_state) == 0:
-                                    return await ctx.send("I won !")
+                                    await ctx.send("I won !")
+                                    return
                             else:
                                 if fire[0] < must_fire[1][0]:
                                     if fire[0] == 0:
@@ -669,7 +674,8 @@ class Battleship(commands.Cog):
                             for j in player_boats[i]:
                                 player_grid[j[0]][j[1]] = -3
                             if sum(player_state) == 0:
-                                return await ctx.send("I won !")
+                                await ctx.send("I won !")
+                                return
                 if must_fire != []:
                     must_fire.remove(fire)
                     if fire[0] < must_fire[1][0]:
@@ -683,4 +689,5 @@ class Battleship(commands.Cog):
 
 
 def setup(bot):
+    """Load the Battleship cog."""
     bot.add_cog(Battleship(bot))
