@@ -24,6 +24,7 @@ SOFTWARE.
 import datetime
 import sys
 import traceback
+from io import StringIO
 from typing import Callable
 
 import discord
@@ -242,9 +243,12 @@ async def error_manager(
         await ctx.bot.log_channel.send(embed=embed)
         return
     except discord.DiscordException:
-        pass
-    await ctx.bot.log_channel.send("Please check the Python logs")
-    raise error
+        await ctx.bot.log_channel.send(
+            file=discord.File(
+                StringIO(f"{embed.title}\n\n{embed.description}"),
+                filename="error.md"
+            )
+        )
 
 
 def generator(bot: commands.Bot) -> Callable:
@@ -252,7 +256,7 @@ def generator(bot: commands.Bot) -> Callable:
 
     async def predictate(event: str, *args, **kwargs) -> None:
         """Process the on_error event."""
-        if event == "on_command_error" or not bot.log_channel:
+        if not bot.log_channel:
             raise
         error_type, value, raw_traceback = sys.exc_info()
         if not error_type:
@@ -271,9 +275,12 @@ def generator(bot: commands.Bot) -> Callable:
             await bot.log_channel.send(embed=embed)
             return
         except discord.DiscordException:
-            pass
-        await bot.log_channel.send("Please check the Python logs")
-        raise
+            await bot.log_channel.send(
+                file=discord.File(
+                    StringIO(f"{embed.title}\n\n{embed.description}"),
+                    filename="error.md"
+                )
+            )
 
     return predictate
 
