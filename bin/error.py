@@ -245,8 +245,7 @@ async def error_manager(
     except discord.DiscordException:
         await ctx.bot.log_channel.send(
             file=discord.File(
-                StringIO(f"{embed.title}\n\n{embed.description}"),
-                filename="error.md"
+                StringIO(f"{embed.title}\n\n{embed.description}"), filename="error.md"
             )
         )
 
@@ -278,7 +277,7 @@ def generator(bot: commands.Bot) -> Callable:
             await bot.log_channel.send(
                 file=discord.File(
                     StringIO(f"{embed.title}\n\n{embed.description}"),
-                    filename="error.md"
+                    filename="error.md",
                 )
             )
 
