@@ -255,11 +255,11 @@ def generator(bot: commands.Bot) -> Callable:
 
     async def predictate(event: str, *args, **kwargs) -> None:
         """Process the on_error event."""
-        if not bot.log_channel:
-            raise
         error_type, value, raw_traceback = sys.exc_info()
         if not error_type:
             return
+        if not bot.log_channel:
+            raise
         embed = discord.Embed(color=0xFF0000)
         embed.title = f"Error in {event} with args {args} {kwargs}"
         embed.description = f"{error_type.__name__} : {value}"
