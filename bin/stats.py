@@ -55,7 +55,6 @@ async def statistics(ctx: commands.Context) -> None:
 
 def guilds(bot: commands.Bot):
     """Log the number of guilds."""
-
     async def predictate(_) -> None:
         """Compute the logging."""
         async with bot.pool.acquire() as database:
