@@ -21,9 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import typing
 from datetime import datetime
 from random import choice
-import typing
 
 import discord
 from discord.ext import commands, tasks
