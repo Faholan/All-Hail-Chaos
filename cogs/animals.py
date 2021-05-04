@@ -23,6 +23,7 @@ SOFTWARE.
 
 from datetime import datetime
 from random import choice
+import typing
 
 import discord
 from discord.ext import commands, tasks
@@ -43,7 +44,7 @@ class Animals(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Animals."""
         self.bot = bot
-        self.all_facts = []
+        self.all_facts: typing.List[typing.Dict[str, str]] = []
         self.catfact_update.start()
 
     @tasks.loop(hours=12)

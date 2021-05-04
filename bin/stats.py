@@ -28,8 +28,10 @@ async def statistics(ctx: commands.Context) -> None:
     """Log usage statistics."""
     if await ctx.bot.is_owner(ctx.author):
         return
+    # Ignore anything the owner does. We want users
 
     async with ctx.bot.pool.acquire() as database:
+        # Log once per 15 minutes
         row = await database.fetchrow(
             "SELECT * FROM stats.usage WHERE command=$1 "
             "AND EXTRACT(EPOCH FROM (NOW() - timestamp)) < 15*60",

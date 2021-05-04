@@ -55,22 +55,30 @@ class ChaoticBot(commands.Bot):
         """Initialize the bot."""
         self.token: typing.Optional[str] = None
 
+        self.default_prefix: str = "sudo "
+        # This is replaced - value isn't important
+
         self.first_on_ready = True
+        # makes it so on_ready behaves differently on first call
         self.last_update = datetime.utcnow()
+        # used in the info command
 
         self.dbl_token: typing.Optional[str] = None
         self.github_token: typing.Optional[str] = None
-        self.pool: asyncpg.pool.Pool = None
-        self.default_prefix: str = "€"
-        self.postgre_connection: typing.Dict[str, typing.Any] = {}
-
         self.ksoft_client: typing.Any = None
+
+        self.pool: asyncpg.pool.Pool = None
+        self.postgre_connection: typing.Dict[str, typing.Any] = {}
+        # PostgreSQL connection
+
         self.aio_session: aiohttp.ClientSession = None
+        # Used for all internet fetches
 
         self.log_channel: discord.TextChannel = None
         self.suggestion_channel: discord.TextChannel = None
         self.log_channel_id = 0
         self.suggestion_channel_id = 0
+        # Important channels
 
         self.extensions_list: typing.List[str] = []
 
@@ -82,6 +90,7 @@ class ChaoticBot(commands.Bot):
         )
 
         self.load_extension("data.data")
+        # You can load an extension only after __init__ has been called
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
@@ -100,17 +109,25 @@ class ChaoticBot(commands.Bot):
         )
         if self.first_on_ready:
             self.first_on_ready = False
+
             self.pool = await asyncpg.create_pool(
                 min_size=20, max_size=100, **self.postgre_connection
             )
+            # postgresql setup
+
             query = "SELECT * FROM public.prefixes"
             async with self.pool.acquire(timeout=5) as database:
                 for row in await database.fetch(query):
                     self.prefix_dict[row["ctx_id"]] = row["prefix"]
+            # Load all prefixes in memory
+
             self.aio_session = aiohttp.ClientSession()
+
             self.log_channel = self.get_channel(self.log_channel_id)
             self.suggestion_channel = self.get_channel(
                 self.suggestion_channel_id)
+            # Load the channels
+
             report = []
             success = 0
             for ext in self.extensions_list:
@@ -128,6 +145,8 @@ class ChaoticBot(commands.Bot):
                         report.append(f"❌ | **Extension not found** : `{ext}`")
                     except commands.NoEntryPointError:
                         report.append(f"❌ | **setup not defined** : `{ext}`")
+            # Load every single extension
+            # Looping on the /cogs and /bin folders does not allow fine control
 
             embed = discord.Embed(
                 title=(
@@ -171,6 +190,7 @@ class ChaoticBot(commands.Bot):
         report = []
         success = 0
         self.reload_extension("data.data")
+        # First of all, reload the data file
         total_reload = len(extensions) or len(self.extensions_list)
         if extensions:
             for ext in extensions:
@@ -238,8 +258,10 @@ class ChaoticBot(commands.Bot):
         not_print: bool = True,
     ) -> str:
         """Get the prefix from a message."""
+        # not_print : this is not for displaying in a help command, but for
+        # actual processing
         if message.content.startswith("¤") and not_print:
-            return "¤"
+            return "¤"  # Hardcoded secret prefix. Because, that's why
         if message.content.startswith(f"{self.default_prefix}help") and not_print:
             return self.default_prefix
         return self.prefix_dict.get(self.get_id(message), self.default_prefix)
@@ -265,6 +287,7 @@ class ChaoticBot(commands.Bot):
         self, ctx: commands.Context, *content, timeout: int = 30
     ) -> discord.Message:
         """Get an answer."""
+        # Helper function for getting an answer in a set of possibilities
 
         def check(message: discord.Message) -> bool:
             """Check the message."""
@@ -315,4 +338,4 @@ class ChaoticBot(commands.Bot):
 
 
 if __name__ == "__main__":
-    ChaoticBot().launch()
+    ChaoticBot().launch()  # Run if not imported

@@ -28,7 +28,7 @@ import discord
 from discord.ext import commands
 
 
-def p_vol(streak: int) -> int:
+def p_vol(streak: int) -> float:
     """Return the probability of stealing based off the strek."""
     return 75 - (25 * 0.8 ** streak)
 
@@ -225,7 +225,7 @@ class Business(commands.Cog):
 
             threshold = p_vol(pickpocket.steal_streak)
             if victim.status == discord.Status.offline:
-                threshold += 10
+                threshold -= 10
             if randint(1, 100) < threshold:
                 pickpocket.steal_streak = 0
                 await pickpocket.save()

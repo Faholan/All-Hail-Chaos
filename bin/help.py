@@ -113,6 +113,11 @@ class Help(commands.HelpCommand):
             ):
                 basis += f" [{arg.name} = None]"
             elif isinstance(arg.annotation, commands.converter._Greedy):
+                # This is fine as of discord.py 1.7.1
+                # However, this will soon break due to this commit :
+                # https://github.com/Rapptz/discord.py/commit/bcd3a00eaff85262db6903cf194fea563825ad4b#diff-e30bed16d1d422b6da3c37af2512366fd41bd0f71e3f1165dd93a6742770305dL837
+                # But I don't know how to make the code not break due to this change.
+                # So I'll have to monitor this situation
                 basis += f" [{arg.name} = (...)]"
             elif arg.default == Parameter.empty:
                 basis += f" <{arg.name}>"
