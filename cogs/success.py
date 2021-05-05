@@ -260,7 +260,7 @@ class Successes(commands.Cog):
                     embed = Embed(
                         title="Succes unlocked !",
                         description=success.name,
-                        colour=discord.Colour.random(),
+                        colour=Colour.random(),
                     )
                     embed.set_author(
                         name=str(ctx.author),
