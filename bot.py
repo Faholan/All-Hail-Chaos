@@ -93,8 +93,7 @@ class ChaoticBot(commands.Bot):
         # You can load an extension only after __init__ has been called
         if not self.log_channel_id:
             raise ValueError(
-                "No log channel configured. One is required to proceed"
-            )
+                "No log channel configured. One is required to proceed")
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
