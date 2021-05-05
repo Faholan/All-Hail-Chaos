@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import typing
+import typing as t
 from datetime import datetime
 from random import choice
 
@@ -44,7 +44,7 @@ class Animals(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Animals."""
         self.bot = bot
-        self.all_facts: typing.List[typing.Dict[str, str]] = []
+        self.all_facts: t.List[t.Dict[str, str]] = []
         self.catfact_update.start()
 
     @tasks.loop(hours=12)

@@ -21,7 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import typing
+import typing as t
 from asyncio import all_tasks
 from datetime import datetime
 
@@ -53,7 +53,7 @@ class ChaoticBot(commands.Bot):
 
     def __init__(self) -> None:
         """Initialize the bot."""
-        self.token: typing.Optional[str] = None
+        self.token: t.Optional[str] = None
 
         self.default_prefix: str = "sudo "
         # This is replaced - value isn't important
@@ -63,12 +63,12 @@ class ChaoticBot(commands.Bot):
         self.last_update = datetime.utcnow()
         # used in the info command
 
-        self.dbl_token: typing.Optional[str] = None
-        self.github_token: typing.Optional[str] = None
-        self.ksoft_client: typing.Any = None
+        self.dbl_token: t.Optional[str] = None
+        self.github_token: t.Optional[str] = None
+        self.ksoft_client: t.Any = None
 
         self.pool: asyncpg.pool.Pool = None
-        self.postgre_connection: typing.Dict[str, typing.Any] = {}
+        self.postgre_connection: t.Dict[str, t.Any] = {}
         # PostgreSQL connection
 
         self.aio_session: aiohttp.ClientSession = None
@@ -80,9 +80,9 @@ class ChaoticBot(commands.Bot):
         self.suggestion_channel_id = 0
         # Important channels
 
-        self.extensions_list: typing.List[str] = []
+        self.extensions_list: t.List[str] = []
 
-        self.prefix_dict: typing.Dict[int, str] = {}
+        self.prefix_dict: t.Dict[int, str] = {}
 
         super().__init__(
             command_prefix=self.get_m_prefix,
@@ -183,7 +183,7 @@ class ChaoticBot(commands.Bot):
     async def cog_reloader(
         self,
         ctx: commands.Context,
-        extensions: typing.List[str],
+        extensions: t.List[str],
     ) -> None:
         """Reload cogs."""
         self.last_update = datetime.utcnow()
@@ -326,7 +326,7 @@ class ChaoticBot(commands.Bot):
         return payload.emoji.name == "\U00002705"
 
     @staticmethod
-    def get_id(ctx: typing.Union[commands.Context, discord.Message]) -> int:
+    def get_id(ctx: t.Union[commands.Context, discord.Message]) -> int:
         """Get a context's id."""
         if ctx.guild:
             return ctx.guild.id

@@ -23,7 +23,7 @@ SOFTWARE.
 
 import math
 import re
-import typing
+import typing as t
 from asyncio import sleep
 
 import discord
@@ -87,7 +87,7 @@ class Music(commands.Cog):
             )
 
         bot.lavalink.add_event_hook(self.track_hook)
-        self.empty_channels: typing.List[int] = []
+        self.empty_channels: t.List[int] = []
         self.empty_vc_check.start()
 
     async def cog_check(self, ctx: commands.Context) -> bool:
@@ -139,7 +139,7 @@ class Music(commands.Cog):
     async def connect_to(
         self,
         guild_id: int,
-        channel_id: typing.Optional[str],
+        channel_id: t.Optional[str],
     ) -> None:
         """Connect to the given voicechannel ID. A channel_id of `None` means disconnect."""
         websocket = self.bot._connection._get_websocket(guild_id)

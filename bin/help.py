@@ -22,7 +22,7 @@ SOFTWARE.
 """
 
 import textwrap
-import typing
+import typing as t
 from inspect import Parameter
 
 import discord
@@ -35,14 +35,14 @@ class HelpSource(menus.ListPageSource):
 
     def __init__(
         self,
-        signature: typing.Callable[[commands.Command], str],
-        filter_commands: typing.Callable[
-            [typing.List[commands.Command]],
-            typing.Awaitable,
+        signature: t.Callable[[commands.Command], str],
+        filter_commands: t.Callable[
+            [t.List[commands.Command]],
+            t.Awaitable,
         ],
         prefix: str,
         author: discord.User,
-        cogs: typing.Dict[commands.Cog, typing.List[commands.Command]],
+        cogs: t.Dict[commands.Cog, t.List[commands.Command]],
     ) -> None:
         """Create the menu."""
         self.get_command_signature = signature
@@ -64,7 +64,7 @@ class HelpSource(menus.ListPageSource):
     async def format_page(
         self,
         menu: menus.Menu,
-        page: typing.Tuple[commands.Cog, typing.List[commands.Command]],
+        page: t.Tuple[commands.Cog, t.List[commands.Command]],
     ) -> discord.Embed:
         """Format the pages."""
         cog, command_list = page
@@ -126,7 +126,7 @@ class Help(commands.HelpCommand):
         return basis
 
     async def send_bot_help(
-        self, mapping: typing.Dict[commands.Cog, typing.List[commands.Command]]
+        self, mapping: t.Dict[commands.Cog, t.List[commands.Command]]
     ) -> None:
         """Send the global help."""
         ctx = self.context

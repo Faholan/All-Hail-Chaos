@@ -22,7 +22,7 @@ SOFTWARE.
 """
 
 import asyncio
-import typing
+import typing as t
 from datetime import datetime
 
 import discord
@@ -490,7 +490,7 @@ class RoleSource(menus.ListPageSource):
     """Source for the role rule list."""
 
     def __init__(
-        self, contents: typing.List[str], guild_name: str, del_msg: str
+        self, contents: t.List[str], guild_name: str, del_msg: str
     ) -> None:
         """Initialize RoleSource."""
         self.guild_name = guild_name
@@ -522,14 +522,14 @@ class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Moderation."""
         self.bot = bot
-        self._role_add: typing.Any = None
-        self._role_add_lock: typing.Any = None
-        self._role_remove: typing.Any = None
-        self._role_remove_lock: typing.Any = None
-        self._role_save: typing.Any = None
-        self._role_save_lock: typing.Any = None
-        self._swear_conn: typing.Any = None
-        self._swear_conn_lock: typing.Any = None
+        self._role_add: t.Any = None
+        self._role_add_lock: t.Any = None
+        self._role_remove: t.Any = None
+        self._role_remove_lock: t.Any = None
+        self._role_save: t.Any = None
+        self._role_save_lock: t.Any = None
+        self._swear_conn: t.Any = None
+        self._swear_conn_lock: t.Any = None
 
     @commands.command()
     @commands.guild_only()
@@ -538,7 +538,7 @@ class Moderation(commands.Cog):
     async def ban(
         self,
         ctx: commands.Context,
-        who: commands.Greedy[typing.Union[discord.Role, discord.Member]],
+        who: commands.Greedy[t.Union[discord.Role, discord.Member]],
         *,
         reason=None,
     ) -> None:
@@ -647,7 +647,7 @@ class Moderation(commands.Cog):
     async def kick(
         self,
         ctx: commands.Context,
-        who: commands.Greedy[typing.Union[discord.Role, discord.Member]],
+        who: commands.Greedy[t.Union[discord.Role, discord.Member]],
         *,
         reason=None,
     ) -> None:
@@ -754,7 +754,7 @@ class Moderation(commands.Cog):
         self,
         ctx: commands.Context,
         *,
-        other: typing.Union[discord.Member, int],
+        other: t.Union[discord.Member, int],
     ) -> None:
         """Check the reputation of an user.
 

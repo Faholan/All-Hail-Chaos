@@ -22,20 +22,20 @@ SOFTWARE.
 """
 
 import asyncio
-import typing
+import typing as t
 
 from discord import Color, Embed
 from discord.ext import commands
 
-Functions = typing.Tuple[
-    typing.Callable[
-        ["Success", commands.Context, typing.Any],
-        typing.Awaitable,
+Functions = t.Tuple[
+    t.Callable[
+        ["Success", commands.Context, t.Any],
+        t.Awaitable,
     ],
-    typing.Optional[
-        typing.Callable[
-            ["Success", commands.Context, typing.Any],
-            typing.Awaitable,
+    t.Optional[
+        t.Callable[
+            ["Success", commands.Context, t.Any],
+            t.Awaitable,
         ]
     ],
 ]
@@ -67,7 +67,7 @@ class Success:
     async def checker(
         self,
         ctx: commands.Context,
-        data: typing.Any,
+        data: t.Any,
         identifier: int,
         database,
     ) -> bool:
@@ -80,7 +80,7 @@ class Success:
         )
         return test
 
-    async def advancer(self, ctx: commands.Context, data: typing.Any) -> str:
+    async def advancer(self, ctx: commands.Context, data: t.Any) -> str:
         """Check how much I advanced."""
         if self._advancer:
             return await self._advancer(self, ctx, data)
@@ -181,8 +181,8 @@ class Successes(commands.Cog):
         """Initialize Successes."""
         self.bot = bot
         self.success_list = successes
-        self._succ_conn: typing.Any = None
-        self._succ_con_lock: typing.Any = None
+        self._succ_conn: t.Any = None
+        self._succ_con_lock: t.Any = None
 
     @commands.command(ignore_extra=True, aliases=["succes", "successes"])
     async def success(self, ctx: commands.Context) -> None:

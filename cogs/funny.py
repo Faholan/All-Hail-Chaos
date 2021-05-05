@@ -22,7 +22,7 @@ SOFTWARE.
 """
 
 import asyncio
-import typing
+import typing as t
 from os import path
 from random import choice, randint
 
@@ -282,7 +282,7 @@ def bottle(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-chaos: typing.List[typing.Callable[[Fighter, Fighter, list], tuple]] = [
+chaos: t.List[t.Callable[[Fighter, Fighter, list], tuple]] = [
     pink,
     teleportation,
     combustion,

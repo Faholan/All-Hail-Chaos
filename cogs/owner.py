@@ -25,7 +25,7 @@ import asyncio
 import io
 import textwrap
 import traceback
-import typing
+import typing as t
 from contextlib import redirect_stdout
 
 import discord
@@ -43,8 +43,8 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         """Initialize Owner."""
         self.bot = bot
         self._last_result = None
-        self._stat_conn: typing.Any = None
-        self._stat_lock: typing.Any = None
+        self._stat_conn: t.Any = None
+        self._stat_lock: t.Any = None
 
     @staticmethod
     def cleanup_code(content: str) -> str:
