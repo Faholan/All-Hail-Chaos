@@ -489,9 +489,7 @@ auto_swear_detection = frozenset(
 class RoleSource(menus.ListPageSource):
     """Source for the role rule list."""
 
-    def __init__(
-        self, contents: t.List[str], guild_name: str, del_msg: str
-    ) -> None:
+    def __init__(self, contents: t.List[str], guild_name: str, del_msg: str) -> None:
         """Initialize RoleSource."""
         self.guild_name = guild_name
         self.del_msg = del_msg

@@ -37,7 +37,9 @@ def p_vol(streak: int) -> float:
 class Businessguy:
     """A guy that does business lol."""
 
-    def __init__(self, sql: dict, user: t.Union[discord.User, discord.Member], database) -> None:
+    def __init__(
+        self, sql: dict, user: t.Union[discord.User, discord.Member], database
+    ) -> None:
         """Initialize the guy."""
         self.database = database
         if sql:
