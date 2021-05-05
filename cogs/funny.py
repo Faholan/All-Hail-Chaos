@@ -410,7 +410,7 @@ class Funny(commands.Cog):
                             defending=next_player.display_name,
                             damage=damage,
                         ),
-                        colour=self.bot.get_color(),
+                        colour=discord.Colour.random(),
                     )
                     embed.set_author(
                         name=fight[0].display_name,
@@ -420,14 +420,14 @@ class Funny(commands.Cog):
                     await ctx.send(embed=embed)
                 embed = discord.Embed(
                     title=fight[0].display_name,
-                    colour=self.bot.get_color(),
+                    colour=discord.Colour.blue(),
                 )
                 embed.set_thumbnail(url=fight[0].avatar_url)
                 embed.add_field(name="Remaining HP :", value=str(fight[0].pv))
                 await ctx.send(embed=embed)
                 embed = discord.Embed(
                     title=next_player.display_name,
-                    colour=self.bot.get_color(),
+                    colour=discord.Colour.blurple(),
                 )
                 embed.set_thumbnail(url=next_player.avatar_url)
                 embed.add_field(name="Remaining HP :",
@@ -480,7 +480,7 @@ class Funny(commands.Cog):
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    description=data["joke"], color=discord.Color.gold()
+                    description=data["joke"], colour=discord.Colour.gold()
                 )
                 await ctx.send(embed=embed)
             else:

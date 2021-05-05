@@ -84,7 +84,7 @@ class NASA(commands.Cog):
         embed = discord.Embed(
             title=self.apod_pic.get("title", "Astronomy Picture Of the Day"),
             description=self.apod_pic.get("explanation", discord.Embed.Empty),
-            colour=self.bot.get_color(),
+            colour=discord.Colour.purple(),
         )
         if self.apod_pic.get("media_type") == "video":
             if "embed" in self.apod_pic.get("url", "nope"):
@@ -118,7 +118,7 @@ class NASA(commands.Cog):
                 embed = discord.Embed(
                     title="EPIC image",
                     description=json[i].get("caption"),
-                    colour=self.bot.get_color(),
+                    colour=discord.Colour.blurple(),
                 )
                 embed.set_image(
                     url=(
@@ -171,7 +171,7 @@ class NASA(commands.Cog):
                         "Picture taken from the "
                         + images["photos"][i]["camera"]["full_name"]
                     ),
-                    colour=self.bot.get_color(),
+                    colour=discord.Colour.purple(),
                 )
                 embed.set_image(url=images["photos"][i]["img_src"])
                 embed.set_footer(
@@ -201,7 +201,7 @@ class NASA(commands.Cog):
         embed = discord.Embed(
             title=data["title"],
             description=description,
-            colour=self.bot.get_color(),
+            colour=discord.Colour.blurple(),
             url=f"https://images.nasa.gov/details-{data['nasa_id']}",
         )
         async with self.bot.aio_session.get(

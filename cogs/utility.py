@@ -334,7 +334,7 @@ class Utility(commands.Cog):
                 f'[Invite Link]({link} "Please stay at home and use bots")'
                 f"\n[Support Server Invite]({self.bot.support})"
             ),
-            colour=self.bot.get_color(),
+            colour=discord.Colour.random(),
         )
         embed.set_author(
             name=str(ctx.author),
@@ -474,7 +474,7 @@ class Utility(commands.Cog):
 
         embed = discord.Embed(
             title=title,
-            color=discord.Color.random(),
+            colour=discord.Colour.random(),
             description=description,
         )
         embed.timestamp = datetime.utcnow()

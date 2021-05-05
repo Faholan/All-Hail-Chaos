@@ -79,7 +79,7 @@ class HelpSource(menus.ListPageSource):
                 {cog.description if cog else ""}
                 """
             ),
-            color=0xFFFF00,
+            colour=0xFFFF00,
         )
         embed.set_author(
             name=self.menu_author.display_name,
@@ -160,7 +160,7 @@ class Help(commands.HelpCommand):
                 {cog.description}
                 """
             ),
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         embed.set_author(
             name=str(ctx.message.author),
@@ -191,7 +191,7 @@ class Help(commands.HelpCommand):
                 "Help syntax : `<Required argument>`. "
                 f"`[Optional argument]`\n{command.help}"
             ),
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         if command.aliases:
             embed.add_field(name="Aliases :", value="\n".join(command.aliases))
@@ -225,7 +225,7 @@ class Help(commands.HelpCommand):
                 "Help syntax : `<Required argument>`. "
                 f"`[Optional argument]`\n{group.help}"
             ),
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         for command in await self.filter_commands(group.commands, sort=True):
             embed.add_field(

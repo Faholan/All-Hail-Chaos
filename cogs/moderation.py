@@ -505,7 +505,7 @@ class RoleSource(menus.ListPageSource):
         """Create the embed."""
         embed = discord.Embed(
             title=f"Rules for guild {self.guild_name}",
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
             description=(
                 "You need the rule number for the `remove` action."
                 f"{self.del_msg}\n\n{page}"
@@ -798,7 +798,7 @@ class Moderation(commands.Cog):
             infractions = await response.json()
 
         embed = discord.Embed(
-            colour=discord.Color.dark_green(),
+            colour=discord.Colour.dark_green(),
             description=(
                 "Source : [DiscordRep](https://discordrep.com) and "
                 "[KSoft](https://ksoft.si)"
@@ -819,7 +819,7 @@ class Moderation(commands.Cog):
             )
         elif infractions.get("type") == "WARN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
-            embed.colour = discord.Color.red()
+            embed.colour = discord.Colour.red()
             banning.append(
                 f"Banned on {date.day}-{date.month}-{date.year} "
                 f"{date.hour}:{date.minute}:{date.second} because of : "
@@ -852,7 +852,7 @@ class Moderation(commands.Cog):
                 )
         if check_ban:
             ksoft_ban = await self.bot.ksoft_client.bans.info(int(user_id))
-            embed.colour = discord.Color.red()
+            embed.colour = discord.Colour.red()
             embed.add_field(
                 name="Bans from KSoft",
                 value=(
@@ -1078,7 +1078,7 @@ class Moderation(commands.Cog):
             if not output:
                 embed = discord.Embed(
                     title=f"Rules for guild {ctx.guild.name}",
-                    color=discord.Color.blue(),
+                    colour=discord.Colour.blue(),
                     description=(
                         "No rules are currently defined for this guild. "
                         f"Create the first one with `{ctx.prefix}role add`"
@@ -1125,7 +1125,7 @@ class Moderation(commands.Cog):
             if len(final) == 1:
                 embed = discord.Embed(
                     title=f"Rules for guild {ctx.guild.name}",
-                    color=discord.Color.blue(),
+                    colour=discord.Colour.blue(),
                     description=(
                         "You need the rule number for the `remove` action."
                         f"{del_msg}\n\n{final[0]}"

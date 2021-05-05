@@ -24,7 +24,7 @@ SOFTWARE.
 import asyncio
 import typing as t
 
-from discord import Color, Embed
+from discord import Colour, Embed
 from discord.ext import commands
 
 Functions = t.Tuple[
@@ -205,7 +205,7 @@ class Successes(commands.Cog):
                 [s for s in self.success_list if state[s.state_column]])
             embed = Embed(
                 title=(f"Success list ({completed}/{len(self.success_list)})"),
-                colour=Color.green(),
+                colour=Colour.green(),
             )
             embed.set_author(
                 name=str(ctx.author),
@@ -260,7 +260,7 @@ class Successes(commands.Cog):
                     embed = Embed(
                         title="Succes unlocked !",
                         description=success.name,
-                        colour=ctx.bot.get_color(),
+                        colour=discord.Colour.random(),
                     )
                     embed.set_author(
                         name=str(ctx.author),

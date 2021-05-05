@@ -218,7 +218,7 @@ async def error_manager(
     if isinstance(error, commands.CommandInvokeError):
         error = error.original
 
-    embed = discord.Embed(color=0xFF0000)
+    embed = discord.Embed(colour=0xFF0000)
     embed.set_author(name=str(ctx.author), icon_url=str(ctx.author.avatar_url))
     embed.title = f"{ctx.author.id} caused an error in {ctx.command}"
     embed.description = f"{type(error).__name__} : {error}"
@@ -262,7 +262,7 @@ def generator(bot: commands.Bot) -> Callable:
             return  # This shouldn't happen : no error
         if not bot.log_channel:
             raise  # There is nowhere to log
-        embed = discord.Embed(color=0xFF0000)
+        embed = discord.Embed(colour=0xFF0000)
         embed.title = f"Error in {event} with args {args} {kwargs}"
         embed.description = f"{error_type.__name__} : {value}"
         formatted_traceback = "".join(traceback.format_tb(raw_traceback))

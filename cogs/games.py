@@ -61,7 +61,7 @@ class Connect4(menus.Menu):
             else:
                 await button(self, payload)
         except Exception as error:
-            embed = discord.Embed(color=0xFF0000)
+            embed = discord.Embed(colour=0xFF0000)
             embed.set_author(
                 name=str(self.ctx.author),
                 icon_url=str(self.ctx.author.avatar_url),
@@ -439,7 +439,7 @@ class Blackjack(menus.Menu):
             else:
                 await button(self, payload)
         except Exception as error:
-            embed = discord.Embed(color=0xFF0000)
+            embed = discord.Embed(colour=0xFF0000)
             embed.set_author(
                 name=str(self.ctx.author),
                 icon_url=str(self.ctx.author.avatar_url),
@@ -660,7 +660,7 @@ class Blackjackplayers(menus.Menu):
             else:
                 await button(self, payload)
         except Exception as error:
-            embed = discord.Embed(color=0xFF0000)
+            embed = discord.Embed(colour=0xFF0000)
             embed.set_author(
                 name=str(self.ctx.author),
                 icon_url=str(self.ctx.author.avatar_url),

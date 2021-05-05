@@ -75,7 +75,7 @@ class ChaoticBot(commands.Bot):
         # Used for all internet fetches
 
         self.log_channel: discord.TextChannel = None
-        self.suggestion_channel: discord.TextChannel = None
+        self.suggestion_channel: t.Optional[discord.TextChannel] = None
         self.log_channel_id = 0
         self.suggestion_channel_id = 0
         # Important channels
@@ -91,6 +91,10 @@ class ChaoticBot(commands.Bot):
 
         self.load_extension("data.data")
         # You can load an extension only after __init__ has been called
+        if not self.log_channel_id:
+            raise ValueError(
+                "No log channel configured. One is required to proceed"
+            )
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
@@ -155,7 +159,7 @@ class ChaoticBot(commands.Bot):
                     "not loaded"
                 ),
                 description="\n".join(report),
-                color=discord.Color.green(),
+                colour=discord.Colour.green(),
             )
             await self.log_channel.send(embed=embed)
         else:
@@ -246,7 +250,7 @@ class ChaoticBot(commands.Bot):
                 " not loaded"
             ),
             description="\n".join(report),
-            colour=discord.Color.green(),
+            colour=discord.Colour.green(),
         )
         await self.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
@@ -275,7 +279,7 @@ class ChaoticBot(commands.Bot):
     ) -> None:
         """Funny error picture."""
         embed = discord.Embed(
-            title=title, color=discord.Color.red(), description=description
+            title=title, colour=discord.Colour.red(), description=description
         )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
         try:

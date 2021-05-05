@@ -108,7 +108,7 @@ class Animals(commands.Cog):
             return
         embed = discord.Embed(
             timestamp=datetime.utcnow(),
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -122,7 +122,7 @@ class Animals(commands.Cog):
             title=image.title,
             url=image.source,
             timestamp=datetime.fromtimestamp(image.created_at),
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         if not image.image_url:
             await self.bot.httpcat(ctx, 404)

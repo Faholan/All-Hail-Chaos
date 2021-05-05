@@ -200,7 +200,7 @@ class Music(commands.Cog):
 
         if not player.is_connected:
             embed = discord.Embed(title="Not connected.",
-                                  color=discord.Color.red())
+                                  colour=discord.Colour.red())
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
             return
@@ -211,7 +211,7 @@ class Music(commands.Cog):
         ):
             embed = discord.Embed(
                 title="Please get in my voicechannel first.",
-                color=discord.Color.red(),
+                colour=discord.Colour.red(),
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -222,7 +222,7 @@ class Music(commands.Cog):
         await self.connect_to(ctx.guild.id, None)
         embed = discord.Embed(
             title=f"{STOP_EMOJI} | Disconnected.",
-            color=0xFFFF00,
+            colour=0xFFFF00,
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -251,7 +251,7 @@ class Music(commands.Cog):
             output += f"`{index}.` [{track_title}]({track_uri})\n"
 
         embed = discord.Embed(
-            color=discord.Color.blurple(),
+            colour=discord.Colour.blurple(),
             description=output,
         )
         self.formatter(embed, ctx)
@@ -284,7 +284,7 @@ class Music(commands.Cog):
         song = f"**[{cleaned_title}]({player.current.uri})**\n({position}/{duration}){progressbar}\n{other}"
 
         embed = discord.Embed(
-            color=discord.Color.green(),
+            colour=discord.Colour.green(),
             title=f"{PLAY_EMOJI} | Now Playing",
             description=song,
         )
@@ -309,13 +309,13 @@ class Music(commands.Cog):
             await player.set_pause(False)
             embed = discord.Embed(
                 title=f"{PLAY_EMOJI} | Resumed",
-                color=discord.Color.blue(),
+                colour=discord.Colour.blue(),
             )
         else:
             await player.set_pause(True)
             embed = discord.Embed(
                 title=f"{PAUSE_EMOJI} | Paused",
-                color=discord.Color.blue(),
+                colour=discord.Colour.blue(),
             )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -339,7 +339,7 @@ class Music(commands.Cog):
             return
 
         embed = discord.Embed(
-            color=discord.Color.green(),
+            colour=discord.Colour.green(),
         )
 
         if results["loadType"] == "PLAYLIST_LOADED":
@@ -407,7 +407,7 @@ class Music(commands.Cog):
             queue_list += f"{index + 1}. [**{track.title}**]({track.uri})\n"
 
         embed = discord.Embed(
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
             description=f"{len(player.queue)} {'tracks' if len(player.queue) > 1 else 'track'}\n\n{queue_list}",
         )
         embed.set_footer(text=f"Viewing page {page}/{pages}")
@@ -426,7 +426,7 @@ class Music(commands.Cog):
         if not player.queue:
             embed = discord.Embed(
                 title=f"{PAUSE_EMOJI} | Nothing queued.",
-                color=discord.Color.red(),
+                colour=discord.Colour.red(),
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -435,7 +435,7 @@ class Music(commands.Cog):
         if index > len(player.queue) or index < 1:
             embed = discord.Embed(
                 title=f"Index has to be **between** 1 and {len(player.queue)}.",
-                color=discord.Color.red(),
+                colour=discord.Colour.red(),
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -444,7 +444,7 @@ class Music(commands.Cog):
         removed = player.queue.pop(index - 1)  # Account for 0-index.
 
         embed = discord.Embed(
-            title=f"Removed **{removed.title}** from the queue.", color=0xFFFF00
+            title=f"Removed **{removed.title}** from the queue.", colour=0xFFFF00
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -458,7 +458,7 @@ class Music(commands.Cog):
         if not player.is_playing:
             embed = discord.Embed(
                 title=f"{PAUSE_EMOJI} | Nothing playing.",
-                color=discord.Color.red(),
+                colour=discord.Colour.red(),
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -468,7 +468,7 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=f"{REPEAT_EMOJI} | Repeat "
             + ("enabled" if player.repeat else "disabled"),
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -501,7 +501,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.is_playing:
             embed = discord.Embed(
-                title=f"{PAUSE_EMOJI} | Nothing playing.", color=discord.Color.red()
+                title=f"{PAUSE_EMOJI} | Nothing playing.", colour=discord.Colour.red()
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -510,7 +510,7 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=f"{SHUFFLE_EMOJI} | Shuffle "
             + ("enabled" if player.shuffle else "disabled"),
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -529,7 +529,7 @@ class Music(commands.Cog):
         await player.skip()
         embed = discord.Embed(
             title=f"{SKIP_EMOJI} | Skipped.",
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -549,7 +549,7 @@ class Music(commands.Cog):
         await player.stop()
         embed = discord.Embed(
             title=f"{STOP_EMOJI} | Stopped. (Queue cleared)",
-            color=0xFFFF00,
+            colour=0xFFFF00,
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
@@ -564,7 +564,7 @@ class Music(commands.Cog):
         if not volume:
             embed = discord.Embed(
                 title=f"{VOLUME_ON_EMOJI} | {player.volume}%",
-                color=discord.Color.blue(),
+                colour=discord.Colour.blue(),
             )
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
@@ -573,7 +573,7 @@ class Music(commands.Cog):
         await player.set_volume(volume)
         embed = discord.Embed(
             title=f"{VOLUME_ON_EMOJI} | Set to {player.volume}%",
-            color=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)

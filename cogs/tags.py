@@ -398,7 +398,7 @@ class Tags(commands.Cog):
 
         embed = discord.Embed(
             title=f"Informations about tag {tag['name']}",
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         try:
             owner = ctx.guild.get_member(

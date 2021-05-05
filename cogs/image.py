@@ -335,7 +335,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    title="Random Koala", color=discord.Color.gold())
+                    title="Random Koala", colour=discord.Colour.gold())
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
@@ -352,7 +352,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         """Retrieve the list of all available NSFW tags."""
         tag_list = await self.bot.ksoft_client.images.tags()
         embed = discord.Embed(timestamp=datetime.utcnow(),
-                              color=self.bot.get_color())
+                              colour=discord.Colour.random())
         embed.add_field(name="NSFW tags", value="\n".join(tag_list.nsfw_tags))
         embed.set_author(
             name=ctx.author.display_name, icon_url=str(ctx.author.avatar_url)
@@ -412,7 +412,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 data = await resp.json()
                 embed = discord.Embed(
                     title="Random Panda!",
-                    color=discord.Color.gold(),
+                    colour=discord.Colour.gold(),
                 )
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
@@ -468,7 +468,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed = discord.Embed(
             title=image.title,
             url=image.article_url,
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -491,7 +491,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed = discord.Embed(
             title=image.tag,
             timestamp=datetime.utcnow(),
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
@@ -505,7 +505,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
             title=image.title,
             url=image.source,
             timestamp=datetime.fromtimestamp(image.created_at),
-            colour=discord.Color.blue(),
+            colour=discord.Colour.blue(),
         )
         if not image.image_url:
             await self.bot.httpcat(ctx, 404)

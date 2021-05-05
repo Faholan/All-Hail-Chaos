@@ -219,7 +219,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 " not loaded"
             ),
             description="\n".join(report),
-            colour=discord.Color.green(),
+            colour=discord.Colour.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
@@ -236,7 +236,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             rows = await database.fetch("SELECT * FROM public.stats")
             embed = discord.Embed(
                 title="Usage stats",
-                colour=discord.Color.blue(),
+                colour=discord.Colour.blue(),
             )
             embed.set_author(
                 name=ctx.author.display_name,
@@ -310,7 +310,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 "not unloaded"
             ),
             description="\n".join(report),
-            colour=discord.Color.green(),
+            colour=discord.Colour.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
