@@ -335,7 +335,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
-                    title="Random Koala", colour=discord.Colour.gold())
+                    title="Random Koala", colour=discord.Colour.gold()
+                )
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
@@ -351,8 +352,9 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def image_nsfw(self, ctx: commands.Context) -> None:
         """Retrieve the list of all available NSFW tags."""
         tag_list = await self.bot.ksoft_client.images.tags()
-        embed = discord.Embed(timestamp=datetime.utcnow(),
-                              colour=discord.Colour.random())
+        embed = discord.Embed(
+            timestamp=datetime.utcnow(), colour=discord.Colour.random()
+        )
         embed.add_field(name="NSFW tags", value="\n".join(tag_list.nsfw_tags))
         embed.set_author(
             name=ctx.author.display_name, icon_url=str(ctx.author.avatar_url)
