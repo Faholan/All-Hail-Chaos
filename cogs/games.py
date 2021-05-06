@@ -43,8 +43,7 @@ class Connect4(menus.Menu):
         self.ids = cycle(list(self.id_dict))
         self.players = players
         self.next = next(self.ids, None)
-        self.status = [":black_large_square:",
-                       ":green_circle:", ":red_circle:"]
+        self.status = [":black_large_square:", ":green_circle:", ":red_circle:"]
         self.state = [[0 for _ in range(6)] for __ in range(7)]
 
     async def update(self, payload: discord.RawReactionActionEvent) -> None:
@@ -108,8 +107,7 @@ class Connect4(menus.Menu):
         return discord.Embed(
             description="\n".join(
                 [
-                    "".join([self.status[column[5 - i]]
-                            for column in self.state])
+                    "".join([self.status[column[5 - i]] for column in self.state])
                     for i in range(6)
                 ]
             )
@@ -154,11 +152,9 @@ class Connect4(menus.Menu):
         for diagonal in range(3):
             lines = [
                 [self.state[3 + diagonal - i][i] for i in range(4 + diagonal)],
-                [self.state[i - diagonal - 4][-i - 1]
-                    for i in range(4 + diagonal)],
+                [self.state[i - diagonal - 4][-i - 1] for i in range(4 + diagonal)],
                 [self.state[i - diagonal - 4][i] for i in range(4 + diagonal)],
-                [self.state[3 + diagonal - i][-i - 1]
-                    for i in range(4 + diagonal)],
+                [self.state[3 + diagonal - i][-i - 1] for i in range(4 + diagonal)],
             ]
             if any(schema in str(line) for line in lines):
                 return True
@@ -360,8 +356,7 @@ class Deck:
                 pass
             if answer:
                 return self.split(card)
-        row_numbers = [i for i in range(
-            len(self.cards)) if self.cards[i].isvalid()]
+        row_numbers = [i for i in range(len(self.cards)) if self.cards[i].isvalid()]
         if len(row_numbers) == 1:
             card_id = row_numbers[0]
         else:
@@ -493,8 +488,7 @@ class Blackjack(menus.Menu):
         self.cards = [
             BCard(i + 1, j) for i in range(13) for j in range(4) for _ in range(6)
         ]
-        self.players = [Deck(self.money_dict[i], self.cost, i)
-                        for i in self.money_dict]
+        self.players = [Deck(self.money_dict[i], self.cost, i) for i in self.money_dict]
         self.dealer = BRow()
         self.dealer.append(self.card)
         for player in self.players:
@@ -517,8 +511,7 @@ class Blackjack(menus.Menu):
                     f"({player.money} GP)"
                 ),
                 value="\n".join(
-                    [", ".join([card.name for card in row])
-                     for row in player.cards]
+                    [", ".join([card.name for card in row]) for row in player.cards]
                 ),
                 inline=False,
             )
@@ -597,8 +590,7 @@ class Blackjack(menus.Menu):
                             "Busted : " f"{', '.join([card.name for card in row])}"
                         )
             embed.add_field(
-                name=(
-                    f"{self.player_dict[player.player_id]} : {player.money} GP"),
+                name=(f"{self.player_dict[player.player_id]} : {player.money} GP"),
                 value="\n".join(numbers),
                 inline=False,
             )
@@ -791,8 +783,7 @@ class Games(commands.Cog):
     }
 
     mine_emoji = [
-        "||" + str(i) +
-        "\N{variation selector-16}\N{combining enclosing keycap}||"
+        "||" + str(i) + "\N{variation selector-16}\N{combining enclosing keycap}||"
         for i in range(9)
     ] + [
         "0\N{variation selector-16}\N{combining enclosing keycap}",
@@ -907,7 +898,9 @@ class Games(commands.Cog):
             await ctx.send("Game cancelled")
 
     @staticmethod
-    def neighbours(i: int, j: int, rows: int, columns: int) -> t.List[t.Tuple[int, int]]:
+    def neighbours(
+        i: int, j: int, rows: int, columns: int
+    ) -> t.List[t.Tuple[int, int]]:
         """Get a cell's neighbours for minesweeper."""
         final = []
         if i != 0:
@@ -937,9 +930,7 @@ class Games(commands.Cog):
         """
         difficulty = difficulty.lower().strip()
         if difficulty not in {"easy", "medium", "hard"}:
-            await ctx.send(
-                "difficulty must be one of `easy`, `medium` or `hard`"
-            )
+            await ctx.send("difficulty must be one of `easy`, `medium` or `hard`")
             return
 
         mines, rows, columns = self.mine_difficulty[difficulty]
@@ -948,9 +939,7 @@ class Games(commands.Cog):
         grid[click_x][click_y] = -2
         i, j = click_x, click_y
         for _ in range(mines):
-            while grid[i][j] < 0 or (
-                abs(click_x - i) <= 1 and abs(click_y - j) <= 1
-            ):
+            while grid[i][j] < 0 or (abs(click_x - i) <= 1 and abs(click_y - j) <= 1):
                 i, j = randint(0, rows - 1), randint(0, columns - 1)
             grid[i][j] = -1
             for x, y in self.neighbours(i, j, rows, columns):
@@ -960,22 +949,18 @@ class Games(commands.Cog):
         max_len = 99 // columns
 
         content = "\n".join(
-            [
-                " ".join(
-                    [self.mine_emoji[num] for num in row]
-                ) for row in grid[:max_len]
-            ]
+            [" ".join([self.mine_emoji[num] for num in row]) for row in grid[:max_len]]
         )
         await ctx.send(f"Total number of mines: {mines}\n\n{content}")
         if rows * columns > 99:
             for i in range(1, (rows * columns) // 99):
-                await ctx.send("\n".join(
-                    [
-                        " ".join(
-                            [self.mine_emoji[num] for num in row]
-                        ) for row in grid[max_len * i:max_len * (i + 1)]
-                    ]
-                )
+                await ctx.send(
+                    "\n".join(
+                        [
+                            " ".join([self.mine_emoji[num] for num in row])
+                            for row in grid[max_len * i : max_len * (i + 1)]
+                        ]
+                    )
                 )
 
 
