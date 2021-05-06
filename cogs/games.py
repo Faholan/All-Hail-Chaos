@@ -23,10 +23,10 @@ SOFTWARE.
 
 import asyncio
 import traceback
+import typing as t
 from datetime import datetime
 from itertools import cycle
-from random import shuffle
-from typing import Iterator
+from random import randint, shuffle
 
 import discord
 from discord.ext import commands, menus, tasks
@@ -220,6 +220,8 @@ class Connect4(menus.Menu):
 class BCard:
     """A blackjack card."""
 
+    __slots__ = ("_value", "is_ace", "colour")
+
     def __init__(self, value: int, colour: int) -> None:
         """Initialize the card."""
         self._value = value
@@ -296,6 +298,8 @@ class BRow(list):
 class Deck:
     """A deck full of rows."""
 
+    __slots__ = ("cards", "_money", "balance", "cost", "player_id")
+
     def __init__(self, money: int, cost: int, player_id: int) -> None:
         """Initialize the deck."""
         self.cards = [BRow()]
@@ -313,7 +317,7 @@ class Deck:
         """If a card is in the deck."""
         return any(card in column for column in self.cards) and len(self.cards) < 3
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> t.Iterator:
         """Iterate over me."""
         return self.cards.__iter__()
 
@@ -780,6 +784,22 @@ class Blackjackplayers(menus.Menu):
 class Games(commands.Cog):
     """Good games."""
 
+    mine_difficulty = {  # mines, rows, columns
+        "easy": (10, 8, 8),
+        "medium": (40, 16, 16),
+        "hard": (99, 32, 16),
+    }
+
+    mine_emoji = [
+        "||" + str(i) +
+        "\N{variation selector-16}\N{combining enclosing keycap}||"
+        for i in range(9)
+    ] + [
+        "0\N{variation selector-16}\N{combining enclosing keycap}",
+        # revealed zero
+        "||\U0001f4a3||",  # bomb
+    ]
+
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Games."""
         self.bot = bot
@@ -885,6 +905,78 @@ class Games(commands.Cog):
             await ctx.send(f"{winner.mention} won !")
         else:
             await ctx.send("Game cancelled")
+
+    @staticmethod
+    def neighbours(i: int, j: int, rows: int, columns: int) -> t.List[t.Tuple[int, int]]:
+        """Get a cell's neighbours for minesweeper."""
+        final = []
+        if i != 0:
+            final.append((i - 1, j))
+        if i != rows - 1:
+            final.append((i + 1, j))
+        if j != 0:
+            final.append((i, j - 1))
+        if j != columns - 1:
+            final.append((i, j + 1))
+        if 0 not in {i, j}:
+            final.append((i - 1, j - 1))
+        if i != rows - 1 and j != columns - 1:
+            final.append((i + 1, j + 1))
+        if i != 0 and j != columns - 1:
+            final.append((i - 1, j + 1))
+        if i != rows - 1 and j != 0:
+            final.append((i + 1, j - 1))
+        return final
+
+    @commands.command(aliases=["mines"])
+    async def minesweeper(self, ctx: commands.Context, difficulty="easy"):
+        """Play minesweeper in Discord.
+
+        Difficulty may be easy (8x8, 10 mines), medium (16x16, 40 mines) or hard (32x32, 99 mines)
+        At the beginning, a random cell holding the number zero is revealed
+        """
+        difficulty = difficulty.lower().strip()
+        if difficulty not in {"easy", "medium", "hard"}:
+            await ctx.send(
+                "difficulty must be one of `easy`, `medium` or `hard`"
+            )
+            return
+
+        mines, rows, columns = self.mine_difficulty[difficulty]
+        grid = [[0 for _ in range(columns)] for _ in range(rows)]
+        click_x, click_y = randint(0, rows - 1), randint(0, columns - 1)
+        grid[click_x][click_y] = -2
+        i, j = click_x, click_y
+        for _ in range(mines):
+            while grid[i][j] < 0 or (
+                abs(click_x - i) <= 1 and abs(click_y - j) <= 1
+            ):
+                i, j = randint(0, rows - 1), randint(0, columns - 1)
+            grid[i][j] = -1
+            for x, y in self.neighbours(i, j, rows, columns):
+                if grid[x][y] != -1:
+                    grid[x][y] += 1
+
+        max_len = 99 // columns
+
+        content = "\n".join(
+            [
+                " ".join(
+                    [self.mine_emoji[num] for num in row]
+                ) for row in grid[:max_len]
+            ]
+        )
+        await ctx.send(f"Total number of mines: {mines}\n\n{content}")
+        if rows * columns > 99:
+            for i in range(1, (rows * columns) // 99):
+                await ctx.send("\n".join(
+                    [
+                        " ".join(
+                            [self.mine_emoji[num] for num in row]
+                        ) for row in grid[max_len * i:max_len * (i + 1)]
+                    ]
+                )
+                )
 
 
 def setup(bot: commands.Bot) -> None:
