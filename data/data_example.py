@@ -32,7 +32,6 @@ def setup(bot):
     """Add all the data to the bot."""
     bot.extensions_list = [
         "cogs.animals",
-        "cogs.battleship",
         "cogs.business",
         "cogs.funny",
         "cogs.games",
