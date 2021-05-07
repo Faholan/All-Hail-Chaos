@@ -79,16 +79,10 @@ class Animals(commands.Cog):
     @commands.command(ignore_extra=True)
     async def dog(self, ctx: commands.Context) -> None:
         """Get random dog image."""
-        if choice((True, False)):
-            await self.image_sender(
-                ctx,
-                await self.bot.ksoft_client.images.random_image(tag="dog"),
-            )
-        else:
-            url = "https://random.dog/woof.json"
-            async with self.bot.aio_session.get(url) as response:
-                picture = await response.json()
-                await self.image_sender(ctx, Pic(picture["url"], "Dog"))
+        await self.image_sender(
+            ctx,
+            await self.bot.ksoft_client.images.random_image(tag="dog"),
+        )
 
     @commands.command()
     async def fox(self, ctx: commands.Context) -> None:
