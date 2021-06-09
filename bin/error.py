@@ -57,10 +57,8 @@ async def error_manager(
         await ctx.bot.httpcat(
             ctx,
             401,
-            (
-                "You don't have the rights to send use the command "
-                f"{ctx.invoked_with}"
-            ),
+            ("You don't have the rights to send use the command "
+             f"{ctx.invoked_with}"),
         )
         return
     if isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
@@ -79,22 +77,19 @@ async def error_manager(
         await ctx.bot.httpcat(
             ctx,
             429,
-            (
-                f"This command can only be used {error.number} "
-                f"time{'s' if error.number > 1 else ''} per {pers[error.per]} "
-                "concurrently."
-            ),
+            (f"This command can only be used {error.number} "
+             f"time{'s' if error.number > 1 else ''} per {pers[error.per]} "
+             "concurrently."),
         )
         return
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.bot.httpcat(
-            ctx, 400, f"Hmmmm, looks like an argument is missing : {error.param.name}"
-        )
+            ctx, 400,
+            f"Hmmmm, looks like an argument is missing : {error.param.name}")
         return
     if isinstance(error, commands.PrivateMessageOnly):
         await ctx.bot.httpcat(
-            ctx, 403, "You must be in a private channel to use this command."
-        )
+            ctx, 403, "You must be in a private channel to use this command.")
         return
     if isinstance(error, commands.NoPrivateMessage):
         await ctx.bot.httpcat(ctx, 403, "I can't dot this in private.")
@@ -119,20 +114,16 @@ async def error_manager(
         await ctx.bot.httpcat(
             ctx,
             429,
-            (
-                "Calm down, breath and try again in "
-                f"{secondes(round(error.retry_after))}"
-            ),
+            ("Calm down, breath and try again in "
+             f"{secondes(round(error.retry_after))}"),
         )
         return
     if isinstance(error, commands.MissingPermissions):
         await ctx.bot.httpcat(
             ctx,
             401,
-            "\n-".join(
-                ["Try again with the following permission(s) :"] +
-                error.missing_perms
-            ),
+            "\n-".join(["Try again with the following permission(s) :"] +
+                       error.missing_perms),
         )
         return
     if isinstance(error, commands.BotMissingPermissions):
@@ -197,8 +188,7 @@ async def error_manager(
             description=(
                 "Thank you. My owner is now aware of this bug, which'll"
                 " be fixed shortly. (typically, a few minutes "
-                "from when he sees it)"
-            ),
+                "from when he sees it)"),
         )
     else:
         await ctx.bot.httpcat(
@@ -208,8 +198,7 @@ async def error_manager(
             description=(
                 "Thank you. My owner is now aware of this bug, "
                 "which'll be fixed shortly. (typically, a few minutes from "
-                "when he sees it)"
-            ),
+                "when he sees it)"),
         )
 
     if not ctx.bot.log_channel:  # With nowhere to log, raise
@@ -226,8 +215,7 @@ async def error_manager(
     if ctx.guild:
         embed.description += (
             f"\nin {ctx.guild} ({ctx.guild.id})\n   in {ctx.channel.name} "
-            f"({ctx.channel.id})"
-        )
+            f"({ctx.channel.id})")
     elif isinstance(ctx.channel, discord.DMChannel):
         embed.description += f"\nin a Private Channel ({ctx.channel.id})"
     else:
@@ -243,11 +231,9 @@ async def error_manager(
     try:
         await ctx.bot.log_channel.send(embed=embed)
     except discord.DiscordException:
-        await ctx.bot.log_channel.send(
-            file=discord.File(
-                StringIO(f"{embed.title}\n\n{embed.description}"), filename="error.md"
-            )
-        )
+        await ctx.bot.log_channel.send(file=discord.File(StringIO(
+            f"{embed.title}\n\n{embed.description}"),
+            filename="error.md"))
         # Send errors in files if they are too big
 
 
@@ -276,12 +262,10 @@ def generator(bot: commands.Bot) -> Callable:
             await bot.log_channel.send(embed=embed)
             return
         except discord.DiscordException:
-            await bot.log_channel.send(
-                file=discord.File(
-                    StringIO(f"{embed.title}\n\n{embed.description}"),
-                    filename="error.md",
-                )
-            )
+            await bot.log_channel.send(file=discord.File(
+                StringIO(f"{embed.title}\n\n{embed.description}"),
+                filename="error.md",
+            ))
 
     return predictate
 

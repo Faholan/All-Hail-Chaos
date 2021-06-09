@@ -36,10 +36,7 @@ class HelpSource(menus.ListPageSource):
     def __init__(
         self,
         signature: t.Callable[[commands.Command], str],
-        filter_commands: t.Callable[
-            [t.List[commands.Command]],
-            t.Awaitable,
-        ],
+        filter_commands: t.Callable[[t.List[commands.Command]], t.Awaitable, ],
         prefix: str,
         author: discord.User,
         cogs: t.Dict[commands.Cog, t.List[commands.Command]],
@@ -50,14 +47,10 @@ class HelpSource(menus.ListPageSource):
         self.prefix = prefix
         self.menu_author = author
         super().__init__(
-            [
-                (cog, cogs[cog])
-                for cog in sorted(
-                    cogs, key=lambda cog: cog.qualified_name if cog else "ZZ"
-                )
-                if cogs[cog]
-                and [command for command in cogs[cog] if not command.hidden]
-            ],
+            [(cog, cogs[cog]) for cog in sorted(
+                cogs, key=lambda cog: cog.qualified_name if cog else "ZZ")
+             if cogs[cog]
+             and [command for command in cogs[cog] if not command.hidden]],
             per_page=1,
         )
 
@@ -70,15 +63,13 @@ class HelpSource(menus.ListPageSource):
         cog, command_list = page
         embed = discord.Embed(
             title=(
-                "Help for " f"{cog.qualified_name if cog else 'unclassified commands'}"
-            ),
-            description=textwrap.dedent(
-                f"""
+                "Help for "
+                f"{cog.qualified_name if cog else 'unclassified commands'}"),
+            description=textwrap.dedent(f"""
                 Help syntax : `<Required argument>`. `[Optional argument]`
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ""}
-                """
-            ),
+                """),
             colour=0xFFFF00,
         )
         embed.set_author(
@@ -98,7 +89,6 @@ class HelpSource(menus.ListPageSource):
 
 class Help(commands.HelpCommand):
     """The Help cog."""
-
     @staticmethod
     def get_command_signature(command: commands.Command) -> str:
         """Retrieve the command's signature."""
@@ -106,11 +96,9 @@ class Help(commands.HelpCommand):
         for arg in command.clean_params.values():
             if arg.kind in {Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL}:
                 basis += f" [{arg.name}]"
-            elif (
-                hasattr(getattr(arg.annotation, "type", None), "__args__")
-                and len(arg.annotation.__args__) == 2
-                and isinstance(arg.annotation.__args__[-1], type(None))
-            ):
+            elif (hasattr(getattr(arg.annotation, "type", None), "__args__")
+                  and len(arg.annotation.__args__) == 2
+                  and isinstance(arg.annotation.__args__[-1], type(None))):
                 basis += f" [{arg.name} = None]"
             elif isinstance(arg.annotation, commands.converter._Greedy):
                 # This is fine as of discord.py 1.7.1
@@ -126,13 +114,12 @@ class Help(commands.HelpCommand):
         return basis
 
     async def send_bot_help(
-        self, mapping: t.Dict[commands.Cog, t.List[commands.Command]]
-    ) -> None:
+            self, mapping: t.Dict[commands.Cog,
+                                  t.List[commands.Command]]) -> None:
         """Send the global help."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(None, ctx.message, False),
-        )
+            await ctx.bot.get_m_prefix(None, ctx.message, False), )
         pages = menus.MenuPages(
             source=HelpSource(
                 self.get_command_signature,
@@ -149,17 +136,14 @@ class Help(commands.HelpCommand):
         """Send help for a cog."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(None, ctx.message, False),
-        )
+            await ctx.bot.get_m_prefix(None, ctx.message, False), )
         embed = discord.Embed(
             title=cog.qualified_name,
-            description=textwrap.dedent(
-                f"""
+            description=textwrap.dedent(f"""
                 Help syntax : `<Required argument>`. `[Optional argument]`
                 Command prefix: `{prefix}`
                 {cog.description}
-                """
-            ),
+                """),
             colour=discord.Colour.blue(),
         )
         embed.set_author(
@@ -183,14 +167,11 @@ class Help(commands.HelpCommand):
         """Send help for a command."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(None, ctx.message, False),
-        )
+            await ctx.bot.get_m_prefix(None, ctx.message, False), )
         embed = discord.Embed(
             title=f"{prefix}{self.get_command_signature(command)}",
-            description=(
-                "Help syntax : `<Required argument>`. "
-                f"`[Optional argument]`\n{command.help}"
-            ),
+            description=("Help syntax : `<Required argument>`. "
+                         f"`[Optional argument]`\n{command.help}"),
             colour=discord.Colour.blue(),
         )
         if command.aliases:
@@ -216,15 +197,12 @@ class Help(commands.HelpCommand):
         """Send help for a group."""
         ctx = self.context
         prefix = discord.utils.escape_markdown(
-            await ctx.bot.get_m_prefix(None, ctx.message, False),
-        )
+            await ctx.bot.get_m_prefix(None, ctx.message, False), )
         embed = discord.Embed(
-            title=(
-                f"Help for group {prefix}" f"{self.get_command_signature(group)}"),
-            description=(
-                "Help syntax : `<Required argument>`. "
-                f"`[Optional argument]`\n{group.help}"
-            ),
+            title=(f"Help for group {prefix}"
+                   f"{self.get_command_signature(group)}"),
+            description=("Help syntax : `<Required argument>`. "
+                         f"`[Optional argument]`\n{group.help}"),
             colour=discord.Colour.blue(),
         )
         for command in await self.filter_commands(group.commands, sort=True):

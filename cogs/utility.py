@@ -79,7 +79,6 @@ class SnipeSource(menus.ListPageSource):
 
 class SauceSource(menus.ListPageSource):
     """Source for the sauce command."""
-
     async def format_page(self, menu: menus.Menu, page: str):
         """Format the page of code."""
         max_pages = self.get_max_pages()
@@ -91,7 +90,6 @@ class SauceSource(menus.ListPageSource):
 
 def check_administrator() -> Callable:
     """Check for admin rights."""
-
     def predictate(ctx: commands.Context) -> bool:
         """Process the check."""
         if isinstance(ctx.channel, discord.TextChannel):
@@ -177,31 +175,27 @@ class Utility(commands.Cog):
                     file_lines = 0
                     file_amount += 1
                     with codecs.open(
-                        "./" + str(pathlib.PurePath(filepath, name)
-                                   ), "r", "utf-8"
-                    ) as file:
+                            "./" + str(pathlib.PurePath(filepath, name)), "r",
+                            "utf-8") as file:
                         for _, line in enumerate(file):
-                            if line.strip().startswith("#") or len(line.strip()) == 0:
+                            if line.strip().startswith("#") or len(
+                                    line.strip()) == 0:
                                 pass
                             else:
                                 total += 1
                                 file_lines += 1
                     final_path = filepath + path.sep + name
                     list_of_files.append(
-                        final_path.split(
-                            "." + path.sep)[-1] + f" : {file_lines} lines"
-                    )
+                        final_path.split("." + path.sep)[-1] +
+                        f" : {file_lines} lines")
         embed = discord.Embed(colour=0xFFFF00)
         embed.add_field(
             name=f"{self.bot.user.name}'s structure",
             value="\n".join(sorted(list_of_files)),
         )
         embed.set_footer(
-            text=(
-                f"I am made of {total} lines of Python, spread across "
-                f"{file_amount} files !"
-            ),
-        )
+            text=(f"I am made of {total} lines of Python, spread across "
+                  f"{file_amount} files !"), )
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -220,7 +214,8 @@ class Utility(commands.Cog):
             await channel.send(embed=embed)
             await ctx.send("Your message has been successfully sent")
         else:
-            await ctx.send("Sorry but my owner hasn't correctly configured this")
+            await ctx.send(
+                "Sorry but my owner hasn't correctly configured this")
 
     @commands.command(aliases=["convert"])
     async def currency(
@@ -234,13 +229,16 @@ class Utility(commands.Cog):
         if not len(original) == len(goal) == 3:
             await ctx.send(
                 "To get currency codes, refer to https://en.wikipedia.org/"
-                "wiki/ISO_4217#Active_codes"
-            )
+                "wiki/ISO_4217#Active_codes")
             return
         async with self.bot.aio_session.get(
-            "https://api.ksoft.si/kumo/currency",
-            params={"from": original, "to": goal, "value": str(value)},
-            headers={"Authorization": f"Token {self.bot.ksoft_token}"},
+                "https://api.ksoft.si/kumo/currency",
+                params={
+                    "from": original,
+                    "to": goal,
+                    "value": str(value)
+                },
+                headers={"Authorization": f"Token {self.bot.ksoft_token}"},
         ) as resp:
             data = await resp.json()
         if hasattr(data, "error"):
@@ -255,24 +253,20 @@ class Utility(commands.Cog):
     async def github(self, ctx: commands.Context) -> None:
         """Create or delete a webhook to get updates about the bot."""
         if not hasattr(self.bot, "github") or not self.bot.github_repo:
-            await ctx.send("This command hasn't been configured by the developer yet")
+            await ctx.send(
+                "This command hasn't been configured by the developer yet")
             return
         for hook in await ctx.channel.webhooks():
             if hook.user == self.bot.user:
                 await ctx.send(
                     "I already have created a webhook in this channel. Do you"
-                    " want me to delete it (y/n)"
-                )
+                    " want me to delete it (y/n)")
 
                 def check(message: discord.Message) -> bool:
-                    return (
-                        message.author == ctx.author
-                        and (
-                            message.content.lower().startswith("y")
-                            or (message.content.lower().startswith("n"))
-                        )
-                        and message.channel == ctx.channel
-                    )
+                    return (message.author == ctx.author
+                            and (message.content.lower().startswith("y") or
+                                 (message.content.lower().startswith("n")))
+                            and message.channel == ctx.channel)
 
                 try:
                     msg = await self.bot.wait_for(
@@ -297,11 +291,13 @@ class Utility(commands.Cog):
 
         repo = self.bot.github.get_repo(self.bot.github_repo)
         hook = await ctx.channel.create_webhook(
-            name=f"{self.bot.user.name} GitHub updates"
-        )
+            name=f"{self.bot.user.name} GitHub updates")
         repo.create_hook(
             "web",
-            {"url": hook.url + "/github", "content_type": "json"},
+            {
+                "url": hook.url + "/github",
+                "content_type": "json"
+            },
             [
                 "fork",
                 "create",
@@ -316,8 +312,7 @@ class Utility(commands.Cog):
         )
         await ctx.send("Webhook successfully created !")
         await self.bot.log_channel.send(
-            f"Webhook created : {ctx.guild} - {ctx.channel} ({ctx.author})"
-        )
+            f"Webhook created : {ctx.guild} - {ctx.channel} ({ctx.author})")
 
     @commands.command(ignore_extra=True)
     async def info(self, ctx: commands.Context) -> None:
@@ -332,8 +327,7 @@ class Utility(commands.Cog):
             title=f"Informations about {self.bot.user}",
             description=(
                 f'[Invite Link]({link} "Please stay at home and use bots")'
-                f"\n[Support Server Invite]({self.bot.support})"
-            ),
+                f"\n[Support Server Invite]({self.bot.support})"),
             colour=discord.Colour.random(),
         )
         embed.set_author(
@@ -341,17 +335,13 @@ class Utility(commands.Cog):
             icon_url=str(ctx.author.avatar_url),
         )
         embed.set_footer(
-            text=(
-                f"Discord.py version {discord.__version__}, Python version "
-                f"{version.split(' ')[0]}"
-            ),
-        )
+            text=(f"Discord.py version {discord.__version__}, Python version "
+                  f"{version.split(' ')[0]}"), )
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.add_field(
             name=f"My owner{'s' if app.team else ''} :",
             value=", ".join([str(member) for member in app.team.members])
-            if app.team
-            else str(app.owner),
+            if app.team else str(app.owner),
             inline=False,
         )
         artist = self.bot.get_user(372336190919147522)
@@ -387,8 +377,7 @@ class Utility(commands.Cog):
                 f"[top.gg page]({self.bot.top_gg})\n"
                 f"[bots on discord page]({self.bot.bots_on_discord})\n"
                 f"[Discord bots page]({self.bot.discord_bots_page})\n"
-                f"[Discord bot list page]({self.bot.discord_bot_list_page})"
-            ),
+                f"[Discord bot list page]({self.bot.discord_bot_list_page})"),
             inline=False,
         )
         embed.add_field(
@@ -402,8 +391,7 @@ class Utility(commands.Cog):
                 '\n[discord.py](https://discordapp.com/ "More exactly '
                 'discord.ext.commands") : Basically this whole bot\n'
                 '[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : '
-                "Whole NASA Cog"
-            ),
+                "Whole NASA Cog"),
             inline=False,
         )
         embed.add_field(
@@ -424,17 +412,15 @@ class Utility(commands.Cog):
                     f"and {humanize.naturalsize(mem.vms)} virtual memory, "
                     f"{humanize.naturalsize(mem.uss)} of which unique to "
                     "this process.\nRunning on PID "
-                    f"{pid} (`{name}`) with {threads} thread(s)."
-                ),
+                    f"{pid} (`{name}`) with {threads} thread(s)."),
                 inline=False,
             )
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True)
     @commands.guild_only()
-    @commands.check_any(
-        commands.is_owner(), commands.has_permissions(administrator=True)
-    )
+    @commands.check_any(commands.is_owner(),
+                        commands.has_permissions(administrator=True))
     async def quit(self, ctx: commands.Context) -> None:
         """Make the bot quit the server.
 
@@ -442,8 +428,7 @@ class Utility(commands.Cog):
         """
         try:
             if await self.bot.fetch_confirmation(
-                ctx, f"Do you really want me to leave {ctx.guild.name} ?"
-            ):
+                    ctx, f"Do you really want me to leave {ctx.guild.name} ?"):
                 await ctx.guild.leave()
         except asyncio.TimeoutError:
             await ctx.send("Aborting")
@@ -458,15 +443,15 @@ class Utility(commands.Cog):
         €poll "Which is better?" Lotr "Honor Harrington" "Harry Potter"
         """
         if len(options) < 2:
-            await ctx.send("I cannot create a poll with less than two answers.")
+            await ctx.send("I cannot create a poll with less than two answers."
+                           )
             return
         if len(options) > 26:
             await ctx.send("I cannot create a poll with more than 26 answers.")
             return
 
         description = "\n\n\n".join(
-            [f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(options)]
-        )
+            [f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(options)])
 
         if len(description) > 2048:
             await ctx.send("Error: formatted message is over 2048 characters.")
@@ -501,9 +486,8 @@ class Utility(commands.Cog):
                 self.bot.prefix_dict[ctx_id] = pref
                 await ctx.send(f"Prefix changed to `{escape_markdown(pref)}`")
                 return
-        old_prefix = escape_markdown(
-            await self.bot.get_m_prefix(ctx.bot, ctx.message, False)
-        )
+        old_prefix = escape_markdown(await self.bot.get_m_prefix(
+            ctx.bot, ctx.message, False))
         await ctx.send(f"The prefix for this channel is `{old_prefix}`")
 
     @commands.command(aliases=["sauce"])
@@ -521,16 +505,13 @@ class Utility(commands.Cog):
         try:
             source_lines, _ = inspect.getsourcelines(command.callback)
         except (TypeError, OSError):
-            await ctx.send(
-                "I was unable to retrieve the source for "
-                f"`{command_name}` for some reason."
-            )
+            await ctx.send("I was unable to retrieve the source for "
+                           f"`{command_name}` for some reason.")
             return
 
         # Get rid of extra \n
-        source_lines = dedent(
-            "".join(source_lines).replace("```", f"`{ZWS}`{ZWS}`")
-        ).split("\n")
+        source_lines = dedent("".join(source_lines).replace(
+            "```", f"`{ZWS}`{ZWS}`")).split("\n")
         paginator = commands.Paginator(
             prefix="```py",
             suffix="```",
@@ -562,7 +543,8 @@ class Utility(commands.Cog):
             await ctx.send("I don't have any record for this channel yet")
 
     @commands.Cog.listener("on_message_edit")
-    async def snipe_edit(self, before: discord.Message, after: discord.Message) -> None:
+    async def snipe_edit(self, before: discord.Message,
+                         after: discord.Message) -> None:
         """Log edited messages."""
         if before.content != after.content:
             embed_dicts = self.snipe_list.get(before.channel.id, [])
@@ -575,20 +557,16 @@ class Utility(commands.Cog):
                 "fields": [],
             }
             original = before.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
-            embed_dict["fields"] += [
-                {
-                    "name": "Original message",
-                    "value": f"```\n{original}\n```",
-                }
-            ]
+            embed_dict["fields"] += [{
+                "name": "Original message",
+                "value": f"```\n{original}\n```",
+            }]
 
             new = after.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
-            embed_dict["fields"] += [
-                {
-                    "name": "Edited message",
-                    "value": f"```\n{new}\n```",
-                }
-            ]
+            embed_dict["fields"] += [{
+                "name": "Edited message",
+                "value": f"```\n{new}\n```",
+            }]
 
             embed_dict["timestamp"] = datetime.utcnow()
             embed_dicts = [embed_dict] + embed_dicts
@@ -608,12 +586,10 @@ class Utility(commands.Cog):
                 "fields": [],
             }
             content = message.content.replace("```", f"`{ZWS}`{ZWS}`")[:1016]
-            embed_dict["fields"] += [
-                {
-                    "name": "Original message",
-                    "value": f"```\n{content}\n```",
-                }
-            ]
+            embed_dict["fields"] += [{
+                "name": "Original message",
+                "value": f"```\n{content}\n```",
+            }]
             embed_dict["timestamp"] = datetime.utcnow()
             embed_dicts = [embed_dict] + embed_dicts
             self.snipe_list[message.channel.id] = embed_dicts[:20]
@@ -646,8 +622,7 @@ class Utility(commands.Cog):
             await ctx.send("Thanks for your participation in this project !")
         else:
             await ctx.send(
-                "Sorry but my owner hasn't correctly configured this command"
-            )
+                "Sorry but my owner hasn't correctly configured this command")
 
     @tasks.loop(minutes=30)
     async def discord_bots(self):
@@ -662,7 +637,8 @@ class Utility(commands.Cog):
     async def xyz(self):
         """Update the profile on bots.ondiscord.xyz."""
         await self.bot.aio_session.post(
-            "https://bots.ondiscord.xyz/bot-api/bots/" f"{self.bot.user.id}/guilds",
+            "https://bots.ondiscord.xyz/bot-api/bots/"
+            f"{self.bot.user.id}/guilds",
             json={"guildCount": len(self.bot.guilds)},
             headers={"Authorization": self.bot.xyz},
         )
