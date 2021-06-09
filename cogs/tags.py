@@ -85,10 +85,10 @@ class Tags(commands.Cog):
     @commands.group(invoke_without_command=True, aliases=["t"])
     @commands.guild_only()
     async def tag(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Tag some text to retrieve it later."""
         location_id = self.bot.get_id(ctx)
@@ -174,11 +174,11 @@ class Tags(commands.Cog):
     @tag.command(name="alias")
     @commands.guild_only()
     async def tag_alias(
-        self,
-        ctx: commands.Context,
-        name: TagName(lower=True),
-        *,
-        alias: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            name: TagName(lower=True),
+            *,
+            alias: TagName(lower=True),
     ) -> None:
         """Create an alias to a tag under which it can be retrieved."""
         location_id = self.bot.get_id(ctx)
@@ -214,15 +214,16 @@ class Tags(commands.Cog):
                 ctx.author.id,
                 row["tag_id"],
             )
-            await ctx.send(f"Alias {alias} for tag {tag['name']} created successfully")
+            await ctx.send(
+                f"Alias {alias} for tag {tag['name']} created successfully")
 
     @tag.command(name="claim")
     @commands.guild_only()
     async def tag_claim(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Become the owner of an unclaimed tag."""
         location_id = self.bot.get_id(ctx)
@@ -237,13 +238,14 @@ class Tags(commands.Cog):
                 return
             try:
                 owner = ctx.guild.get_member(
-                    alias["owner_id"]
-                ) or await ctx.guild.fetch_member(alias["owner_id"])
+                    alias["owner_id"]) or await ctx.guild.fetch_member(
+                        alias["owner_id"])
             except discord.NotFound:
                 owner = None
 
             if owner:
-                await ctx.send(f"{name} isn't unclaimed : {owner} has claimed it")
+                await ctx.send(
+                    f"{name} isn't unclaimed : {owner} has claimed it")
                 return
 
             tag = await database.fetchrow(
@@ -257,8 +259,8 @@ class Tags(commands.Cog):
 
             try:
                 owner = ctx.guild.get_member(
-                    tag["owner_id"]
-                ) or await ctx.guild.fetch_member(tag["owner_id"])
+                    tag["owner_id"]) or await ctx.guild.fetch_member(
+                        tag["owner_id"])
             except discord.NotFound:
                 owner = None
 
@@ -275,19 +277,21 @@ class Tags(commands.Cog):
                     ctx.author.id,
                     tag["id"],
                 )
-                waswere = f"and alias {name} were" if name != tag["name"] else "was"
-                await ctx.send(f"Tag {tag['name']} " f"{waswere} successfully claimed")
+                waswere = f"and alias {name} were" if name != tag[
+                    "name"] else "was"
+                await ctx.send(f"Tag {tag['name']} "
+                               f"{waswere} successfully claimed")
                 return
             await ctx.send(f"Alias {name} successfully claimed")
 
     @tag.command(name="create")
     @commands.guild_only()
     async def tag_create(
-        self,
-        ctx: commands.Context,
-        name: TagName(lower=True),
-        *,
-        content: str,
+            self,
+            ctx: commands.Context,
+            name: TagName(lower=True),
+            *,
+            content: str,
     ) -> None:
         """Create a tag with the given name and content."""
         location_id = self.bot.get_id(ctx)
@@ -302,16 +306,15 @@ class Tags(commands.Cog):
     @tag.command(name="delete", aliases=["remove"])
     @commands.guild_only()
     async def tag_delete(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Use this to delete a tag."""
         override = ctx.author.id == self.bot.owner_id or (
-            ctx.author.guild_permissions.manage_messages if ctx.guild else (
-                False)
-        )
+            ctx.author.guild_permissions.manage_messages if ctx.guild else
+            (False))
         location_id = self.bot.get_id(ctx)
         async with self.bot.pool.acquire() as database:
             if override:
@@ -332,8 +335,7 @@ class Tags(commands.Cog):
             if not alias:
                 await ctx.send(
                     f"No tag or alias named {name} found. Are you sure that "
-                    "it exists and that you own it ?"
-                )
+                    "it exists and that you own it ?")
                 return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1",
@@ -342,14 +344,12 @@ class Tags(commands.Cog):
             if not tag:
                 await ctx.send(
                     f"No tag or alias named {name} found. Are you sure that "
-                    "it exists and that you own it ?",
-                )
+                    "it exists and that you own it ?", )
                 await self.delete_aliases(alias["tag_id"], database)
                 return
             if tag["name"] == alias["name"]:
                 await ctx.send(
-                    f"Tag {name} and associated aliases successfully deleted"
-                )
+                    f"Tag {name} and associated aliases successfully deleted")
                 await database.execute(
                     "DELETE FROM public.tags WHERE id=$1",
                     tag["id"],
@@ -366,10 +366,10 @@ class Tags(commands.Cog):
     @tag.command(name="info")
     @commands.guild_only()
     async def tag_info(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Retrieve information about a tag."""
         location_id = self.bot.get_id(ctx)
@@ -402,8 +402,8 @@ class Tags(commands.Cog):
         )
         try:
             owner = ctx.guild.get_member(
-                tag["owner_id"]
-            ) or await ctx.guild.fetch_member(tag["owner_id"])
+                tag["owner_id"]) or await ctx.guild.fetch_member(
+                    tag["owner_id"])
         except discord.NotFound:
             owner = None
         embed.add_field(
@@ -417,14 +417,13 @@ class Tags(commands.Cog):
                 if alias["name"] != tag["name"]:
                     try:
                         owner = ctx.guild.get_member(
-                            alias["owner_id"]
-                        ) or await ctx.guild.fetch_member(alias["owner_id"])
+                            alias["owner_id"]) or await ctx.guild.fetch_member(
+                                alias["owner_id"])
                     except discord.NotFound:
                         owner = None
                     alias_content.append(
                         f"{alias['name']} : "
-                        f"{owner.mention if owner else 'Unclaimed'}"
-                    )
+                        f"{owner.mention if owner else 'Unclaimed'}")
             embed.add_field(name="Aliases :", value="\n".join(alias_content))
         if name != tag["name"]:
             embed.set_footer(text="Alias created at :")
@@ -442,7 +441,8 @@ class Tags(commands.Cog):
 
         def check(message: discord.Message) -> bool:
             """Check the author."""
-            return message.author == ctx.author and (message.channel == ctx.channel)
+            return message.author == ctx.author and (message.channel
+                                                     == ctx.channel)
 
         try:
             name = await self.bot.wait_for("message", check=check, timeout=300)
@@ -457,8 +457,7 @@ class Tags(commands.Cog):
             name = await converter.convert(ctx, name.content)
         except commands.BadArgument as error:
             await ctx.send(
-                f'{error}. Redo the command "{ctx.prefix}tag make" to retry.'
-            )
+                f'{error}. Redo the command "{ctx.prefix}tag make" to retry.')
             return
         finally:
             ctx.message = original
@@ -485,8 +484,7 @@ class Tags(commands.Cog):
 
         await ctx.send(
             f"Okay, the tag's name is {name}. What will be its content?\nYou "
-            f"can type `{ctx.prefix}abort` to escape this process"
-        )
+            f"can type `{ctx.prefix}abort` to escape this process")
         try:
             msg = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
@@ -518,9 +516,9 @@ class Tags(commands.Cog):
         counter = 0
         async with self.bot.pool.acquire() as database:
             for tag in await database.fetch(
-                "SELECT * FROM public.tags WHERE owner_id=$1 AND location_id=$2",
-                member.id,
-                location_id,
+                    "SELECT * FROM public.tags WHERE owner_id=$1 AND location_id=$2",
+                    member.id,
+                    location_id,
             ):
                 counter += 1
                 await database.execute(
@@ -531,17 +529,15 @@ class Tags(commands.Cog):
         await ctx.send(
             f"{counter} tag{'s' if counter > 1 else ''} owned by "
             f"{member.mention} {'were' if counter > 1 else 'was'} deleted"
-            if counter
-            else f"{member} hasn't created any tag"
-        )
+            if counter else f"{member} hasn't created any tag")
 
     @tag.command(name="search")
     @commands.guild_only()
     async def tag_search(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Search for a tag."""
         location_id = self.bot.get_id(ctx)
@@ -555,11 +551,11 @@ class Tags(commands.Cog):
     @tag.command(name="transfer", aliases=["give"])
     @commands.guild_only()
     async def tag_transfer(
-        self,
-        ctx: commands.Context,
-        name: TagName(lower=True),
-        *,
-        member: discord.Member,
+            self,
+            ctx: commands.Context,
+            name: TagName(lower=True),
+            *,
+            member: discord.Member,
     ) -> None:
         """Transfer a tag, or alias, you own to a new user."""
         location_id = self.bot.get_id(ctx)
@@ -574,8 +570,7 @@ class Tags(commands.Cog):
             if not alias:
                 await ctx.send(
                     f"No tag or alias named {name} found. Are  you sure that"
-                    " it exists and you own it ?"
-                )
+                    " it exists and you own it ?")
                 return
 
             tag = await database.fetchrow(
@@ -613,10 +608,10 @@ class Tags(commands.Cog):
     @tag_global.command(name="put")
     @commands.guild_only()
     async def global_put(
-        self,
-        ctx: commands.Context,
-        *,
-        alias: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            alias: TagName(lower=True),
     ) -> None:
         """Make a tag global. Only the owner of the tag can use this."""
         location_id = self.bot.get_id(ctx)
@@ -631,8 +626,7 @@ class Tags(commands.Cog):
             if not aliasrow:
                 await ctx.send(
                     f"I didn't find any tag with the name {alias}. Are you "
-                    "sure that it exists and that you own it ?"
-                )
+                    "sure that it exists and that you own it ?")
                 return
             tag = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE id=$1 AND owner_id=$2",
@@ -642,8 +636,7 @@ class Tags(commands.Cog):
             if not tag:
                 await ctx.send(
                     f"I didn't find any tag with the name {alias}. "
-                    "Are you sure that it exists and that you own it ?"
-                )
+                    "Are you sure that it exists and that you own it ?")
                 return
             already_existing = await database.fetchrow(
                 "SELECT * FROM public.tags WHERE name=$1 AND location_id=0",
@@ -652,8 +645,7 @@ class Tags(commands.Cog):
             if already_existing:
                 await ctx.send(
                     "A global tag with that name already exists. Try creating "
-                    "an alias to your tag and globalizing it under this name"
-                )
+                    "an alias to your tag and globalizing it under this name")
                 return
             await self.create_tag(ctx, alias, tag["content"], 0)
         await ctx.send(f"Global tag {alias} created successfully")
@@ -661,10 +653,10 @@ class Tags(commands.Cog):
     @tag_global.command(name="delete", aliases=["remove"])
     @commands.guild_only()
     async def global_delete(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Remove a tag from the global database.
 
@@ -681,8 +673,7 @@ class Tags(commands.Cog):
             if not aliasrow:
                 await ctx.send(
                     f"No global tag named {name} found. Are you sure that it "
-                    "exists and you own it ?"
-                )
+                    "exists and you own it ?")
                 return
             await database.execute(
                 "DELETE FROM public.tags WHERE id=$1",
@@ -694,10 +685,10 @@ class Tags(commands.Cog):
     @tag_global.command(name="retrieve")
     @commands.guild_only()
     async def global_retrieve(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Retrieve a tag from the global database."""
         alias = name
@@ -710,7 +701,8 @@ class Tags(commands.Cog):
             if not tag:
                 rows = await self.search_tag(name, 0, database)
                 if rows:
-                    await ctx.send(f"Global tag not found. Did you mean\n{rows}")
+                    await ctx.send(
+                        f"Global tag not found. Did you mean\n{rows}")
                     return
                 await ctx.send(f"No global tag named {name} found")
                 return
@@ -727,14 +719,12 @@ class Tags(commands.Cog):
                 await ctx.send(
                     "A local tag with this name already exists. "
                     "Please enter a new name under which I shall save this tag"
-                    f".\nEnter **{ctx.prefix}abort** to quit"
-                )
+                    f".\nEnter **{ctx.prefix}abort** to quit")
 
                 def check(message: discord.Message) -> bool:
                     """Check the author."""
-                    return message.channel == ctx.channel and (
-                        message.author == ctx.author
-                    )
+                    return message.channel == ctx.channel and (message.author
+                                                               == ctx.author)
 
                 try:
                     alias = await self.bot.wait_for(
@@ -755,8 +745,7 @@ class Tags(commands.Cog):
                 except commands.BadArgument as error:
                     await ctx.send(
                         f'{error}. Redo the command "{ctx.prefix}tag global '
-                        'retrieve" to retry.'
-                    )
+                        'retrieve" to retry.')
                     return
                 finally:
                     ctx.message = original
@@ -774,7 +763,8 @@ class Tags(commands.Cog):
                     location_id,
                 )
                 if already_exists:
-                    await ctx.send("A tag with that name already exists. Aborting")
+                    await ctx.send(
+                        "A tag with that name already exists. Aborting")
                     return
 
             await self.create_tag(ctx, alias, tag["content"])
@@ -783,16 +773,17 @@ class Tags(commands.Cog):
     @tag_global.command(name="search")
     @commands.guild_only()
     async def global_search(
-        self,
-        ctx: commands.Context,
-        *,
-        name: TagName(lower=True),
+            self,
+            ctx: commands.Context,
+            *,
+            name: TagName(lower=True),
     ) -> None:
         """Search for a global tag."""
         async with self.bot.pool.acquire() as database:
             rows = await self.search_tag(name, 0, database)
         if rows:
-            await ctx.send(f"Possible global tags matching this query :\n{rows}")
+            await ctx.send(
+                f"Possible global tags matching this query :\n{rows}")
         else:
             await ctx.send("I didn't find any global tag matching this query")
 
