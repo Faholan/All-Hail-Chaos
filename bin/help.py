@@ -89,6 +89,7 @@ class HelpSource(menus.ListPageSource):
 
 class Help(commands.HelpCommand):
     """The Help cog."""
+
     @staticmethod
     def get_command_signature(command: commands.Command) -> str:
         """Retrieve the command's signature."""
