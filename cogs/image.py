@@ -193,8 +193,8 @@ def sha(message: str) -> str:
         for i in range(0, len(message), 512)
     ]
 
-    for i in range(len(M)):
-        W = [M[i][t] for t in range(16)]
+    for elem in M:
+        W = [elem[t] for t in range(16)]
         for t in range(16, 64):
             w = bin(
                 (

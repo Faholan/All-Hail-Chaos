@@ -54,11 +54,10 @@ BACK_EMOJI = ":previous_track:"
 def rq_check(ctx: commands.Context) -> bool:
     """Restrict some commands to the current requester."""
     player = ctx.bot.lavalink.player_manager.get(ctx.guild.id)
-    if player:
-        if player.is_playing:
-            return ctx.author.id == player.current.requester or (
-                ctx.author.guild_permissions.mute_members
-            )
+    if player and player.is_playing:
+        return ctx.author.id == player.current.requester or (
+            ctx.author.guild_permissions.mute_members
+        )
     return False
 
 
