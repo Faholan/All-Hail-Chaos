@@ -27,18 +27,10 @@ import typing as t
 from discord import Colour, Embed
 from discord.ext import commands
 
-Functions = t.Tuple[
-    t.Callable[
-        ["Success", commands.Context, t.Any],
-        t.Awaitable,
-    ],
-    t.Optional[
-        t.Callable[
-            ["Success", commands.Context, t.Any],
-            t.Awaitable,
-        ]
-    ],
-]
+Functions = t.Tuple[t.Callable[["Success", commands.Context, t.Any],
+                               t.Awaitable, ],
+                    t.Optional[t.Callable[["Success", commands.Context, t.Any],
+                                          t.Awaitable, ]], ]
 
 
 class Success:
@@ -89,7 +81,6 @@ class Success:
 
 def command_count(number: int) -> Functions:
     """Generate the use n commands successes."""
-
     async def checker(_, __, data: int) -> tuple:
         """Check for the success."""
         return data >= number, data + 1
@@ -103,7 +94,6 @@ def command_count(number: int) -> Functions:
 
 def hidden_commands() -> Functions:
     """Generate the "hidden commands" success."""
-
     def total(bot: commands.Bot) -> int:
         """Compute the number of hidden commands."""
         return len([command for command in bot.commands if command.hidden])
@@ -131,7 +121,6 @@ def hidden_commands() -> Functions:
 
 def prefix() -> Functions:
     """Generate the "hidden prefix" success."""
-
     async def checker(_, ctx: commands.Context, __) -> tuple:
         """Check for the success."""
         return ctx.prefix == "¤", None
@@ -223,8 +212,7 @@ class Successes(commands.Cog):
                     embed.add_field(
                         name=(
                             f"{succ.name}"
-                            f"{await succ.advancer(ctx, state[succ.column])}"
-                        ),
+                            f"{await succ.advancer(ctx, state[succ.column])}"),
                         value=succ.locked,
                         inline=False,
                     )
@@ -255,8 +243,8 @@ class Successes(commands.Cog):
             embeds = []
             for success in success_list:
                 if not result[success.state_column] and await success.checker(
-                    ctx, result[success.column], ctx.author.id, self._succ_conn
-                ):
+                        ctx, result[success.column], ctx.author.id,
+                        self._succ_conn):
                     embed = Embed(
                         title="Succes unlocked !",
                         description=success.name,

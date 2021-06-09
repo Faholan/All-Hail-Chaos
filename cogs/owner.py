@@ -62,7 +62,8 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             return True
         raise OwnerError()
 
-    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def cog_command_error(self, ctx: commands.Context,
+                                error: Exception) -> None:
         """Call that on error."""
         if isinstance(error, OwnerError):
             await ctx.bot.httpcat(
@@ -155,15 +156,11 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 name=f"{ctx.author.name}#{ctx.author.discriminator}",
                 icon_url=str(ctx.author.avatar_url),
             )
-            prefix = discord.utils.escape_markdown(
-                await self.bot.get_m_prefix(ctx.message, False)
-            )
-            embed.set_footer(
-                text=(
-                    f"Use the command `{prefix}block` if you don't want me to"
-                    " DM you anymore"
-                ),
-            )
+            prefix = discord.utils.escape_markdown(await self.bot.get_m_prefix(
+                ctx.message, False))
+            embed.set_footer(text=(
+                f"Use the command `{prefix}block` if you don't want me to"
+                " DM you anymore"), )
             try:
                 await user.send(
                     f"Use `{prefix}contact` to answer this message, or click "
@@ -200,10 +197,8 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                     report.append(f"✅ | **Extension loaded** : `{ext}`")
                 success += 1
             except commands.ExtensionFailed as error:
-                report.append(
-                    f"❌ | **Extension error** : `{ext}` "
-                    f"({type(error.original)} : {error.original})"
-                )
+                report.append(f"❌ | **Extension error** : `{ext}` "
+                              f"({type(error.original)} : {error.original})")
             except commands.ExtensionNotFound:
                 report.append(f"❌ | **Extension not found** : `{ext}`")
             except commands.NoEntryPointError:
@@ -211,13 +206,11 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
         failure = total_ext - success
         embed = discord.Embed(
-            title=(
-                f"{success} "
-                f"{'extension was' if success == 1 else 'extensions were'} "
-                f"loaded & {failure} "
-                f"{'extension was' if failure == 1 else 'extensions were'}"
-                " not loaded"
-            ),
+            title=(f"{success} "
+                   f"{'extension was' if success == 1 else 'extensions were'} "
+                   f"loaded & {failure} "
+                   f"{'extension was' if failure == 1 else 'extensions were'}"
+                   " not loaded"),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
@@ -302,13 +295,11 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
         failure = total_ext - success
         embed = discord.Embed(
-            title=(
-                f"{success} "
-                f"{'extension was' if success == 1 else 'extensions were'} "
-                f"unloaded & {failure} "
-                f"{'extension was' if failure == 1 else 'extensions were'} "
-                "not unloaded"
-            ),
+            title=(f"{success} "
+                   f"{'extension was' if success == 1 else 'extensions were'} "
+                   f"unloaded & {failure} "
+                   f"{'extension was' if failure == 1 else 'extensions were'} "
+                   "not unloaded"),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
