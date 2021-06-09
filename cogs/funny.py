@@ -52,7 +52,8 @@ class Fighter:  # Class for the fight command
     def hit(self, weapon, pbonus=0) -> tuple:
         """Ouch you hit me."""
         if len(weapon) == 8:
-            (name, touche, min_damage, max_damage, prob, rate, url, url2) = weapon
+            (name, touche, min_damage, max_damage, prob, rate, url,
+             url2) = weapon
         elif len(weapon) == 7:
             name, touche, min_damage, max_damage, prob, rate, url = weapon
             url2 = url
@@ -83,17 +84,13 @@ def pink(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
 
 def teleportation(attacking: Fighter, *_) -> tuple:
     """Get outta here."""
-    return (
-        (
-            (
-                "Chaotic energies swirl around you. You were teleported 20 km "
-                "away in a random direction, thus missing your attack"
-            ),
-            "",
-            "Teleportation",
-            attacking.avatar_url,
-        ),
-    )
+    return ((
+        ("Chaotic energies swirl around you. You were teleported 20 km "
+         "away in a random direction, thus missing your attack"),
+        "",
+        "Teleportation",
+        attacking.avatar_url,
+    ), )
 
 
 def combustion(
@@ -310,8 +307,7 @@ class Funny(commands.Cog):
         """Get a random Chuck Norris joke."""
         if randint(0, 1):
             async with self.bot.aio_session.get(
-                "https://api.chucknorris.io/jokes/random"
-            ) as response:
+                    "https://api.chucknorris.io/jokes/random") as response:
                 joke = await response.json()
                 await ctx.send(joke["value"])
             return
@@ -322,8 +318,7 @@ class Funny(commands.Cog):
                 await ctx.send(joke["value"]["joke"])
             return
         async with self.bot.aio_session.get(
-            "http://api.icndb.com/jokes/random"
-        ) as response:
+                "http://api.icndb.com/jokes/random") as response:
             joke = await response.json()
             await ctx.send(joke["value"]["joke"].replace("&quote", '"'))
 
@@ -331,8 +326,7 @@ class Funny(commands.Cog):
     async def dad(self, ctx: commands.Context) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
-            "https://icanhazdadjoke.com/slack"
-        ) as response:
+                "https://icanhazdadjoke.com/slack") as response:
             joke = await response.json()
             await ctx.send(joke["attachments"][0]["text"])
 
@@ -345,9 +339,8 @@ class Funny(commands.Cog):
         """How long is this person's dong."""
         if not dick:
             dick = ctx.author
-        await ctx.send(
-            f"{dick.mention}'s magnum dong is this long : 8" f"{'=' * randint(0, 10)}>"
-        )
+        await ctx.send(f"{dick.mention}'s magnum dong is this long : 8"
+                       f"{'=' * randint(0, 10)}>")
 
     @commands.command(ignore_extra=True)
     async def excuse(self, ctx: commands.Context) -> None:
@@ -361,8 +354,7 @@ class Funny(commands.Cog):
             f"because of {choice(excuses[3].split('|')).strip(newline)} "
             f"{choice(excuses[4].split('|')).strip(newline)} which "
             f"{choice(excuses[5].split('|')).strip(newline)} "
-            "so it's not my fault !"
-        )
+            "so it's not my fault !")
 
     @commands.command(aliases=["baston"])
     @commands.guild_only()
@@ -437,9 +429,8 @@ class Funny(commands.Cog):
 
                     def check(message: discord.Message) -> bool:
                         if message.author.id == next_player.id and (
-                            message.content.lower().startswith(
-                                f"defend {fight[0].display_name.lower()}"
-                            )
+                                message.content.lower().startswith(
+                                    f"defend {fight[0].display_name.lower()}")
                         ):
                             return message.channel == ctx.channel
                         return False
@@ -447,8 +438,7 @@ class Funny(commands.Cog):
                     await ctx.send(
                         f"{next_player.mention}, send `defend "
                         f"{fight[0].display_name}` in the next 30 seconds, "
-                        "or run away like a coward."
-                    )
+                        "or run away like a coward.")
                     try:
                         await self.bot.wait_for(
                             "message",
@@ -456,32 +446,28 @@ class Funny(commands.Cog):
                             timeout=30.0,
                         )
                     except asyncio.TimeoutError:
-                        await ctx.send(f"{next_player.display_name} is just a coward.")
+                        await ctx.send(
+                            f"{next_player.display_name} is just a coward.")
                         combat = False
                 elif next_player.pv < fight[0].pv:
                     combat = False
-                    await ctx.send(
-                        f"{fight[0].display_name} annihilated "
-                        f"{next_player.display_name}. What a show !"
-                    )
+                    await ctx.send(f"{fight[0].display_name} annihilated "
+                                   f"{next_player.display_name}. What a show !"
+                                   )
                 else:
                     combat = False
-                    await ctx.send(
-                        f"{next_player.display_name} annihilated "
-                        f"{fight[0].display_name}. What a show !"
-                    )
+                    await ctx.send(f"{next_player.display_name} annihilated "
+                                   f"{fight[0].display_name}. What a show !")
 
     # @commands.command()
     async def joke(self, ctx: commands.Context) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
-            "https://mrwinson.me/api/jokes/random"
-        ) as resp:
+                "https://mrwinson.me/api/jokes/random") as resp:
             if resp.status == 200:
                 data = await resp.json()
-                embed = discord.Embed(
-                    description=data["joke"], colour=discord.Colour.gold()
-                )
+                embed = discord.Embed(description=data["joke"],
+                                      colour=discord.Colour.gold())
                 await ctx.send(embed=embed)
             else:
                 await ctx.send("Something went wrong.")
@@ -498,17 +484,12 @@ class Funny(commands.Cog):
 
         If you have an idea for an horrible death, use €suggestion fight [idea]
         """
-        await ctx.send(
-            "\n".join(
-                [
-                    choice(death).format(
-                        author=ctx.message.author.display_name,
-                        victim=dead,
-                    )
-                    for dead in [kill] + list(kills)
-                ]
-            )
-        )
+        await ctx.send("\n".join([
+            choice(death).format(
+                author=ctx.message.author.display_name,
+                victim=dead,
+            ) for dead in [kill] + list(kills)
+        ]))
 
     @commands.command(aliases=["dice"])
     async def roll(self, ctx: commands.Context, *, expr: str) -> None:
@@ -522,8 +503,7 @@ class Funny(commands.Cog):
             if character not in char:
                 await ctx.send(
                     f"Invalid character : `{character}` at position "
-                    f"`{expr.index(character)}`"
-                )
+                    f"`{expr.index(character)}`")
                 return
         if not expr[0].isdigit() or not expr[-1].isdigit():
             await ctx.send("The first and last characters must be digits")
@@ -537,8 +517,7 @@ class Funny(commands.Cog):
                 if after:
                     await ctx.send(
                         "The expression you enterded isn't valid (d "
-                        "character used while rolling dice)"
-                    )
+                        "character used while rolling dice)")
                     return
                 after = "+"
             elif i.isdigit():
@@ -548,7 +527,8 @@ class Funny(commands.Cog):
                     before += i
             else:
                 if before == "" or after == "+":
-                    await ctx.send("You cannot roll empty dices or empty times a dice")
+                    await ctx.send(
+                        "You cannot roll empty dices or empty times a dice")
                     return
                 if after == "":
                     total.append(sign + before)
@@ -558,10 +538,10 @@ class Funny(commands.Cog):
                     await ctx.send("You cannot roll a 0-dice")
                     return
                 else:
-                    total.append(
-                        [sign + str(randint(1, int(after)))
-                         for _ in range(int(before))]
-                    )
+                    total.append([
+                        sign + str(randint(1, int(after)))
+                        for _ in range(int(before))
+                    ])
                     after = ""
                     before = ""
                     sign = i
@@ -574,10 +554,9 @@ class Funny(commands.Cog):
             await ctx.send("You cannot roll a 0-dice")
             return
         else:
-            total.append(
-                [sign + str(randint(1, int(after)))
-                 for _ in range(int(before))]
-            )
+            total.append([
+                sign + str(randint(1, int(after))) for _ in range(int(before))
+            ])
         await ctx.send(self.summer(total, ctx.author.mention))
 
     @staticmethod
@@ -594,10 +573,8 @@ class Funny(commands.Cog):
                 k.append(str(int(number[0])))
             else:
                 plus = sum([int(i) for i in number])
-                k.append(
-                    "".join([f"{j[0]} {j[1:]} " for j in number])[
-                        1:] + f"= {plus}"
-                )
+                k.append("".join([f"{j[0]} {j[1:]} "
+                                  for j in number])[1:] + f"= {plus}")
                 total += plus
         nice_print = ",   ".join(k)
         if not nice_print[0].isdigit():

@@ -29,467 +29,466 @@ import discord
 from discord.ext import commands, menus
 from discord.utils import find
 
-auto_swear_detection = frozenset(
-    {
-        "4r5e",
-        "5h1t",
-        "5hit",
-        "a55",
-        "anal",
-        "anus",
-        "ar5e",
-        "arrse",
-        "arse",
-        "ass",
-        "ass-fucker",
-        "asses",
-        "assfucker",
-        "assfukka",
-        "asshole",
-        "assholes",
-        "asswhole",
-        "a_s_s",
-        "b!tch",
-        "b00bs",
-        "b17ch",
-        "b1tch",
-        "ballbag",
-        "balls",
-        "ballsack",
-        "bastard",
-        "beastial",
-        "beastiality",
-        "bellend",
-        "bestial",
-        "bestiality",
-        "bi+ch",
-        "biatch",
-        "bitch",
-        "bitcher",
-        "bitchers",
-        "bitches",
-        "bitchin",
-        "bitching",
-        "bloody",
-        "blow job",
-        "blowjob",
-        "blowjobs",
-        "boiolas",
-        "bollock",
-        "bollok",
-        "boner",
-        "boob",
-        "boobs",
-        "booobs",
-        "boooobs",
-        "booooobs",
-        "booooooobs",
-        "breasts",
-        "buceta",
-        "bugger",
-        "bum",
-        "bunny fucker",
-        "butt",
-        "butthole",
-        "buttmuch",
-        "buttplug",
-        "c0ck",
-        "c0cksucker",
-        "carpet muncher",
-        "cawk",
-        "chink",
-        "cipa",
-        "cl1t",
-        "clit",
-        "clitoris",
-        "clits",
-        "cnut",
-        "cock",
-        "cock-sucker",
-        "cockface",
-        "cockhead",
-        "cockmunch",
-        "cockmuncher",
-        "cocks",
-        "cocksuck",
-        "cocksucked",
-        "cocksucker",
-        "cocksucking",
-        "cocksucks",
-        "cocksuka",
-        "cocksukka",
-        "cok",
-        "cokmuncher",
-        "coksucka",
-        "coon",
-        "cox",
-        "crap",
-        "cum",
-        "cummer",
-        "cumming",
-        "cums",
-        "cumshot",
-        "cunilingus",
-        "cunillingus",
-        "cunnilingus",
-        "cunt",
-        "cuntlick",
-        "cuntlicker",
-        "cuntlicking",
-        "cunts",
-        "cyalis",
-        "cyberfuc",
-        "cyberfuck",
-        "cyberfucked",
-        "cyberfucker",
-        "cyberfuckers",
-        "cyberfucking",
-        "d1ck",
-        "damn",
-        "dick",
-        "dickhead",
-        "dildo",
-        "dildos",
-        "dink",
-        "dinks",
-        "dirsa",
-        "dlck",
-        "dog-fucker",
-        "doggin",
-        "dogging",
-        "donkeyribber",
-        "doosh",
-        "duche",
-        "dyke",
-        "ejaculate",
-        "ejaculated",
-        "ejaculates",
-        "ejaculating",
-        "ejaculatings",
-        "ejaculation",
-        "ejakulate",
-        "f u c k",
-        "f u c k e r",
-        "f4nny",
-        "fag",
-        "fagging",
-        "faggitt",
-        "faggot",
-        "faggs",
-        "fagot",
-        "fagots",
-        "fags",
-        "fanny",
-        "fannyflaps",
-        "fannyfucker",
-        "fanyy",
-        "fatass",
-        "fcuk",
-        "fcuker",
-        "fcuking",
-        "feck",
-        "fecker",
-        "felching",
-        "fellate",
-        "fellatio",
-        "fingerfuck",
-        "fingerfucked",
-        "fingerfucker",
-        "fingerfuckers",
-        "fingerfucking",
-        "fingerfucks",
-        "fistfuck",
-        "fistfucked",
-        "fistfucker",
-        "fistfuckers",
-        "fistfucking",
-        "fistfuckings",
-        "fistfucks",
-        "flange",
-        "fook",
-        "fooker",
-        "fuck",
-        "fucka",
-        "fucked",
-        "fucker",
-        "fuckers",
-        "fuckhead",
-        "fuckheads",
-        "fuckin",
-        "fucking",
-        "fuckings",
-        "fuckingshitmotherfucker",
-        "fuckme",
-        "fucks",
-        "fuckwhit",
-        "fuckwit",
-        "fudge packer",
-        "fudgepacker",
-        "fuk",
-        "fuker",
-        "fukker",
-        "fukkin",
-        "fuks",
-        "fukwhit",
-        "fukwit",
-        "fux",
-        "fux0r",
-        "f_u_c_k",
-        "gangbang",
-        "gangbanged",
-        "gangbangs",
-        "gaylord",
-        "gaysex",
-        "goatse",
-        "God",
-        "god-dam",
-        "god-damned",
-        "goddamn",
-        "goddamned",
-        "hardcoresex",
-        "hell",
-        "heshe",
-        "hoar",
-        "hoare",
-        "hoer",
-        "homo",
-        "hore",
-        "horniest",
-        "horny",
-        "hotsex",
-        "jack-off",
-        "jackoff",
-        "jap",
-        "jerk-off",
-        "jism",
-        "jiz",
-        "jizm",
-        "jizz",
-        "kawk",
-        "knob",
-        "knobead",
-        "knobed",
-        "knobend",
-        "knobhead",
-        "knobjocky",
-        "knobjokey",
-        "kock",
-        "kondum",
-        "kondums",
-        "kum",
-        "kummer",
-        "kumming",
-        "kums",
-        "kunilingus",
-        "l3i+ch",
-        "l3itch",
-        "labia",
-        "lmfao",
-        "lust",
-        "lusting",
-        "m0f0",
-        "m0fo",
-        "m45terbate",
-        "ma5terb8",
-        "ma5terbate",
-        "masochist",
-        "master-bate",
-        "masterb8",
-        "masterbat*",
-        "masterbat3",
-        "masterbate",
-        "masterbation",
-        "masterbations",
-        "masturbate",
-        "mo-fo",
-        "mof0",
-        "mofo",
-        "mothafuck",
-        "mothafucka",
-        "mothafuckas",
-        "mothafuckaz",
-        "mothafucked",
-        "mothafucker",
-        "mothafuckers",
-        "mothafuckin",
-        "mothafucking",
-        "mothafuckings",
-        "mothafucks",
-        "mother fucker",
-        "motherfuck",
-        "motherfucked",
-        "motherfucker",
-        "motherfuckers",
-        "motherfuckin",
-        "motherfucking",
-        "motherfuckings",
-        "motherfuckka",
-        "motherfucks",
-        "muff",
-        "mutha",
-        "muthafecker",
-        "muthafuckker",
-        "muther",
-        "mutherfucker",
-        "n1gga",
-        "n1gger",
-        "nazi",
-        "nigg3r",
-        "nigg4h",
-        "nigga",
-        "niggah",
-        "niggas",
-        "niggaz",
-        "nigger",
-        "niggers",
-        "nob",
-        "nob jokey",
-        "nobhead",
-        "nobjocky",
-        "nobjokey",
-        "numbnuts",
-        "nutsack",
-        "orgasim",
-        "orgasims",
-        "orgasm",
-        "orgasms",
-        "p0rn",
-        "pawn",
-        "pecker",
-        "penis",
-        "penisfucker",
-        "phonesex",
-        "phuck",
-        "phuk",
-        "phuked",
-        "phuking",
-        "phukked",
-        "phukking",
-        "phuks",
-        "phuq",
-        "pigfucker",
-        "pimpis",
-        "piss",
-        "pissed",
-        "pisser",
-        "pissers",
-        "pisses",
-        "pissflaps",
-        "pissin",
-        "pissing",
-        "pissoff",
-        "poop",
-        "porn",
-        "porno",
-        "pornography",
-        "pornos",
-        "prick",
-        "pricks",
-        "pron",
-        "pube",
-        "pusse",
-        "pussi",
-        "pussies",
-        "pussy",
-        "pussys",
-        "rectum",
-        "retard",
-        "rimjaw",
-        "rimming",
-        "s hit",
-        "s.o.b.",
-        "sadist",
-        "schlong",
-        "screwing",
-        "scroat",
-        "scrote",
-        "scrotum",
-        "semen",
-        "sex",
-        "sh!+",
-        "sh!t",
-        "sh1t",
-        "shag",
-        "shagger",
-        "shaggin",
-        "shagging",
-        "shemale",
-        "shi+",
-        "shit",
-        "shitdick",
-        "shite",
-        "shited",
-        "shitey",
-        "shitfuck",
-        "shitfull",
-        "shithead",
-        "shiting",
-        "shitings",
-        "shits",
-        "shitted",
-        "shitter",
-        "shitters",
-        "shitting",
-        "shittings",
-        "shitty",
-        "skank",
-        "slut",
-        "sluts",
-        "smegma",
-        "smut",
-        "snatch",
-        "son-of-a-bitch",
-        "spac",
-        "spunk",
-        "s_h_i_t",
-        "t1tt1e5",
-        "t1tties",
-        "teets",
-        "teez",
-        "testical",
-        "testicle",
-        "tit",
-        "titfuck",
-        "tits",
-        "titt",
-        "tittie5",
-        "tittiefucker",
-        "titties",
-        "tittyfuck",
-        "tittywank",
-        "titwank",
-        "tosser",
-        "turd",
-        "tw4t",
-        "twat",
-        "twathead",
-        "twatty",
-        "twunt",
-        "twunter",
-        "v14gra",
-        "v1gra",
-        "vagina",
-        "viagra",
-        "vulva",
-        "w00se",
-        "wang",
-        "wank",
-        "wanker",
-        "wanky",
-        "whoar",
-        "whore",
-        "willies",
-        "willy",
-        "xrated",
-        "xxx",
-    }
-)
+auto_swear_detection = frozenset({
+    "4r5e",
+    "5h1t",
+    "5hit",
+    "a55",
+    "anal",
+    "anus",
+    "ar5e",
+    "arrse",
+    "arse",
+    "ass",
+    "ass-fucker",
+    "asses",
+    "assfucker",
+    "assfukka",
+    "asshole",
+    "assholes",
+    "asswhole",
+    "a_s_s",
+    "b!tch",
+    "b00bs",
+    "b17ch",
+    "b1tch",
+    "ballbag",
+    "balls",
+    "ballsack",
+    "bastard",
+    "beastial",
+    "beastiality",
+    "bellend",
+    "bestial",
+    "bestiality",
+    "bi+ch",
+    "biatch",
+    "bitch",
+    "bitcher",
+    "bitchers",
+    "bitches",
+    "bitchin",
+    "bitching",
+    "bloody",
+    "blow job",
+    "blowjob",
+    "blowjobs",
+    "boiolas",
+    "bollock",
+    "bollok",
+    "boner",
+    "boob",
+    "boobs",
+    "booobs",
+    "boooobs",
+    "booooobs",
+    "booooooobs",
+    "breasts",
+    "buceta",
+    "bugger",
+    "bum",
+    "bunny fucker",
+    "butt",
+    "butthole",
+    "buttmuch",
+    "buttplug",
+    "c0ck",
+    "c0cksucker",
+    "carpet muncher",
+    "cawk",
+    "chink",
+    "cipa",
+    "cl1t",
+    "clit",
+    "clitoris",
+    "clits",
+    "cnut",
+    "cock",
+    "cock-sucker",
+    "cockface",
+    "cockhead",
+    "cockmunch",
+    "cockmuncher",
+    "cocks",
+    "cocksuck",
+    "cocksucked",
+    "cocksucker",
+    "cocksucking",
+    "cocksucks",
+    "cocksuka",
+    "cocksukka",
+    "cok",
+    "cokmuncher",
+    "coksucka",
+    "coon",
+    "cox",
+    "crap",
+    "cum",
+    "cummer",
+    "cumming",
+    "cums",
+    "cumshot",
+    "cunilingus",
+    "cunillingus",
+    "cunnilingus",
+    "cunt",
+    "cuntlick",
+    "cuntlicker",
+    "cuntlicking",
+    "cunts",
+    "cyalis",
+    "cyberfuc",
+    "cyberfuck",
+    "cyberfucked",
+    "cyberfucker",
+    "cyberfuckers",
+    "cyberfucking",
+    "d1ck",
+    "damn",
+    "dick",
+    "dickhead",
+    "dildo",
+    "dildos",
+    "dink",
+    "dinks",
+    "dirsa",
+    "dlck",
+    "dog-fucker",
+    "doggin",
+    "dogging",
+    "donkeyribber",
+    "doosh",
+    "duche",
+    "dyke",
+    "ejaculate",
+    "ejaculated",
+    "ejaculates",
+    "ejaculating",
+    "ejaculatings",
+    "ejaculation",
+    "ejakulate",
+    "f u c k",
+    "f u c k e r",
+    "f4nny",
+    "fag",
+    "fagging",
+    "faggitt",
+    "faggot",
+    "faggs",
+    "fagot",
+    "fagots",
+    "fags",
+    "fanny",
+    "fannyflaps",
+    "fannyfucker",
+    "fanyy",
+    "fatass",
+    "fcuk",
+    "fcuker",
+    "fcuking",
+    "feck",
+    "fecker",
+    "felching",
+    "fellate",
+    "fellatio",
+    "fingerfuck",
+    "fingerfucked",
+    "fingerfucker",
+    "fingerfuckers",
+    "fingerfucking",
+    "fingerfucks",
+    "fistfuck",
+    "fistfucked",
+    "fistfucker",
+    "fistfuckers",
+    "fistfucking",
+    "fistfuckings",
+    "fistfucks",
+    "flange",
+    "fook",
+    "fooker",
+    "fuck",
+    "fucka",
+    "fucked",
+    "fucker",
+    "fuckers",
+    "fuckhead",
+    "fuckheads",
+    "fuckin",
+    "fucking",
+    "fuckings",
+    "fuckingshitmotherfucker",
+    "fuckme",
+    "fucks",
+    "fuckwhit",
+    "fuckwit",
+    "fudge packer",
+    "fudgepacker",
+    "fuk",
+    "fuker",
+    "fukker",
+    "fukkin",
+    "fuks",
+    "fukwhit",
+    "fukwit",
+    "fux",
+    "fux0r",
+    "f_u_c_k",
+    "gangbang",
+    "gangbanged",
+    "gangbangs",
+    "gaylord",
+    "gaysex",
+    "goatse",
+    "God",
+    "god-dam",
+    "god-damned",
+    "goddamn",
+    "goddamned",
+    "hardcoresex",
+    "hell",
+    "heshe",
+    "hoar",
+    "hoare",
+    "hoer",
+    "homo",
+    "hore",
+    "horniest",
+    "horny",
+    "hotsex",
+    "jack-off",
+    "jackoff",
+    "jap",
+    "jerk-off",
+    "jism",
+    "jiz",
+    "jizm",
+    "jizz",
+    "kawk",
+    "knob",
+    "knobead",
+    "knobed",
+    "knobend",
+    "knobhead",
+    "knobjocky",
+    "knobjokey",
+    "kock",
+    "kondum",
+    "kondums",
+    "kum",
+    "kummer",
+    "kumming",
+    "kums",
+    "kunilingus",
+    "l3i+ch",
+    "l3itch",
+    "labia",
+    "lmfao",
+    "lust",
+    "lusting",
+    "m0f0",
+    "m0fo",
+    "m45terbate",
+    "ma5terb8",
+    "ma5terbate",
+    "masochist",
+    "master-bate",
+    "masterb8",
+    "masterbat*",
+    "masterbat3",
+    "masterbate",
+    "masterbation",
+    "masterbations",
+    "masturbate",
+    "mo-fo",
+    "mof0",
+    "mofo",
+    "mothafuck",
+    "mothafucka",
+    "mothafuckas",
+    "mothafuckaz",
+    "mothafucked",
+    "mothafucker",
+    "mothafuckers",
+    "mothafuckin",
+    "mothafucking",
+    "mothafuckings",
+    "mothafucks",
+    "mother fucker",
+    "motherfuck",
+    "motherfucked",
+    "motherfucker",
+    "motherfuckers",
+    "motherfuckin",
+    "motherfucking",
+    "motherfuckings",
+    "motherfuckka",
+    "motherfucks",
+    "muff",
+    "mutha",
+    "muthafecker",
+    "muthafuckker",
+    "muther",
+    "mutherfucker",
+    "n1gga",
+    "n1gger",
+    "nazi",
+    "nigg3r",
+    "nigg4h",
+    "nigga",
+    "niggah",
+    "niggas",
+    "niggaz",
+    "nigger",
+    "niggers",
+    "nob",
+    "nob jokey",
+    "nobhead",
+    "nobjocky",
+    "nobjokey",
+    "numbnuts",
+    "nutsack",
+    "orgasim",
+    "orgasims",
+    "orgasm",
+    "orgasms",
+    "p0rn",
+    "pawn",
+    "pecker",
+    "penis",
+    "penisfucker",
+    "phonesex",
+    "phuck",
+    "phuk",
+    "phuked",
+    "phuking",
+    "phukked",
+    "phukking",
+    "phuks",
+    "phuq",
+    "pigfucker",
+    "pimpis",
+    "piss",
+    "pissed",
+    "pisser",
+    "pissers",
+    "pisses",
+    "pissflaps",
+    "pissin",
+    "pissing",
+    "pissoff",
+    "poop",
+    "porn",
+    "porno",
+    "pornography",
+    "pornos",
+    "prick",
+    "pricks",
+    "pron",
+    "pube",
+    "pusse",
+    "pussi",
+    "pussies",
+    "pussy",
+    "pussys",
+    "rectum",
+    "retard",
+    "rimjaw",
+    "rimming",
+    "s hit",
+    "s.o.b.",
+    "sadist",
+    "schlong",
+    "screwing",
+    "scroat",
+    "scrote",
+    "scrotum",
+    "semen",
+    "sex",
+    "sh!+",
+    "sh!t",
+    "sh1t",
+    "shag",
+    "shagger",
+    "shaggin",
+    "shagging",
+    "shemale",
+    "shi+",
+    "shit",
+    "shitdick",
+    "shite",
+    "shited",
+    "shitey",
+    "shitfuck",
+    "shitfull",
+    "shithead",
+    "shiting",
+    "shitings",
+    "shits",
+    "shitted",
+    "shitter",
+    "shitters",
+    "shitting",
+    "shittings",
+    "shitty",
+    "skank",
+    "slut",
+    "sluts",
+    "smegma",
+    "smut",
+    "snatch",
+    "son-of-a-bitch",
+    "spac",
+    "spunk",
+    "s_h_i_t",
+    "t1tt1e5",
+    "t1tties",
+    "teets",
+    "teez",
+    "testical",
+    "testicle",
+    "tit",
+    "titfuck",
+    "tits",
+    "titt",
+    "tittie5",
+    "tittiefucker",
+    "titties",
+    "tittyfuck",
+    "tittywank",
+    "titwank",
+    "tosser",
+    "turd",
+    "tw4t",
+    "twat",
+    "twathead",
+    "twatty",
+    "twunt",
+    "twunter",
+    "v14gra",
+    "v1gra",
+    "vagina",
+    "viagra",
+    "vulva",
+    "w00se",
+    "wang",
+    "wank",
+    "wanker",
+    "wanky",
+    "whoar",
+    "whore",
+    "willies",
+    "willy",
+    "xrated",
+    "xxx",
+})
 
 
 class RoleSource(menus.ListPageSource):
     """Source for the role rule list."""
 
-    def __init__(self, contents: t.List[str], guild_name: str, del_msg: str) -> None:
+    def __init__(self, contents: t.List[str], guild_name: str,
+                 del_msg: str) -> None:
         """Initialize RoleSource."""
         self.guild_name = guild_name
         self.del_msg = del_msg
@@ -504,10 +503,8 @@ class RoleSource(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Rules for guild {self.guild_name}",
             colour=discord.Colour.blue(),
-            description=(
-                "You need the rule number for the `remove` action."
-                f"{self.del_msg}\n\n{page}"
-            ),
+            description=("You need the rule number for the `remove` action."
+                         f"{self.del_msg}\n\n{page}"),
         )
         embed.set_footer(
             text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
@@ -550,7 +547,8 @@ class Moderation(commands.Cog):
         banning = set()
         roles = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
-        owner = ctx.guild.owner or await ctx.guild.fetch_member(ctx.guild.owner_id)
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id)
         errors = set()
         for banned in who:
             if isinstance(banned, discord.Role):
@@ -559,8 +557,7 @@ class Moderation(commands.Cog):
                 elif me.roles[-1] <= banned:
                     errors.add(
                         f"I cannot ban the role {banned.name} : it is higher "
-                        "than my highest role"
-                    )
+                        "than my highest role")
                 elif ctx.author.roles[-1] > banned and banned not in roles:
                     roles.add(banned)
                     for member in banned.members:
@@ -573,8 +570,7 @@ class Moderation(commands.Cog):
                 else:
                     errors.add(
                         f"You cannot ban the role {banned.name} : it is "
-                        "higher than your highest role"
-                    )
+                        "higher than your highest role")
             else:
                 if banned == me:
                     errors.add("I cannot ban myself")
@@ -590,8 +586,7 @@ class Moderation(commands.Cog):
         newline = "\n -"
         if errors:
             await ctx.send(
-                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}"
-            )
+                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}")
         try:
             if reason:
                 proceed = await self.bot.fetch_confirmation(
@@ -659,17 +654,16 @@ class Moderation(commands.Cog):
         kicking = set()
         roles = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
-        owner = ctx.guild.owner or await ctx.guild.fetch_member(ctx.guild.owner_id)
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id)
         errors = set()
         for kicked in who:
             if isinstance(kicked, discord.Role):
                 if kicked.is_default():
                     errors.add("You cannot kick the default role.")
                 elif me.roles[-1] <= kicked:
-                    errors.add(
-                        f"I cannot kick the role {kicked.name} : "
-                        "it is higher than my highest role"
-                    )
+                    errors.add(f"I cannot kick the role {kicked.name} : "
+                               "it is higher than my highest role")
                 elif ctx.author.roles[-1] > kicked and kicked not in roles:
                     roles.add(kicked)
                     for member in kicked.members:
@@ -682,8 +676,7 @@ class Moderation(commands.Cog):
                 else:
                     errors.add(
                         f"You cannot kick the role {kicked.name} : it is "
-                        "higher than your highest role"
-                    )
+                        "higher than your highest role")
             else:
                 if kicked == me:
                     errors.add("I cannot kick myself")
@@ -699,8 +692,7 @@ class Moderation(commands.Cog):
         newline = "\n -"
         if errors:
             await ctx.send(
-                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}"
-            )
+                f"I ran into {len(errors)} issues :\n -{newline.join(errors)}")
         try:
             if reason:
                 proceed = await self.bot.fetch_confirmation(
@@ -760,8 +752,7 @@ class Moderation(commands.Cog):
         """
         if not self.bot.ksoft_client or not self.bot.discord_rep:
             await ctx.send(
-                "Sorry, but my owner hasn't correctly configured this command"
-            )
+                "Sorry, but my owner hasn't correctly configured this command")
             return
         if isinstance(other, int):
             user_id = str(other)
@@ -773,8 +764,7 @@ class Moderation(commands.Cog):
             url = other.avatar_url
 
         async with self.bot.aio_session.get(
-            f"https://discordrep.com/u/{user_id}"
-        ) as response:
+                f"https://discordrep.com/u/{user_id}") as response:
             if response.status != 200:
                 await self.bot.httpcat(
                     ctx,
@@ -784,28 +774,26 @@ class Moderation(commands.Cog):
                 return
 
         async with self.bot.aio_session.get(
-            f"https://discordrep.com/api/v3/rep/{user_id}",
-            headers={"Authorization": self.bot.discord_rep},
+                f"https://discordrep.com/api/v3/rep/{user_id}",
+                headers={"Authorization": self.bot.discord_rep},
         ) as response:
             reputation = await response.json()
 
         async with self.bot.aio_session.get(
-            f"https://discordrep.com/api/v3/infractions/{user_id}",
-            headers={"Authorization": self.bot.discord_rep},
+                f"https://discordrep.com/api/v3/infractions/{user_id}",
+                headers={"Authorization": self.bot.discord_rep},
         ) as response:
             infractions = await response.json()
 
         embed = discord.Embed(
             colour=discord.Colour.dark_green(),
-            description=(
-                "Source : [DiscordRep](https://discordrep.com) and "
-                "[KSoft](https://ksoft.si)"
-            ),
+            description=("Source : [DiscordRep](https://discordrep.com) and "
+                         "[KSoft](https://ksoft.si)"),
         )
         embed.set_thumbnail(url=url)
-        embed.set_author(
-            name=name, icon_url=url, url=f"https://discordrep.com/u/{user_id}"
-        )
+        embed.set_author(name=name,
+                         icon_url=url,
+                         url=f"https://discordrep.com/u/{user_id}")
         banning = []
         if infractions.get("type") == "BAN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
@@ -813,16 +801,14 @@ class Moderation(commands.Cog):
             banning.append(
                 f"Warned on {date.day}-{date.month}-{date.year} "
                 f"{date.hour}:{date.minute}:{date.second} because of : "
-                f"`{infractions['reason']}`"
-            )
+                f"`{infractions['reason']}`")
         elif infractions.get("type") == "WARN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
             embed.colour = discord.Colour.red()
             banning.append(
                 f"Banned on {date.day}-{date.month}-{date.year} "
                 f"{date.hour}:{date.minute}:{date.second} because of : "
-                f"`{infractions['reason']}`"
-            )
+                f"`{infractions['reason']}`")
         check_ban = await self.bot.ksoft_client.bans.check(int(user_id))
         if banning == []:
             if not check_ban:
@@ -853,29 +839,25 @@ class Moderation(commands.Cog):
             embed.colour = discord.Colour.red()
             embed.add_field(
                 name="Bans from KSoft",
-                value=(
-                    f"Banned on {ksoft_ban.timestamp} because of "
-                    f"[{ksoft_ban.reason}]({ksoft_ban.proof})"
-                ),
+                value=(f"Banned on {ksoft_ban.timestamp} because of "
+                       f"[{ksoft_ban.reason}]({ksoft_ban.proof})"),
                 inline=False,
             )
 
         embed.add_field(
             name="Reputation on DiscordRep",
-            value=(
-                f"Rank : {reputation['rank']}\n\nUpvotes : "
-                f"{reputation['upvotes']}\nDownvotes : "
-                f"{reputation['downvotes']}\n\nTotal votes : "
-                f"{reputation['upvotes']-reputation['downvotes']}\n\nXP : "
-                f"{reputation['xp']}"
-            ),
+            value=(f"Rank : {reputation['rank']}\n\nUpvotes : "
+                   f"{reputation['upvotes']}\nDownvotes : "
+                   f"{reputation['downvotes']}\n\nTotal votes : "
+                   f"{reputation['upvotes']-reputation['downvotes']}\n\nXP : "
+                   f"{reputation['xp']}"),
             inline=False,
         )
         await ctx.send(embed=embed)
 
-    @commands.group(
-        aliases=["roles"], invoke_without_command=True, case_insensitive=True
-    )
+    @commands.group(aliases=["roles"],
+                    invoke_without_command=True,
+                    case_insensitive=True)
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
@@ -897,14 +879,13 @@ class Moderation(commands.Cog):
             if not roles:
                 await ctx.send(
                     "Ping one or more roles in the next 30 seconds to "
-                    "select which ones you want to add"
-                )
+                    "select which ones you want to add")
 
                 def check(message: discord.Message) -> bool:
                     """Check the answer."""
                     return message.channel == ctx.channel and (
-                        bool(message.role_mentions) and message.author == ctx.author
-                    )
+                        bool(message.role_mentions)
+                        and message.author == ctx.author)
 
                 try:
                     message = await self.bot.wait_for(
@@ -913,7 +894,8 @@ class Moderation(commands.Cog):
                         timeout=30,
                     )
                 except asyncio.TimeoutError:
-                    await ctx.send("You didn't answer in time, I'm giving up on this")
+                    await ctx.send(
+                        "You didn't answer in time, I'm giving up on this")
                     return
 
                 roles = message.role_mentions
@@ -924,9 +906,8 @@ class Moderation(commands.Cog):
 
             def check2(payload: discord.RawReactionActionEvent) -> bool:
                 """Check the reaction."""
-                return payload.guild_id == ctx.guild.id and (
-                    payload.member == ctx.author
-                )
+                return payload.guild_id == ctx.guild.id and (payload.member
+                                                             == ctx.author)
 
             try:
                 payload = await self.bot.wait_for(
@@ -935,12 +916,12 @@ class Moderation(commands.Cog):
                     timeout=30,
                 )
             except asyncio.TimeoutError:
-                await ctx.send("You didn't react in time, I'm giving up on this.")
+                await ctx.send(
+                    "You didn't react in time, I'm giving up on this.")
                 return
 
-            message = await self.bot.get_channel(payload.channel_id).fetch_message(
-                payload.message_id
-            )
+            message = await self.bot.get_channel(
+                payload.channel_id).fetch_message(payload.message_id)
             emoji = payload.emoji.name
 
             result = await database.fetchrow(
@@ -965,8 +946,7 @@ class Moderation(commands.Cog):
                     removal = (
                         f" {removed} of them didn't exist anymore, so I "
                         "deleted them from my database. "
-                        "The remaining roles are :"
-                    )
+                        "The remaining roles are :")
                 joiner = "\n - "
                 await ctx.send(
                     f"{total} roles are already linked to this message and "
@@ -974,18 +954,14 @@ class Moderation(commands.Cog):
                     f"{joiner.join([r.name for r in ini_roles])}\n\nDo you "
                     "want me to replace them with the new ones, or add the new"
                     " ones to the list. Send `replace` or `add` in the next 30"
-                    " seconds to indicate your choice please."
-                )
+                    " seconds to indicate your choice please.")
 
                 def check3(message: discord.Message) -> bool:
                     """Check the answer."""
                     return message.author == ctx.author and (
-                        message.channel == ctx.channel
-                        and (
-                            message.content.lower().startswith("add")
-                            or (message.content.lower().startswith("replace"))
-                        )
-                    )
+                        message.channel == ctx.channel and
+                        (message.content.lower().startswith("add") or
+                         (message.content.lower().startswith("replace"))))
 
                 try:
                     answer = await self.bot.wait_for(
@@ -1020,9 +996,8 @@ class Moderation(commands.Cog):
                 pass
             counter = -1
             reaction = find(
-                lambda reaction: getattr(
-                    reaction.emoji, "name", reaction.emoji)
-                == emoji,
+                lambda reaction: getattr(reaction.emoji, "name", reaction.emoji
+                                         ) == emoji,
                 message.reactions,
             )
             if not reaction:
@@ -1036,10 +1011,8 @@ class Moderation(commands.Cog):
                 except discord.DiscordException:
                     pass
             if counter:
-                await ctx.send(
-                    "The rule has been successfully updated"
-                    f" and applied to {str(counter)} users"
-                )
+                await ctx.send("The rule has been successfully updated"
+                               f" and applied to {str(counter)} users")
             else:
                 await ctx.send("The rule has been successfully updated")
 
@@ -1060,7 +1033,8 @@ class Moderation(commands.Cog):
                         await channel.fetch_message(key["message_id"])
                         output.append(dict(key))
                         output[-1]["roleids"] = [
-                            ID for ID in output[-1]["roleids"] if ctx.guild.get_role(ID)
+                            ID for ID in output[-1]["roleids"]
+                            if ctx.guild.get_role(ID)
                         ]
                         await database.execute(
                             "UPDATE public.roles SET roleids=$1 WHERE message_id=$2",
@@ -1079,8 +1053,7 @@ class Moderation(commands.Cog):
                     colour=discord.Colour.blue(),
                     description=(
                         "No rules are currently defined for this guild. "
-                        f"Create the first one with `{ctx.prefix}role add`"
-                    ),
+                        f"Create the first one with `{ctx.prefix}role add`"),
                 )
                 await ctx.send(embed=embed)
                 return
@@ -1088,26 +1061,17 @@ class Moderation(commands.Cog):
             def r_m(role_id: int) -> str:  # role mention
                 return ctx.guild.get_role(role_id).mention
 
-            content = [
-                (
-                    f"- Rule {i + 1} : "
-                    "[Message](https://discord.com/channels/"
-                    f"{val['guild_id']}/{val['channel_id']}/"
-                    f"{val['message_id']} \"Original message\") | "
-                    f"{val['emoji']} | " +
-                    ", ".join([r_m(ID) for ID in val["roleids"]])
-                )
-                for i, val in enumerate(output)
-            ]
+            content = [(f"- Rule {i + 1} : "
+                        "[Message](https://discord.com/channels/"
+                        f"{val['guild_id']}/{val['channel_id']}/"
+                        f"{val['message_id']} \"Original message\") | "
+                        f"{val['emoji']} | " +
+                        ", ".join([r_m(ID) for ID in val["roleids"]]))
+                       for i, val in enumerate(output)]
 
-            del_msg = (
-                (
-                    f" {deleted} rules were deleted because the "
-                    "original message didn't exist anymore"
-                )
-                if deleted
-                else ""
-            )
+            del_msg = ((f" {deleted} rules were deleted because the "
+                        "original message didn't exist anymore")
+                       if deleted else "")
 
             final = [content[0]]
             cur_len = len(content[0])
@@ -1126,8 +1090,7 @@ class Moderation(commands.Cog):
                     colour=discord.Colour.blue(),
                     description=(
                         "You need the rule number for the `remove` action."
-                        f"{del_msg}\n\n{final[0]}"
-                    ),
+                        f"{del_msg}\n\n{final[0]}"),
                 )
                 await ctx.send(embed=embed)
             else:
@@ -1147,12 +1110,13 @@ class Moderation(commands.Cog):
                     ctx.guild.id,
                 )[number - 1]
             except IndexError:
-                await ctx.send("The rule you are trying to delete doesn't exist")
+                await ctx.send(
+                    "The rule you are trying to delete doesn't exist")
                 return
             try:
-                await self.bot.get_channel(result["channel_id"]).fetch_message(
-                    result["message_id"]
-                )
+                await self.bot.get_channel(result["channel_id"]
+                                           ).fetch_message(result["message_id"]
+                                                           )
                 roles = []
                 for role_id in result["roleids"]:
                     role = ctx.guild.get_role(role_id)
@@ -1164,41 +1128,33 @@ class Moderation(commands.Cog):
                     result["message_id"],
                 )
                 embed = discord.Embed(
-                    title=f"Informations about rule number {number}",
-                )
+                    title=f"Informations about rule number {number}", )
                 embed.add_field(
                     name="Message :",
-                    value=(
-                        "[Click here](https://discord.com/channels/"
-                        f'{result["guild_id"]}/{result["channel_id"]}/'
-                        f'{result["message_id"]} '
-                        '"Link to the original message")'
-                    ),
+                    value=("[Click here](https://discord.com/channels/"
+                           f'{result["guild_id"]}/{result["channel_id"]}/'
+                           f'{result["message_id"]} '
+                           '"Link to the original message")'),
                 )
                 embed.add_field(name="Emoji :", value=result["emoji"])
                 embed.add_field(
                     name="Roles :",
-                    value=" - "
-                    + "\n - ".join(
-                        [f"Role n°{i + 1}: {roles[i][1]}" for i in range(
-                            len(roles))]
-                    ),
+                    value=" - " + "\n - ".join([
+                        f"Role n°{i + 1}: {roles[i][1]}"
+                        for i in range(len(roles))
+                    ]),
                 )
                 await ctx.send(embed=embed)
                 await ctx.send(
                     "Please enter a comma-separated list of the numbers of the"
-                    " roles you want to remove in less than 30 seconds"
-                )
+                    " roles you want to remove in less than 30 seconds")
 
                 def check(message: discord.Message) -> bool:
                     """Check for digits."""
                     return message.author == ctx.author and (
                         message.channel == ctx.channel
-                        and all(
-                            k.isdigit()
-                            for k in message.content.replace(" ", "").split(",")
-                        )
-                    )
+                        and all(k.isdigit() for k in message.content.replace(
+                            " ", "").split(",")))
 
                 try:
                     message = await self.bot.wait_for(
@@ -1208,8 +1164,7 @@ class Moderation(commands.Cog):
                     )
                 except asyncio.TimeoutError:
                     await ctx.send(
-                        "You didn't answer in time. I'm ignoring this command"
-                    )
+                        "You didn't answer in time. I'm ignoring this command")
                     return
 
                 role_numbers = [
@@ -1219,22 +1174,19 @@ class Moderation(commands.Cog):
                 if not all(0 < k <= len(roles) for k in role_numbers):
                     await ctx.send(
                         "You entered wrong values for the indexes. "
-                        "Please re-run the command with correct values."
-                    )
+                        "Please re-run the command with correct values.")
                 else:
                     await database.execute(
                         "UPDATE public.roles set roleids=$1 WHERE message_id=$2",
                         [
-                            roles[i][0]
-                            for i in range(len(roles))
+                            roles[i][0] for i in range(len(roles))
                             if not i + 1 in role_numbers
                         ],
                         result["message_id"],
                     )
                     await ctx.send(
                         f"I successfully removed those {len(role_numbers)} "
-                        "roles from the rule"
-                    )
+                        "roles from the rule")
             except discord.NotFound:
                 await database.execute(
                     "DELETE FROM public.roles WHERE message_id=$1",
@@ -1242,8 +1194,7 @@ class Moderation(commands.Cog):
                 )
                 await ctx.send(
                     "The message associated with this rule has been deleted. "
-                    "I thus removed the rule."
-                )
+                    "I thus removed the rule.")
                 return
 
     @commands.command()
@@ -1260,7 +1211,8 @@ class Moderation(commands.Cog):
         Nothing means to check the status
         NO SWEAR WORDS IN MY CHRISTIAN SERVER !
         """
-        owner = ctx.guild.owner or await ctx.guild.fetch_member(ctx.guild.owner_id)
+        owner = ctx.guild.owner or await ctx.guild.fetch_member(
+            ctx.guild.owner_id)
         async with self.bot.pool.acquire() as database:
             if word:
                 word = word.lower()
@@ -1310,8 +1262,7 @@ class Moderation(commands.Cog):
                     if ctx.author != owner:
                         await ctx.send(
                             "As he is the one alerted, only the guild owner "
-                            "can change this setting"
-                        )
+                            "can change this setting")
                         return
                     result = await database.fetchrow(
                         "SELECT * FROM public.swear WHERE id=$1",
@@ -1350,20 +1301,17 @@ class Moderation(commands.Cog):
                             word_list.remove(word)
                             await ctx.send(
                                 f"The word `{word}` was removed from this "
-                                "guild's list of swear words"
-                            )
+                                "guild's list of swear words")
                         else:
                             word_list.append(word)
                             await ctx.send(
                                 f"The word `{word}` was added to this guild's"
-                                " list of swear words"
-                            )
+                                " list of swear words")
                     else:
                         word_list = [word]
                         await ctx.send(
                             f"The word `{word}` was added to this guild's "
-                            "list of swear words"
-                        )
+                            "list of swear words")
                     await database.execute(
                         "INSERT INTO public.swear (id, words) VALUES ($1, $2)"
                         " ON CONFLICT (id) DO UPDATE set words=$2",
@@ -1396,16 +1344,15 @@ class Moderation(commands.Cog):
                     value="Online" if status["autoswear"] else "Offline",
                 )
                 embed.add_field(
-                    name=("Alert message status (in case I cannot delete a message)"),
+                    name=("Alert message status (in case I cannot delete a message)"
+                          ),
                     value="Enabled" if status["notification"] else "Disabled",
                 )
                 embed.add_field(
                     name="Guild-specific swear words",
-                    value=(
-                        " - " + "\n - ".join(status["words"])
-                        if status["words"]
-                        else "No swear words are defined for this guild"
-                    ),
+                    value=(" - " +
+                           "\n - ".join(status["words"]) if status["words"]
+                           else "No swear words are defined for this guild"),
                     inline=False,
                 )
                 await ctx.send(embed=embed)
@@ -1455,8 +1402,8 @@ class Moderation(commands.Cog):
                 guild = self.bot.get_guild(payload.guild_id)
                 try:
                     member = guild.get_member(
-                        payload.user_id
-                    ) or await guild.fetch_member(payload.user_id)
+                        payload.user_id) or await guild.fetch_member(
+                            payload.user_id)
                 except discord.HTTPException:
                     return
                 roles = (guild.get_role(r) for r in result["roleids"])
@@ -1491,10 +1438,8 @@ class Moderation(commands.Cog):
                             if emoji == result["emoji"]:
                                 async for user in reaction.users():
                                     if user == member:
-                                        roles = (
-                                            member.guild.get_role(r)
-                                            for r in result["roleids"]
-                                        )
+                                        roles = (member.guild.get_role(r)
+                                                 for r in result["roleids"])
                                         await member.add_roles(
                                             *(r for r in roles if r),
                                             reason=f"Rule for emoji {emoji}",
@@ -1504,11 +1449,11 @@ class Moderation(commands.Cog):
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message: discord.Message) -> None:
         """Delete swear words."""
-        if message.author == self.bot or isinstance(message.author, discord.User):
+        if message.author == self.bot or isinstance(message.author,
+                                                    discord.User):
             return
         if message.channel.is_nsfw() or (
-            message.author.guild_permissions.manage_messages
-        ):
+                message.author.guild_permissions.manage_messages):
             return
         if not self._swear_conn:
             self._swear_conn = await self.bot.pool.acquire()
@@ -1522,8 +1467,7 @@ class Moderation(commands.Cog):
                 if not status:
                     return
                 owner = message.guild.owner or await message.guild.fetch_member(
-                    message.guild.owner_id
-                )
+                    message.guild.owner_id)
                 if status["autoswear"]:
                     for word in auto_swear_detection:
                         if word in message.content.lower().split(" "):
@@ -1543,8 +1487,7 @@ class Moderation(commands.Cog):
                                         "s to delete the message. Please give "
                                         "them back to me. You can use "
                                         "the command `swear notification` to "
-                                        "turn this alert off."
-                                    )
+                                        "turn this alert off.")
                             return
                 if status["manual_on"]:
                     for word in status["words"]:
@@ -1565,8 +1508,7 @@ class Moderation(commands.Cog):
                                         "s to delete the message. Please give "
                                         "them back to me. You can use the "
                                         "command `swear notification` "
-                                        "to turn this alert off."
-                                    )
+                                        "to turn this alert off.")
                             break
             except discord.DiscordException:
                 pass
