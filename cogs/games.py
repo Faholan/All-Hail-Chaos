@@ -883,6 +883,13 @@ class Games(commands.Cog):
     async def connect4(self, ctx: commands.Context,
                        member: discord.Member) -> None:
         """Play connect 4 with a friend."""
+        if member == ctx.author:
+            await ctx.send("You can't play with only yourself !")
+            return
+        if member.bot:
+            await ctx.send("This member is a bot. Play with a human !")
+            return
+
         winner = await Connect4(ctx.author, member,
                                 clear_reactions_after=True).prompt(ctx)
         if winner:
