@@ -79,7 +79,6 @@ class SnipeSource(menus.ListPageSource):
 
 class SauceSource(menus.ListPageSource):
     """Source for the sauce command."""
-
     async def format_page(self, menu: menus.Menu, page: str):
         """Format the page of code."""
         max_pages = self.get_max_pages()
