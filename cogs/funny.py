@@ -393,7 +393,7 @@ class Funny(commands.Cog):
                 if randint(1, 100) >= 85:
                     data = choice(chaos)(fight[0], next_player, weapons)
                 else:
-                    data = [next_player.hit(choice(weapons).split("|"))]
+                    data = (next_player.hit(choice(weapons).split("|")),)
                 for message, damage, attack, url in data:
                     embed = discord.Embed(
                         title=attack,

@@ -23,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from random import choice
-
 import ksoftapi
 
 
@@ -70,7 +68,9 @@ def setup(bot):
             "resume_key": "default_node",
         }
 
-        bot.success_image = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
+        bot.success_image = (
+            "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
+        )
 
         bot.ksoft_client = ksoftapi.Client("MY KSOFT.SI TOKEN", bot.loop)
         bot.discord_rep = "MY DISCORDREP TOKEN"
@@ -94,10 +94,12 @@ def setup(bot):
         # bots.ondiscord.xyz page
         bot.bots_on_discord = "https://bots.ondiscord.xyz/bots/636359675943583775"
         bot.discord_bots_page = (
-            "https://discord.bots.gg/bots/636359675943583775"  # discord.bot.gg page
+            "https://discord.bots.gg/bots/636359675943583775"
+            # discord.bot.gg page
         )
         bot.discord_bot_list_page = (
-            "https://discordbotlist.com/bots/chaotic-bot"  # discordbotlist.com page
+            "https://discordbotlist.com/bots/chaotic-bot"
+            # discordbotlist.com page
         )
 
         bot.github_token = None  # Github token

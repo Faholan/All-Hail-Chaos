@@ -337,7 +337,7 @@ class Utility(commands.Cog):
         )
         embed.set_footer(
             text=(f"Discord.py version {discord.__version__}, Python version "
-                  f"{version.split(' ')[0]}"), )
+                  f"{version.split(' ', maxsplit=1)[0]}"), )
         embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         embed.add_field(
             name=f"My owner{'s' if app.team else ''} :",

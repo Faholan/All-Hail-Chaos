@@ -426,8 +426,8 @@ class Blackjack(menus.Menu):
         self.money_dict = money_dict
         self.cost = cost
 
-        self.cards = []
-        self.players = []
+        self.cards: t.List[BCard] = []
+        self.players: t.List[Deck] = []
         self.dealer: BRow = None
         self.next_card: BCard = None
 
@@ -616,7 +616,7 @@ class Blackjack(menus.Menu):
         """Start it the real way."""
         await self.new_game()
         await self.start(ctx, wait=True)
-        return {P.player_id: P.balance for P in self.players}
+        return {player.player_id: player.balance for player in self.players}
 
 
 class Blackjackplayers(menus.Menu):
@@ -790,7 +790,7 @@ class Games(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Games."""
         self.bot = bot
-        self.blackjack_list = []
+        self.blackjack_list: t.List[Blackjackplayers] = []
         self.blackjack_updater.start()
 
     def cog_unload(self) -> None:

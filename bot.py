@@ -286,9 +286,7 @@ class ChaoticBot(commands.Bot):
                            *content,
                            timeout: int = 30) -> discord.Message:
         """Get an answer."""
-
         # Helper function for getting an answer in a set of possibilities
-
         def check(message: discord.Message) -> bool:
             """Check the message."""
             return (message.author == ctx.author

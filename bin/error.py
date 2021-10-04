@@ -239,7 +239,6 @@ async def error_manager(
 
 def generator(bot: commands.Bot) -> Callable:
     """Generate an on_error for the bot."""
-
     # This needs to be wrapped in order to access bot and its attributes
     async def predictate(event: str, *args, **kwargs) -> None:
         """Process the on_error event."""
