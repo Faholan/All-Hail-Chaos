@@ -68,9 +68,7 @@ def setup(bot):
             "resume_key": "default_node",
         }
 
-        bot.success_image = (
-            "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
-        )
+        bot.success_image = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
 
         bot.ksoft_client = ksoftapi.Client("MY KSOFT.SI TOKEN", bot.loop)
         bot.discord_rep = "MY DISCORDREP TOKEN"
