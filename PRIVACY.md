@@ -5,6 +5,7 @@ Data collected and used by the bot, on a per-category basis
 To delete the data stored about you, contact me asking for deletion of your data - by default, some data, like custom commands and tags you created, won't be deleted, except if you explicitly ask for it to be deleted. Be aware that this process is irreversible : all data related to you will be lost with no possibility of being recovered. You can also ask for an extract of all data related to you.
 
 **Business**
+
 *Data collected*
 - Your user id
 - The last time you used the `daily` command
@@ -14,6 +15,7 @@ To delete the data stored about you, contact me asking for deletion of your data
 No data will be collected as long as you don't use any business-related command. Using any business-related command constitutes agreement for your data to be collected
 
 **Custom**
+
 *Data collected*
 - Your user id
 - The guild id
@@ -25,6 +27,7 @@ The data is only collected when you create a command. If you don't wish for your
 __Requesting deletion of your data, by default, won't delete commands you created.__
 
 **Successes**
+
 *Data collected*
 - Your user id
 - The total number of command uses (up to 1000)
@@ -35,6 +38,7 @@ You can use the `success_optout` command to opt in or out of success data collec
 Opting out won't delete already collected data, but rather stop the further collection of data.
 
 **Tags**
+
 *Data collected*
 - Your user id
 - The tag's content
@@ -46,6 +50,7 @@ __Requesting deletion of your data, by default, won't delete tags you created.__
 
 
 **Statistics**
+
 *Data collected*
 - The name of the command used
 
