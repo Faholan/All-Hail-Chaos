@@ -40,7 +40,8 @@ class HelpSource(menus.ListPageSource):
     def __init__(
         self,
         signature: t.Callable[[commands.Command], str],
-        filter_commands: t.Callable[[t.List[commands.Command]], t.Awaitable[t.Any]],
+        filter_commands: t.Callable[[t.List[commands.Command]],
+                                    t.Awaitable[t.Any]],
         prefix: str,
         author: discord.User,
         cogs: t.Dict[commands.Cog, t.List[commands.Command]],
@@ -93,7 +94,6 @@ class HelpSource(menus.ListPageSource):
 
 class Help(commands.HelpCommand):
     """The Help cog."""
-
     @staticmethod
     def get_command_signature(command: commands.Command) -> str:
         """Retrieve the command's signature."""

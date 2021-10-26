@@ -401,7 +401,7 @@ class Utility(commands.Cog):
         )
         embed.add_field(
             name="Privacy policy",
-            value=f"[{self.bot.user.name} Privacy policy]({self.bot.privacy})"
+            value=f"[{self.bot.user.name} Privacy policy]({self.bot.privacy})",
         )
         process = psutil.Process()
         with process.oneshot():
