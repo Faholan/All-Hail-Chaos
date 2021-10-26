@@ -24,21 +24,13 @@ SOFTWARE.
 import asyncio
 import typing as t
 
-from discord.ext import commands
 from discord import Colour, Embed
+from discord.ext import commands
 
-Functions = t.Tuple[
-    t.Callable[
-        ["Success", commands.Context, t.Any],
-        t.Awaitable[t.Tuple[bool, t.Any]],
-    ],
-    t.Optional[
-        t.Callable[
-            ["Success", commands.Context, t.Any],
-            t.Awaitable[str],
-        ]
-    ],
-]
+Functions = t.Tuple[t.Callable[["Success", commands.Context, t.Any],
+                               t.Awaitable[t.Tuple[bool, t.Any]], ],
+                    t.Optional[t.Callable[["Success", commands.Context, t.Any],
+                                          t.Awaitable[str], ]], ]
 
 
 class Success:
@@ -89,10 +81,8 @@ class Success:
 
 def command_count(number: int) -> Functions:
     """Generate the use n commands successes."""
-
-    async def checker(
-        _: Success, __: commands.Context, data: int
-    ) -> t.Tuple[bool, int]:
+    async def checker(_: Success, __: commands.Context,
+                      data: int) -> t.Tuple[bool, int]:
         """Check for the success."""
         return data >= number, data + 1
 
@@ -105,14 +95,12 @@ def command_count(number: int) -> Functions:
 
 def hidden_commands() -> Functions:
     """Generate the "hidden commands" success."""
-
     def total(bot: t.Any) -> int:
         """Compute the number of hidden commands."""
         return len([command for command in bot.commands if command.hidden])
 
-    async def checker(
-        _: Success, ctx: commands.Context, data: t.List[str]
-    ) -> t.Tuple[bool, t.List[str]]:
+    async def checker(_: Success, ctx: commands.Context,
+                      data: t.List[str]) -> t.Tuple[bool, t.List[str]]:
         """Check for the success."""
         if not ctx.command or not ctx.command.hidden:
             return False, data
@@ -124,7 +112,8 @@ def hidden_commands() -> Functions:
             data = [ctx.command.name]
         return len(data) == total(ctx.bot), data
 
-    async def advancer(_: Success, ctx: commands.Context, data: t.List[str]) -> str:
+    async def advancer(_: Success, ctx: commands.Context,
+                       data: t.List[str]) -> str:
         """Advance the success."""
         if data:
             return f" ({len(data)}/{total(ctx.bot)})"
@@ -135,10 +124,8 @@ def hidden_commands() -> Functions:
 
 def prefix() -> Functions:
     """Generate the "hidden prefix" success."""
-
-    async def checker(
-        _: Success, ctx: commands.Context, __: t.Any
-    ) -> t.Tuple[bool, None]:
+    async def checker(_: Success, ctx: commands.Context,
+                      __: t.Any) -> t.Tuple[bool, None]:
         """Check for the success."""
         return ctx.prefix == "¤", None
 
@@ -190,7 +177,8 @@ class Successes(commands.Cog):  # type: ignore
         self._succ_conn: t.Any = None
         self._succ_con_lock: t.Any = None
 
-    @commands.command(ignore_extra=True, aliases=["succes", "successes"])  # type: ignore
+    @commands.command(ignore_extra=True, aliases=["succes",
+                                                  "successes"])  # type: ignore
     async def success(self, ctx: commands.Context) -> None:
         """Send back your successes."""
         async with self.bot.pool.acquire() as database:
@@ -207,9 +195,11 @@ class Successes(commands.Cog):  # type: ignore
                     "SELECT * FROM public.successes WHERE id=$1",
                     ctx.author.id,
                 )
-            completed = len([s for s in self.success_list if state[s.state_column]])
+            completed = len(
+                [s for s in self.success_list if state[s.state_column]])
             embed = Embed(
-                title=(f"Success t.List ({completed}/{len(self.success_list)})"),
+                title=(
+                    f"Success t.List ({completed}/{len(self.success_list)})"),
                 colour=Colour.green(),
             )
             embed.set_author(
@@ -228,8 +218,7 @@ class Successes(commands.Cog):  # type: ignore
                     embed.add_field(
                         name=(
                             f"{succ.name}"
-                            f"{await succ.advancer(ctx, state[succ.column])}"
-                        ),
+                            f"{await succ.advancer(ctx, state[succ.column])}"),
                         value=succ.locked,
                         inline=False,
                     )
@@ -287,8 +276,8 @@ class Successes(commands.Cog):  # type: ignore
             embeds: t.List[Embed] = []
             for success in success_list:
                 if not result[success.state_column] and await success.checker(
-                    ctx, result[success.column], ctx.author.id, self._succ_conn
-                ):
+                        ctx, result[success.column], ctx.author.id,
+                        self._succ_conn):
                     embed = Embed(
                         title="Succes unlocked !",
                         description=success.name,
