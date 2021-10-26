@@ -107,3 +107,5 @@ def setup(bot):
         bot.http.user_agent = "chaotic_bot"
 
         bot.invite_permissions = 808527942
+
+        bot.privacy = f"{bot.github_link}/blob/master/PRIVACY.md"

@@ -80,6 +80,8 @@ class ChaoticBot(commands.Bot):
         self.suggestion_channel_id = 0
         # Important channels
 
+        self.privacy = ""  # Privacy policy
+
         self.extensions_list: t.List[str] = []
 
         self.prefix_dict: t.Dict[int, str] = {}

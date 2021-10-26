@@ -24,13 +24,21 @@ SOFTWARE.
 import asyncio
 import typing as t
 
-from discord import Colour, Embed
 from discord.ext import commands
+from discord import Colour, Embed
 
-Functions = t.Tuple[t.Callable[["Success", commands.Context, t.Any],
-                               t.Awaitable, ],
-                    t.Optional[t.Callable[["Success", commands.Context, t.Any],
-                                          t.Awaitable, ]], ]
+Functions = t.Tuple[
+    t.Callable[
+        ["Success", commands.Context, t.Any],
+        t.Awaitable[t.Tuple[bool, t.Any]],
+    ],
+    t.Optional[
+        t.Callable[
+            ["Success", commands.Context, t.Any],
+            t.Awaitable[str],
+        ]
+    ],
+]
 
 
 class Success:
@@ -61,7 +69,7 @@ class Success:
         ctx: commands.Context,
         data: t.Any,
         identifier: int,
-        database,
+        database: t.Any,
     ) -> bool:
         """Check the success."""
         test, data = await self._checker(self, ctx, data)
@@ -81,11 +89,14 @@ class Success:
 
 def command_count(number: int) -> Functions:
     """Generate the use n commands successes."""
-    async def checker(_, __, data: int) -> tuple:
+
+    async def checker(
+        _: Success, __: commands.Context, data: int
+    ) -> t.Tuple[bool, int]:
         """Check for the success."""
         return data >= number, data + 1
 
-    async def advancer(_, __, data: int) -> str:
+    async def advancer(_: Success, __: commands.Context, data: int) -> str:
         """Advance the success."""
         return f" ({data}/{number})"
 
@@ -94,13 +105,16 @@ def command_count(number: int) -> Functions:
 
 def hidden_commands() -> Functions:
     """Generate the "hidden commands" success."""
-    def total(bot: commands.Bot) -> int:
+
+    def total(bot: t.Any) -> int:
         """Compute the number of hidden commands."""
         return len([command for command in bot.commands if command.hidden])
 
-    async def checker(_, ctx: commands.Context, data: list) -> tuple:
+    async def checker(
+        _: Success, ctx: commands.Context, data: t.List[str]
+    ) -> t.Tuple[bool, t.List[str]]:
         """Check for the success."""
-        if not ctx.command.hidden:
+        if not ctx.command or not ctx.command.hidden:
             return False, data
         if data and ctx.command.name in data:
             return False, data
@@ -110,7 +124,7 @@ def hidden_commands() -> Functions:
             data = [ctx.command.name]
         return len(data) == total(ctx.bot), data
 
-    async def advancer(_, ctx: commands.Context, data: list) -> str:
+    async def advancer(_: Success, ctx: commands.Context, data: t.List[str]) -> str:
         """Advance the success."""
         if data:
             return f" ({len(data)}/{total(ctx.bot)})"
@@ -121,7 +135,10 @@ def hidden_commands() -> Functions:
 
 def prefix() -> Functions:
     """Generate the "hidden prefix" success."""
-    async def checker(_, ctx: commands.Context, __) -> tuple:
+
+    async def checker(
+        _: Success, ctx: commands.Context, __: t.Any
+    ) -> t.Tuple[bool, None]:
         """Check for the success."""
         return ctx.prefix == "¤", None
 
@@ -163,17 +180,17 @@ success_list = [
 ]
 
 
-class Successes(commands.Cog):
+class Successes(commands.Cog):  # type: ignore
     """Everything to know about successes."""
 
-    def __init__(self, bot: commands.Bot, successes: list) -> None:
+    def __init__(self, bot: t.Any, successes: t.List[Success]) -> None:
         """Initialize Successes."""
         self.bot = bot
         self.success_list = successes
         self._succ_conn: t.Any = None
         self._succ_con_lock: t.Any = None
 
-    @commands.command(ignore_extra=True, aliases=["succes", "successes"])
+    @commands.command(ignore_extra=True, aliases=["succes", "successes"])  # type: ignore
     async def success(self, ctx: commands.Context) -> None:
         """Send back your successes."""
         async with self.bot.pool.acquire() as database:
@@ -190,10 +207,9 @@ class Successes(commands.Cog):
                     "SELECT * FROM public.successes WHERE id=$1",
                     ctx.author.id,
                 )
-            completed = len(
-                [s for s in self.success_list if state[s.state_column]])
+            completed = len([s for s in self.success_list if state[s.state_column]])
             embed = Embed(
-                title=(f"Success list ({completed}/{len(self.success_list)})"),
+                title=(f"Success t.List ({completed}/{len(self.success_list)})"),
                 colour=Colour.green(),
             )
             embed.set_author(
@@ -212,13 +228,35 @@ class Successes(commands.Cog):
                     embed.add_field(
                         name=(
                             f"{succ.name}"
-                            f"{await succ.advancer(ctx, state[succ.column])}"),
+                            f"{await succ.advancer(ctx, state[succ.column])}"
+                        ),
                         value=succ.locked,
                         inline=False,
                     )
             await ctx.send(embed=embed)
 
-    @commands.Cog.listener("on_command_completion")
+    @commands.command()  # type: ignore
+    async def success_optout(self, ctx: commands.Context) -> None:
+        """Opt in or out of success data collection."""
+        async with self.bot.pool.acquire() as database:
+            optout = await database.fetchrow(
+                "SELECT * FROM public.success_optout WHERE user_id=$1",
+                ctx.author.id,
+            )
+            if optout:
+                await database.execute(
+                    "DELETE FROM public.success_optout WHERE user_id=$1",
+                    ctx.author.id,
+                )
+                await ctx.send("Successfully opted back in to successes")
+            else:
+                await database.execute(
+                    "INSERT INTO public.success_optout VALUES ($1)",
+                    ctx.author.id,
+                )
+                await ctx.send("Successfully opted out of successes")
+
+    @commands.Cog.listener("on_command_completion")  # type: ignore
     async def succ_sender(self, ctx: commands.Context) -> None:
         """Check and send the successes."""
         if ctx.invoked_with in {"logout", "reboot"}:
@@ -227,6 +265,12 @@ class Successes(commands.Cog):
             self._succ_conn = await self.bot.pool.acquire()
             self._succ_con_lock = asyncio.Lock()
         async with self._succ_con_lock:
+            opt_out = await self._succ_conn.fetchrow(
+                "SELECT * FROM public.success_optout WHERE user_id=$1",
+                ctx.author.id,
+            )
+            if opt_out:
+                return
             result = await self._succ_conn.fetchrow(
                 "SELECT * FROM public.successes WHERE id=$1",
                 ctx.author.id,
@@ -240,11 +284,11 @@ class Successes(commands.Cog):
                     "SELECT * FROM public.successes WHERE id=$1",
                     ctx.author.id,
                 )
-            embeds = []
+            embeds: t.List[Embed] = []
             for success in success_list:
                 if not result[success.state_column] and await success.checker(
-                        ctx, result[success.column], ctx.author.id,
-                        self._succ_conn):
+                    ctx, result[success.column], ctx.author.id, self._succ_conn
+                ):
                     embed = Embed(
                         title="Succes unlocked !",
                         description=success.name,
@@ -281,6 +325,6 @@ class Successes(commands.Cog):
         self.bot.remove_listener(self.succ_sender)
 
 
-def setup(bot):
+def setup(bot: t.Any) -> None:
     """Load the Successes cog."""
     bot.add_cog(Successes(bot, success_list))

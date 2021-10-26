@@ -27,7 +27,11 @@ from inspect import Parameter
 
 import discord
 import discord.utils
-from discord.ext import commands, menus
+
+if t.TYPE_CHECKING:
+    commands = menus = t.Any
+else:
+    from discord.ext import commands, menus
 
 
 class HelpSource(menus.ListPageSource):
@@ -36,7 +40,7 @@ class HelpSource(menus.ListPageSource):
     def __init__(
         self,
         signature: t.Callable[[commands.Command], str],
-        filter_commands: t.Callable[[t.List[commands.Command]], t.Awaitable, ],
+        filter_commands: t.Callable[[t.List[commands.Command]], t.Awaitable[t.Any]],
         prefix: str,
         author: discord.User,
         cogs: t.Dict[commands.Cog, t.List[commands.Command]],

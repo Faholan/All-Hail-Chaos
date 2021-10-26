@@ -151,6 +151,17 @@ ALTER TABLE successes ADD CONSTRAINT success_primary_key
 
 ALTER TABLE successes OWNER TO chaotic;
 
+CREATE TABLE success_optout (
+    user_id bigint NOT NULL
+);
+
+
+ALTER TABLE success_optout ADD CONSTRAINT success_optout_pkey
+  PRIMARY KEY (user_id);
+
+ALTER TABLE success_optout OWNER TO chaotic;
+
+
 CREATE TABLE swear (
     id bigint NOT NULL,
     manual_on boolean NOT NULL,
