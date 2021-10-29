@@ -57,6 +57,7 @@ async def statistics(ctx: commands.Context) -> None:
 
 def guilds(bot: commands.Bot) -> t.Callable[[t.Any], t.Awaitable[None]]:
     """Log the number of guilds."""
+
     async def predictate(_: t.Any) -> None:
         """Compute the logging."""
         async with bot.pool.acquire() as database:
