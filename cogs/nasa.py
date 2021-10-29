@@ -21,8 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from random import choice
 import typing as t
+from random import choice
 
 import discord
 from discord.ext import commands, tasks
@@ -38,42 +38,44 @@ class NASA(commands.Cog):
         self.api_key = bot.nasa
         self.apod_update.start()
         self.apod_pic = {
-            "hdurl": ("https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_"
-                      "2018235_eq2400.jpg"),
-            "title": ("Just Another Day on Aerosol Earth - There was an error "
-                      "while updating the APOD"),
-            "explanation":
-            ("It was just another day on aerosol Earth. For August 23, "
-             "2018, the identification and distribution of aerosols in "
-             "the Earth's atmosphere is shown in this dramatic, "
-             "planet-wide digital visualization. Produced in real time,"
-             " the Goddard Earth Observing System Forward Processing "
-             "(GEOS FP) model relies on a combination of "
-             "Earth-observing satellite and ground-based data to "
-             "calculate the presence of types of aerosols, tiny solid "
-             "particles and liquid droplets, as they circulate above "
-             "the entire planet. This August 23rd model shows black "
-             "carbon particles in red from combustion processes, like "
-             "smoke from the fires in the United States and Canada, "
-             "spreading across large stretches of North America and "
-             "Africa. Sea salt aerosols are in blue, swirling above "
-             "threatening typhoons near South Korea and Japan, and the "
-             "hurricane looming near Hawaii. Dust shown in purple hues "
-             "is blowing over African and Asian deserts. The location "
-             "of cities and towns can be found from the concentrations "
-             "of lights based on satellite image data of the Earth at "
-             "night. Celebrate: Earth Day at Home"),
+            "hdurl": (
+                "https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_"
+                "2018235_eq2400.jpg"
+            ),
+            "title": (
+                "Just Another Day on Aerosol Earth - There was an error "
+                "while updating the APOD"
+            ),
+            "explanation": (
+                "It was just another day on aerosol Earth. For August 23, "
+                "2018, the identification and distribution of aerosols in "
+                "the Earth's atmosphere is shown in this dramatic, "
+                "planet-wide digital visualization. Produced in real time,"
+                " the Goddard Earth Observing System Forward Processing "
+                "(GEOS FP) model relies on a combination of "
+                "Earth-observing satellite and ground-based data to "
+                "calculate the presence of types of aerosols, tiny solid "
+                "particles and liquid droplets, as they circulate above "
+                "the entire planet. This August 23rd model shows black "
+                "carbon particles in red from combustion processes, like "
+                "smoke from the fires in the United States and Canada, "
+                "spreading across large stretches of North America and "
+                "Africa. Sea salt aerosols are in blue, swirling above "
+                "threatening typhoons near South Korea and Japan, and the "
+                "hurricane looming near Hawaii. Dust shown in purple hues "
+                "is blowing over African and Asian deserts. The location "
+                "of cities and towns can be found from the concentrations "
+                "of lights based on satellite image data of the Earth at "
+                "night. Celebrate: Earth Day at Home"
+            ),
         }
 
     @tasks.loop(hours=1)
     async def apod_update(self) -> None:
         """Update the APOD in the cache."""
         async with self.bot.aio_session.get(
-                "https://api.nasa.gov/planetary/apod",
-                params={
-                    "hd": "True",
-                    "api_key": self.api_key
-                },
+            "https://api.nasa.gov/planetary/apod",
+            params={"hd": "True", "api_key": self.api_key},
         ) as response:
             self.apod_pic: t.Dict[str, str] = await response.json()
 
@@ -87,17 +89,20 @@ class NASA(commands.Cog):
         )
         if self.apod_pic.get("media_type") == "video":
             if "embed" in self.apod_pic.get("url", "nope"):
-                preview = self.apod_pic.get("url", "").split("/")[-1].split("?")[0]
+                preview = self.apod_pic.get(
+                    "url", "").split("/")[-1].split("?")[0]
             else:
                 preview = self.apod_pic.get("url", "").split("=")[-1]
             embed.set_image(
                 url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
             embed.description += (
                 "\nWatch the video using [This link]("
-                f'{self.apod_pic.get("url")} "{self.apod_pic.get("title")}")')
+                f'{self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
+            )
         else:
-            embed.set_image(url=self.apod_pic.get("hdurl",
-                                                  self.apod_pic.get("url")), )
+            embed.set_image(
+                url=self.apod_pic.get("hdurl", self.apod_pic.get("url")),
+            )
         embed.set_author(name=self.apod_pic.get("copyright", "NASA's APOD"))
         await ctx.send(embed=embed)
 
@@ -108,7 +113,8 @@ class NASA(commands.Cog):
         You can specify a maximum number of images to retrieve (default : 1)
         """
         async with self.bot.aio_session.get(
-                "https://epic.gsfc.nasa.gov/api/images.php") as response:
+            "https://epic.gsfc.nasa.gov/api/images.php"
+        ) as response:
             json: t.List[t.Dict[str, str]] = await response.json()
             for i in range(min(max_n, len(json))):
                 embed = discord.Embed(
@@ -117,8 +123,11 @@ class NASA(commands.Cog):
                     colour=discord.Colour.blurple(),
                 )
                 embed.set_image(
-                    url=("https://epic.gsfc.nasa.gov/epic-archive/jpg/"
-                         f"{json[i]['image']}.jpg"))
+                    url=(
+                        "https://epic.gsfc.nasa.gov/epic-archive/jpg/"
+                        f"{json[i]['image']}.jpg"
+                    )
+                )
                 await ctx.send(embed=embed)
 
     @commands.command()
@@ -142,12 +151,10 @@ class NASA(commands.Cog):
             await ctx.send("Sorry but this rover doesn't exist")
             return
         async with self.bot.aio_session.get(
-                "https://api.nasa.gov/mars-photos/api/v1/rovers/" +
-                rover.lower() + "/photos",
-                params={
-                    "earth_date": date,
-                    "api_key": self.api_key
-                },
+            "https://api.nasa.gov/mars-photos/api/v1/rovers/"
+            + rover.lower()
+            + "/photos",
+            params={"earth_date": date, "api_key": self.api_key},
         ) as response:
             images = await response.json()
             if not images.get("photos"):
@@ -162,24 +169,24 @@ class NASA(commands.Cog):
             for i in range(min(number, len(images["photos"]))):
                 embed = discord.Embed(
                     title=f"Picture from {rover.capitalize()}",
-                    description=("Picture taken from the " +
-                                 images["photos"][i]["camera"]["full_name"]),
+                    description=(
+                        "Picture taken from the "
+                        + images["photos"][i]["camera"]["full_name"]
+                    ),
                     colour=discord.Colour.purple(),
                 )
                 embed.set_image(url=images["photos"][i]["img_src"])
-                embed.set_footer(text="Picture taken on" +
-                                 images["photos"][i]["earth_date"])
+                embed.set_footer(
+                    text="Picture taken on" + images["photos"][i]["earth_date"]
+                )
                 await ctx.send(embed=embed)
 
     @commands.command()
     async def nasasearch(self, ctx: commands.Context, *, query: str) -> None:
         """Search for an image in the NASA database."""
         async with self.bot.aio_session.get(
-                "https://images-api.nasa.gov/search",
-                params={
-                    "q": query,
-                    "media_type": "image"
-                },
+            "https://images-api.nasa.gov/search",
+            params={"q": query, "media_type": "image"},
         ) as result:
             jresult = await result.json()
         try:
@@ -200,8 +207,8 @@ class NASA(commands.Cog):
             url=f"https://images.nasa.gov/details-{data['nasa_id']}",
         )
         async with self.bot.aio_session.get(
-                "https://images-api.nasa.gov/asset/" +
-                data["nasa_id"]) as imageq:
+            "https://images-api.nasa.gov/asset/" + data["nasa_id"]
+        ) as imageq:
             imagej = await imageq.json()
         embed.set_image(url=imagej["collection"]["items"][0]["href"])
         await ctx.send(embed=embed)

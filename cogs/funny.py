@@ -89,7 +89,9 @@ def pink(
     )
 
 
-def teleportation(attacking: Fighter, _: Fighter, __: t.List[str]) -> t.Tuple[HitReturn]:
+def teleportation(
+    attacking: Fighter, _: Fighter, __: t.List[str]
+) -> t.Tuple[HitReturn]:
     """Get outta here."""
     return (
         (
@@ -201,7 +203,8 @@ def fumble(
     attacking: Fighter, _: Fighter, weapon_list: t.List[str]
 ) -> t.Tuple[HitReturn, HitReturn]:
     """Oh shit."""
-    message, damage, attack, url = attacking.hit(choice(weapon_list).split("|"))
+    message, damage, attack, url = attacking.hit(
+        choice(weapon_list).split("|"))
     return (
         (
             "{attacking} just hurt himself !",
@@ -368,7 +371,8 @@ class Funny(commands.Cog):
         """How long is this person's dong."""
         dickfinal = dick or ctx.author
         await ctx.send(
-            f"{dickfinal.mention}'s magnum dong is this long : 8" f"{'=' * randint(0, 10)}>"
+            f"{dickfinal.mention}'s magnum dong is this long : 8"
+            f"{'=' * randint(0, 10)}>"
         )
 
     @commands.command(ignore_extra=True)
@@ -452,7 +456,8 @@ class Funny(commands.Cog):
                     colour=discord.Colour.blurple(),
                 )
                 embed.set_thumbnail(url=next_player.avatar_url)
-                embed.add_field(name="Remaining HP :", value=str(next_player.pv))
+                embed.add_field(name="Remaining HP :",
+                                value=str(next_player.pv))
                 await ctx.send(embed=embed)
                 if next_player.pv > 0 and fight[0].pv > 0:
 
@@ -580,7 +585,8 @@ class Funny(commands.Cog):
                     return
                 else:
                     total.append(
-                        [sign + str(randint(1, int(after))) for _ in range(int(before))]
+                        [sign + str(randint(1, int(after)))
+                         for _ in range(int(before))]
                     )
                     after = ""
                     before = ""
@@ -595,7 +601,8 @@ class Funny(commands.Cog):
             return
         else:
             total.append(
-                [sign + str(randint(1, int(after))) for _ in range(int(before))]
+                [sign + str(randint(1, int(after)))
+                 for _ in range(int(before))]
             )
         await ctx.send(self.summer(total, ctx.author.mention))
 
@@ -614,7 +621,8 @@ class Funny(commands.Cog):
             else:
                 plus = sum([int(i) for i in number])
                 k.append(
-                    "".join([f"{j[0]} {j[1:]} " for j in number])[1:] + f"= {plus}"
+                    "".join([f"{j[0]} {j[1:]} " for j in number])[
+                        1:] + f"= {plus}"
                 )
                 total += plus
         nice_print = ",   ".join(k)

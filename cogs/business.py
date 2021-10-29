@@ -31,14 +31,18 @@ from discord.ext import commands
 
 def p_vol(streak: int) -> float:
     """Return the probability of stealing based off the strek."""
-    return 75 - (25 * 0.8**streak)
+    return 75 - (25 * 0.8 ** streak)
 
 
 class Businessguy:
     """A guy that does business lol."""
 
-    def __init__(self, sql: t.Dict[str, int], user: t.Union[discord.User, discord.Member],
-                 database: t.Any) -> None:
+    def __init__(
+        self,
+        sql: t.Dict[str, int],
+        user: t.Union[discord.User, discord.Member],
+        database: t.Any,
+    ) -> None:
         """Initialize the guy."""
         self.database = database
         if sql:
@@ -116,9 +120,11 @@ class Businessguy:
         self.money -= deposit_max
         self.bank += deposit_max
         await self.save()
-        return (f"{deposit_max} GP deposited. {deposit_max - money} "
-                "GP couldn't be deposited (capacity of {self.bank_max} GP"
-                " reached)")
+        return (
+            f"{deposit_max} GP deposited. {deposit_max - money} "
+            "GP couldn't be deposited (capacity of {self.bank_max} GP"
+            " reached)"
+        )
 
     async def steal(self, other: "Businessguy") -> int:
         """Gimme your money."""
@@ -174,8 +180,8 @@ class Business(commands.Cog):
         """Get the guild's 500 GP of daily gift."""
         async with self.bot.pool.acquire(timeout=5) as database:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database), ctx.author,
-                database)
+                await self._fetcher(ctx.author.id, database), ctx.author, database
+            )
             await ctx.send(await business.gift(ctx.guild.name))
 
     @commands.command(ignore_extra=True)
@@ -219,7 +225,8 @@ class Business(commands.Cog):
                 self.steal.reset_cooldown(ctx)
                 await ctx.send(
                     f"`{victim.display_name}` doesn't have money on him. "
-                    "What a shame.")
+                    "What a shame."
+                )
                 return
 
             threshold = p_vol(pickpocket.steal_streak)
@@ -232,13 +239,15 @@ class Business(commands.Cog):
                     "You failed in your attempt to steal "
                     f"{victim.display_name}."
                     " He hit you, so you must now wait 10 minutes to regain "
-                    "your usual sneakiness")
+                    "your usual sneakiness"
+                )
             else:
                 self.steal.reset_cooldown(ctx)
                 pickpocket.steal_streak += 1
                 await ctx.send(
                     f"You robbed `{await pickpocket.steal(stolen)}` GP from "
-                    f"{victim.display_name}")
+                    f"{victim.display_name}"
+                )
 
     @steal.error
     async def steal_error(self, ctx: commands.Context, error: Exception):
