@@ -23,6 +23,7 @@ SOFTWARE.
 
 import asyncio
 import re
+import typing as t
 
 import discord
 from discord.ext import commands
@@ -249,14 +250,17 @@ class Custom(commands.Cog):
             if not command:
                 return
 
-        effect = command["effect"]
-        full_args = command["arguments"]
+        effect: str = command["effect"]
+        full_args: t.List[t.Tuple[str, str]] = command["arguments"]
 
         kwargs = {}
         args = message.content.split(" ")[1:]
         arg_n = 0
 
         ctx = await self.bot.get_context(message)
+
+        arg = None
+        raw_type = ""
 
         try:
             for name, raw_type in full_args:

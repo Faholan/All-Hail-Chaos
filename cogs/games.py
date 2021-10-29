@@ -35,7 +35,7 @@ from discord.ext import commands, menus, tasks
 class Connect4(menus.Menu):
     """How to play connect4."""
 
-    def __init__(self, *players, **kwargs) -> None:
+    def __init__(self, *players: discord.Member, **kwargs: t.Any) -> None:
         """Initialize the game."""
         super().__init__(**kwargs)
         self.winner = None
@@ -136,7 +136,7 @@ class Connect4(menus.Menu):
         check = self.check(next_id)
         if check:
             self.winner = self.players[next_id - 1]
-            return self.stop()
+            self.stop()
 
     def check(self, user_id: int) -> bool:
         """Did you win."""
@@ -206,7 +206,7 @@ class Connect4(menus.Menu):
         await self.action(6, payload)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
-    async def on_stop(self, _) -> None:
+    async def on_stop(self, _: t.Any) -> None:
         """Stop."""
         self.stop()
 
@@ -256,9 +256,9 @@ class BCard:
         """Get the card as a tuple."""
         return (self._value, self.colour)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two cards are equal in value."""
-        return self._value == other._value
+        return isinstance(other, BCard) and self._value == other._value
 
     def min(self) -> int:
         """Get the card's minimal value."""
@@ -267,7 +267,7 @@ class BCard:
         return self.value
 
 
-class BRow(list):
+class BRow(t.List[BCard]):
     """A row of blackjack cards."""
 
     def isvalid(self) -> bool:
@@ -317,7 +317,7 @@ class Deck:
         return any(card in column
                    for column in self.cards) and len(self.cards) < 3
 
-    def __iter__(self) -> t.Iterator:
+    def __iter__(self) -> t.Iterable[BRow]:
         """Iterate over me."""
         return self.cards.__iter__()
 
@@ -410,10 +410,10 @@ class Blackjack(menus.Menu):
 
     def __init__(
         self,
-        players: list,
-        money_dict: dict,
+        players: t.List[discord.User],
+        money_dict: t.Dict[int, int],
         cost: int,
-        **kwargs,
+        **kwargs: t.Any,
     ) -> None:
         """Initialize all the fuzzy stuff."""
         super().__init__(**kwargs)
@@ -528,7 +528,7 @@ class Blackjack(menus.Menu):
     async def send_initial_message(
         self,
         ctx: commands.Context,
-        _,
+        _: t.Any,
     ) -> discord.Message:
         """Send the first embed."""
         return await ctx.send(self.player_dict[self.next].mention,
@@ -567,7 +567,7 @@ class Blackjack(menus.Menu):
         number += f" : {', '.join([card.name for card in self.dealer])}"
         embed.add_field(name="Dealer", value=number, inline=False)
         for player in self.players:
-            numbers = []
+            numbers: t.List[str] = []
             if (player.cards[0].value() == 21 and len(player.cards) == 1
                     and (len(player.cards[0]) == 2)):
                 numbers.append(
@@ -608,11 +608,11 @@ class Blackjack(menus.Menu):
         await self.update_embed(not self.players[self.next_index].isvalid())
 
     @menus.button("\U0000274c")
-    async def next_turn(self, _) -> None:
+    async def next_turn(self, _: t.Any) -> None:
         """Time for the next player to shine."""
         await self.update_embed(True)
 
-    async def prompt(self, ctx: commands.Context) -> dict:
+    async def prompt(self, ctx: commands.Context) -> t.Dict[int, int]:
         """Start it the real way."""
         await self.new_game()
         await self.start(ctx, wait=True)
@@ -627,8 +627,8 @@ class Blackjackplayers(menus.Menu):
         author: discord.User,
         author_money: int,
         cost: int,
-        database,
-        **kwargs,
+        database: t.Any,
+        **kwargs: t.Any,
     ) -> None:
         """Get who wanna play."""
         super().__init__(**kwargs)
@@ -693,7 +693,7 @@ class Blackjackplayers(menus.Menu):
     async def send_initial_message(
         self,
         ctx: commands.Context,
-        _,
+        _: t.Any,
     ) -> discord.Message:
         """Send the first embed."""
         self.time = 120
@@ -751,13 +751,13 @@ class Blackjackplayers(menus.Menu):
             self.players.append(member)
 
     @menus.button("\U000023ed\N{variation selector-16}")
-    async def skipper(self, _) -> None:
+    async def skipper(self, _: t.Any) -> None:
         """Start the game ahead of time."""
         self.time = 5
         self.current_state = -1
         await self.updater()
 
-    async def prompt(self, ctx: commands.Context) -> tuple:
+    async def prompt(self, ctx: commands.Context) -> t.Tuple[t.List[discord.User], t.Dict[int, int]]:
         """Start it the real way."""
         await self.start(ctx, wait=True)
         return self.players, self.money_dict
@@ -870,7 +870,7 @@ class Games(commands.Cog):
     @tasks.loop(seconds=5)
     async def blackjack_updater(self) -> None:
         """Update all Blackjackplayers menus."""
-        new = []
+        new: t.List[Blackjackplayers] = []
         for black in self.blackjack_list:
             if black.current_state == 1:
                 await black.updater()
@@ -901,7 +901,7 @@ class Games(commands.Cog):
     def neighbours(i: int, j: int, rows: int,
                    columns: int) -> t.List[t.Tuple[int, int]]:
         """Get a cell's neighbours for minesweeper."""
-        final = []
+        final: t.List[t.Tuple[int, int]] = []
         if i != 0:
             final.append((i - 1, j))
         if i != rows - 1:
@@ -921,7 +921,7 @@ class Games(commands.Cog):
         return final
 
     @commands.command(aliases=["mines"])
-    async def minesweeper(self, ctx: commands.Context, difficulty="easy"):
+    async def minesweeper(self, ctx: commands.Context, difficulty: str = "easy"):
         """Play minesweeper in Discord.
 
         Difficulty may be easy (8x8, 10 mines), medium (16x16, 40 mines) or hard (32x32, 99 mines)

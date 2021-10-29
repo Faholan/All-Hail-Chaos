@@ -535,7 +535,7 @@ class Moderation(commands.Cog):
         ctx: commands.Context,
         who: commands.Greedy[t.Union[discord.Role, discord.Member]],
         *,
-        reason=None,
+        reason: t.Optional[str] = None,
     ) -> None:
         """You can specify members or roles, and a reason for the ban.
 
@@ -544,12 +544,12 @@ class Moderation(commands.Cog):
         You need the `ban members` permission
         Your highest role needs to be higher than the others'
         """
-        banning = set()
-        roles = set()
+        banning: t.Set[discord.Member] = set()
+        roles: t.Set[discord.Role] = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id)
-        errors = set()
+        errors: t.Set[str] = set()
         for banned in who:
             if isinstance(banned, discord.Role):
                 if banned.is_default():
@@ -642,7 +642,7 @@ class Moderation(commands.Cog):
         ctx: commands.Context,
         who: commands.Greedy[t.Union[discord.Role, discord.Member]],
         *,
-        reason=None,
+        reason: t.Optional[str] = None,
     ) -> None:
         """You can specify members or roles, and a reason for the kick.
 
@@ -651,12 +651,12 @@ class Moderation(commands.Cog):
         You need the `kick members` permission.
         Your highest role needs to be higher than the others'.
         """
-        kicking = set()
-        roles = set()
+        kicking: t.Set[discord.Member] = set()
+        roles: t.Set[discord.Role] = set()
         me = ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
         owner = ctx.guild.owner or await ctx.guild.fetch_member(
             ctx.guild.owner_id)
-        errors = set()
+        errors: t.Set[str] = set()
         for kicked in who:
             if isinstance(kicked, discord.Role):
                 if kicked.is_default():
@@ -794,7 +794,7 @@ class Moderation(commands.Cog):
         embed.set_author(name=name,
                          icon_url=url,
                          url=f"https://discordrep.com/u/{user_id}")
-        banning = []
+        banning: t.List[str] = []
         if infractions.get("type") == "BAN":
             date = datetime.fromtimestamp(infractions["date"] // 1000)
             embed.colour = 0xFFFF00
@@ -931,7 +931,7 @@ class Moderation(commands.Cog):
             )
 
             if result:
-                ini_roles = []
+                ini_roles: t.List[discord.Role] = []
                 total = 0
                 removed = 0
                 for role_id in result["roleids"]:
@@ -1117,7 +1117,7 @@ class Moderation(commands.Cog):
                 await self.bot.get_channel(result["channel_id"]
                                            ).fetch_message(result["message_id"]
                                                            )
-                roles = []
+                roles: t.List[discord.Role] = []
                 for role_id in result["roleids"]:
                     role = ctx.guild.get_role(role_id)
                     if role:
@@ -1201,7 +1201,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(administrator=True)
-    async def swear(self, ctx: commands.Context, word=None) -> None:
+    async def swear(self, ctx: commands.Context, word: t.Optional[str] = None) -> None:
         """Manage the swear filter.
 
         `on`/`off` : turns the filter on/off.

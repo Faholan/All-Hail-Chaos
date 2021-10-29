@@ -21,6 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import typing as t
+
 from discord.ext import commands, tasks
 
 
@@ -53,9 +55,9 @@ async def statistics(ctx: commands.Context) -> None:
             )
 
 
-def guilds(bot: commands.Bot):
+def guilds(bot: commands.Bot) -> t.Callable[[t.Any], t.Awaitable[None]]:
     """Log the number of guilds."""
-    async def predictate(_) -> None:
+    async def predictate(_: t.Any) -> None:
         """Compute the logging."""
         async with bot.pool.acquire() as database:
             await database.execute(
@@ -67,7 +69,7 @@ def guilds(bot: commands.Bot):
 
 
 @tasks.loop(hours=1)
-async def guild_loop(bot: commands.Bot):
+async def guild_loop(bot: commands.Bot) -> None:
     """Log the number of guilds."""
     async with bot.pool.acquire() as database:
         await database.execute(
@@ -77,7 +79,7 @@ async def guild_loop(bot: commands.Bot):
 
 
 @tasks.loop(minutes=14)
-async def usage_loop(bot: commands.Bot):
+async def usage_loop(bot: commands.Bot) -> None:
     """Log a default value."""
     async with bot.pool.acquire() as database:
         for command in bot.commands:

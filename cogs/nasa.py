@@ -22,6 +22,7 @@ SOFTWARE.
 """
 
 from random import choice
+import typing as t
 
 import discord
 from discord.ext import commands, tasks
@@ -74,7 +75,7 @@ class NASA(commands.Cog):
                     "api_key": self.api_key
                 },
         ) as response:
-            self.apod_pic = await response.json()
+            self.apod_pic: t.Dict[str, str] = await response.json()
 
     @commands.command(ignore_extra=True)
     async def apod(self, ctx: commands.Context) -> None:
@@ -86,9 +87,9 @@ class NASA(commands.Cog):
         )
         if self.apod_pic.get("media_type") == "video":
             if "embed" in self.apod_pic.get("url", "nope"):
-                preview = self.apod_pic.get("url").split("/")[-1].split("?")[0]
+                preview = self.apod_pic.get("url", "").split("/")[-1].split("?")[0]
             else:
-                preview = self.apod_pic.get("url").split("=")[-1]
+                preview = self.apod_pic.get("url", "").split("=")[-1]
             embed.set_image(
                 url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
             embed.description += (
@@ -108,7 +109,7 @@ class NASA(commands.Cog):
         """
         async with self.bot.aio_session.get(
                 "https://epic.gsfc.nasa.gov/api/images.php") as response:
-            json = await response.json()
+            json: t.List[t.Dict[str, str]] = await response.json()
             for i in range(min(max_n, len(json))):
                 embed = discord.Embed(
                     title="EPIC image",
@@ -125,7 +126,7 @@ class NASA(commands.Cog):
         self,
         ctx: commands.Context,
         date: str,
-        rover: str = None,
+        rover: t.Optional[str] = None,
         number: int = 1,
     ) -> None:
         """Get images from Mars.

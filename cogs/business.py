@@ -37,8 +37,8 @@ def p_vol(streak: int) -> float:
 class Businessguy:
     """A guy that does business lol."""
 
-    def __init__(self, sql: dict, user: t.Union[discord.User, discord.Member],
-                 database) -> None:
+    def __init__(self, sql: t.Dict[str, int], user: t.Union[discord.User, discord.Member],
+                 database: t.Any) -> None:
         """Initialize the guy."""
         self.database = database
         if sql:
@@ -59,9 +59,9 @@ class Businessguy:
         self.name = str(user)
         self.avatar_url = str(user.avatar_url)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Are we equal."""
-        return self.id == other.id
+        return isinstance(other, Businessguy) and self.id == other.id
 
     async def save(self) -> None:
         """Commit the changes."""
@@ -89,7 +89,7 @@ class Businessguy:
         await self.save()
         return f"You gained {100 * self.streak} GP"
 
-    async def gift(self, guild) -> str:
+    async def gift(self, guild: str) -> str:
         """Get the guild's daily money."""
         self.money += 500
         await self.save()
@@ -120,7 +120,7 @@ class Businessguy:
                 "GP couldn't be deposited (capacity of {self.bank_max} GP"
                 " reached)")
 
-    async def steal(self, other) -> int:
+    async def steal(self, other: "Businessguy") -> int:
         """Gimme your money."""
         stolen = randint(round(0.05 * other.money), round(0.1 * other.money))
         self.money += stolen
@@ -137,7 +137,7 @@ class Business(commands.Cog):
         """Initialize Business."""
         self.bot = bot
 
-    async def _fetcher(self, identifier: int, database) -> dict:
+    async def _fetcher(self, identifier: int, database: t.Any) -> t.Dict[str, t.Any]:
         """Fetch the guy's data."""
         return await database.fetchrow(
             "SELECT * FROM public.business WHERE id=$1",

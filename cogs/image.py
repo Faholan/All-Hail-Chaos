@@ -22,9 +22,11 @@ SOFTWARE.
 """
 
 from datetime import datetime
+import typing as t
 
 import discord
 from discord.ext import commands
+from ksoftapi.models import Image, RedditImage
 
 
 def check_channel(channel: discord.abc.Messageable) -> bool:
@@ -179,9 +181,6 @@ def sha(message: str) -> str:
     list_h = [bin(int(i, base=16))[2:] for i in list_h]
     list_h = ["0" * (32 - len(i)) + i for i in list_h]
 
-    if not isinstance(message, str):
-        raise TypeError("Message must be of type str")
-
     message = bin(int(bytes(message, encoding="utf-8").hex(), base=16))[2:]
 
     completion = bin(len(message))[2:]
@@ -228,7 +227,7 @@ def sha(message: str) -> str:
 class Pic:
     """Picture placeholder."""
 
-    def __init__(self, url, tag) -> None:
+    def __init__(self, url: str, tag: str) -> None:
         """Initialize the "picture"."""
         self.url = url
         self.tag = tag
@@ -245,7 +244,7 @@ class PicError:
 class Redditwrapper:
     """Wrap a reddit post in a class structure."""
 
-    def __init__(self, json: dict):
+    def __init__(self, json: t.Dict[str, t.Any]) -> None:
         if json.get("error"):
             self.error = json["error"]
             self.code = json.get("code")
@@ -314,7 +313,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         await self.image_sender(ctx, await self.rand_im("kappa"))
 
     @commands.command()
-    async def koala(self, ctx) -> None:
+    async def koala(self, ctx: commands.Context) -> None:
         """Get a random picture of a koala."""
         async with self.bot.aio_session.get(
                 "https://some-random-api.ml/img/koala") as resp:
@@ -470,7 +469,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         except Exception:
             return PicError()
 
-    async def image_sender(self, ctx: commands.Context, image) -> None:
+    async def image_sender(self, ctx: commands.Context, image: Image) -> None:
         """Embeds an image then sends it."""
         if hasattr(image, "code"):
             await self.bot.httpcat(ctx, image["code"])
@@ -486,7 +485,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
-    async def reddit_sender(self, ctx: commands.Context, image) -> None:
+    async def reddit_sender(self, ctx: commands.Context, image: RedditImage) -> None:
         """Embeds a Reddit image then sends it."""
         if hasattr(image, "error"):
             await ctx.send(image.message)

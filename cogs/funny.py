@@ -29,6 +29,8 @@ from random import choice, randint
 import discord
 from discord.ext import commands
 
+HitReturn = t.Tuple[str, str, str, str]
+
 # All the data files necessary for the commands
 with open(f"data{path.sep}deaths.txt", "r", encoding="utf-8") as file:
     death = file.readlines()
@@ -41,7 +43,7 @@ with open(f"data{path.sep}weapons.txt", "r", encoding="utf-8") as file:
 class Fighter:  # Class for the fight command
     """Imma hit you."""
 
-    def __init__(self, user) -> None:
+    def __init__(self, user: t.Union[discord.Member, discord.User]) -> None:
         """Initialize that hitter."""
         self.display_name = user.display_name
         self.id = user.id
@@ -49,11 +51,14 @@ class Fighter:  # Class for the fight command
         self.avatar_url = str(user.avatar_url)
         self.pv = 1000
 
-    def hit(self, weapon, pbonus=0) -> tuple:
+    def hit(
+        self,
+        weapon: t.List[str],
+        pbonus: int = 0,
+    ) -> HitReturn:
         """Ouch you hit me."""
         if len(weapon) == 8:
-            (name, touche, min_damage, max_damage, prob, rate, url,
-             url2) = weapon
+            name, touche, min_damage, max_damage, prob, rate, url, url2 = weapon
         elif len(weapon) == 7:
             name, touche, min_damage, max_damage, prob, rate, url = weapon
             url2 = url
@@ -69,7 +74,9 @@ class Fighter:  # Class for the fight command
 
 
 # Special effects for the fight command
-def pink(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def pink(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Boom you're pink."""
     return (
         (
@@ -82,22 +89,26 @@ def pink(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def teleportation(attacking: Fighter, *_) -> tuple:
+def teleportation(attacking: Fighter, _: Fighter, __: t.List[str]) -> t.Tuple[HitReturn]:
     """Get outta here."""
-    return ((
-        ("Chaotic energies swirl around you. You were teleported 20 km "
-         "away in a random direction, thus missing your attack"),
-        "",
-        "Teleportation",
-        attacking.avatar_url,
-    ), )
+    return (
+        (
+            (
+                "Chaotic energies swirl around you. You were teleported 20 km "
+                "away in a random direction, thus missing your attack"
+            ),
+            "",
+            "Teleportation",
+            attacking.avatar_url,
+        ),
+    )
 
 
 def combustion(
     attacking: Fighter,
     victim: Fighter,
-    weapon_list: list,
-) -> tuple:
+    weapon_list: t.List[str],
+) -> t.Tuple[HitReturn, HitReturn]:
     """I love fire."""
     attacking.pv -= 100
     return (
@@ -111,7 +122,9 @@ def combustion(
     )
 
 
-def election(_, victim: Fighter, weapon_list: list) -> tuple:
+def election(
+    _: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn, HitReturn]:
     """You like my wall."""
     return (
         victim.hit(choice(weapon_list).split("|")),
@@ -126,7 +139,9 @@ def election(_, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def mishap(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def mishap(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Wupsy."""
     attacking_pv = list(str(attacking.pv))
     attacking_pv.reverse()
@@ -146,7 +161,9 @@ def mishap(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def double(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def double(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Haha so funny."""
     attacking.pv, victim.pv = victim.pv, attacking.pv
     return (
@@ -164,8 +181,8 @@ def double(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
 def intervention(
     attacking: Fighter,
     victim: Fighter,
-    weapon_list: list,
-) -> tuple:
+    weapon_list: t.List[str],
+) -> t.Tuple[HitReturn, HitReturn]:
     """Itsa me, Bob."""
     attacking.pv, victim.pv = 1000, 1000
     return (
@@ -180,10 +197,11 @@ def intervention(
     )
 
 
-def fumble(attacking: Fighter, _, weapon_list: list) -> tuple:
+def fumble(
+    attacking: Fighter, _: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Oh shit."""
-    message, damage, attack, url = attacking.hit(
-        choice(weapon_list).split("|"))
+    message, damage, attack, url = attacking.hit(choice(weapon_list).split("|"))
     return (
         (
             "{attacking} just hurt himself !",
@@ -204,11 +222,13 @@ def fumble(attacking: Fighter, _, weapon_list: list) -> tuple:
     )
 
 
-def armor(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def armor(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Suck on my thorns."""
     message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
     if damage == "":
-        damage = 0
+        damage = "0"
     attacking.pv -= round(int(damage) / 2)
     return (
         (
@@ -228,11 +248,13 @@ def armor(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def steal(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def steal(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Your life is now mine."""
     message, damage, attack, url = victim.hit(choice(weapon_list).split("|"))
     if damage == "":
-        damage = 0
+        damage = "0"
     attacking.pv += round(int(damage) / 2)
     return (
         (
@@ -251,7 +273,9 @@ def steal(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def depression(_, victim: Fighter, weapon_list: list) -> tuple:
+def depression(
+    _: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """I wanna die."""
     return (
         (
@@ -265,7 +289,9 @@ def depression(_, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-def bottle(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
+def bottle(
+    attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
+) -> t.Tuple[HitReturn, HitReturn]:
     """Not a good idea."""
     return (
         (
@@ -279,7 +305,7 @@ def bottle(attacking: Fighter, victim: Fighter, weapon_list: list) -> tuple:
     )
 
 
-chaos: t.List[t.Callable[[Fighter, Fighter, list], tuple]] = [
+chaos: t.List[t.Callable[[Fighter, Fighter, t.List[str]], t.Tuple[HitReturn, ...]]] = [
     pink,
     teleportation,
     combustion,
@@ -307,7 +333,8 @@ class Funny(commands.Cog):
         """Get a random Chuck Norris joke."""
         if randint(0, 1):
             async with self.bot.aio_session.get(
-                    "https://api.chucknorris.io/jokes/random") as response:
+                "https://api.chucknorris.io/jokes/random"
+            ) as response:
                 joke = await response.json()
                 await ctx.send(joke["value"])
             return
@@ -318,7 +345,8 @@ class Funny(commands.Cog):
                 await ctx.send(joke["value"]["joke"])
             return
         async with self.bot.aio_session.get(
-                "http://api.icndb.com/jokes/random") as response:
+            "http://api.icndb.com/jokes/random"
+        ) as response:
             joke = await response.json()
             await ctx.send(joke["value"]["joke"].replace("&quote", '"'))
 
@@ -326,7 +354,8 @@ class Funny(commands.Cog):
     async def dad(self, ctx: commands.Context) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
-                "https://icanhazdadjoke.com/slack") as response:
+            "https://icanhazdadjoke.com/slack"
+        ) as response:
             joke = await response.json()
             await ctx.send(joke["attachments"][0]["text"])
 
@@ -334,13 +363,13 @@ class Funny(commands.Cog):
     async def dong(
         self,
         ctx: commands.Context,
-        dick: discord.Member = None,
+        dick: t.Optional[discord.Member] = None,
     ) -> None:
         """How long is this person's dong."""
-        if not dick:
-            dick = ctx.author
-        await ctx.send(f"{dick.mention}'s magnum dong is this long : 8"
-                       f"{'=' * randint(0, 10)}>")
+        dickfinal = dick or ctx.author
+        await ctx.send(
+            f"{dickfinal.mention}'s magnum dong is this long : 8" f"{'=' * randint(0, 10)}>"
+        )
 
     @commands.command(ignore_extra=True)
     async def excuse(self, ctx: commands.Context) -> None:
@@ -354,7 +383,8 @@ class Funny(commands.Cog):
             f"because of {choice(excuses[3].split('|')).strip(newline)} "
             f"{choice(excuses[4].split('|')).strip(newline)} which "
             f"{choice(excuses[5].split('|')).strip(newline)} "
-            "so it's not my fault !")
+            "so it's not my fault !"
+        )
 
     @commands.command(aliases=["baston"])
     @commands.guild_only()
@@ -393,7 +423,7 @@ class Funny(commands.Cog):
                 if randint(1, 100) >= 85:
                     data = choice(chaos)(fight[0], next_player, weapons)
                 else:
-                    data = (next_player.hit(choice(weapons).split("|")), )
+                    data = (next_player.hit(choice(weapons).split("|")),)
                 for message, damage, attack, url in data:
                     embed = discord.Embed(
                         title=attack,
@@ -422,15 +452,15 @@ class Funny(commands.Cog):
                     colour=discord.Colour.blurple(),
                 )
                 embed.set_thumbnail(url=next_player.avatar_url)
-                embed.add_field(name="Remaining HP :",
-                                value=str(next_player.pv))
+                embed.add_field(name="Remaining HP :", value=str(next_player.pv))
                 await ctx.send(embed=embed)
                 if next_player.pv > 0 and fight[0].pv > 0:
 
                     def check(message: discord.Message) -> bool:
                         if message.author.id == next_player.id and (
-                                message.content.lower().startswith(
-                                    f"defend {fight[0].display_name.lower()}")
+                            message.content.lower().startswith(
+                                f"defend {fight[0].display_name.lower()}"
+                            )
                         ):
                             return message.channel == ctx.channel
                         return False
@@ -438,7 +468,8 @@ class Funny(commands.Cog):
                     await ctx.send(
                         f"{next_player.mention}, send `defend "
                         f"{fight[0].display_name}` in the next 30 seconds, "
-                        "or run away like a coward.")
+                        "or run away like a coward."
+                    )
                     try:
                         await self.bot.wait_for(
                             "message",
@@ -446,28 +477,32 @@ class Funny(commands.Cog):
                             timeout=30.0,
                         )
                     except asyncio.TimeoutError:
-                        await ctx.send(
-                            f"{next_player.display_name} is just a coward.")
+                        await ctx.send(f"{next_player.display_name} is just a coward.")
                         combat = False
                 elif next_player.pv < fight[0].pv:
                     combat = False
-                    await ctx.send(f"{fight[0].display_name} annihilated "
-                                   f"{next_player.display_name}. What a show !"
-                                   )
+                    await ctx.send(
+                        f"{fight[0].display_name} annihilated "
+                        f"{next_player.display_name}. What a show !"
+                    )
                 else:
                     combat = False
-                    await ctx.send(f"{next_player.display_name} annihilated "
-                                   f"{fight[0].display_name}. What a show !")
+                    await ctx.send(
+                        f"{next_player.display_name} annihilated "
+                        f"{fight[0].display_name}. What a show !"
+                    )
 
     # @commands.command()
     async def joke(self, ctx: commands.Context) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
-                "https://mrwinson.me/api/jokes/random") as resp:
+            "https://mrwinson.me/api/jokes/random"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
-                embed = discord.Embed(description=data["joke"],
-                                      colour=discord.Colour.gold())
+                embed = discord.Embed(
+                    description=data["joke"], colour=discord.Colour.gold()
+                )
                 await ctx.send(embed=embed)
             else:
                 await ctx.send("Something went wrong.")
@@ -478,18 +513,23 @@ class Funny(commands.Cog):
         self,
         ctx: commands.Context,
         kill: str,
-        *kills,
+        *kills: str,
     ) -> None:
         """Just in case you wanna kill your neighbour.
 
         If you have an idea for an horrible death, use €suggestion fight [idea]
         """
-        await ctx.send("\n".join([
-            choice(death).format(
-                author=ctx.message.author.display_name,
-                victim=dead,
-            ) for dead in [kill] + list(kills)
-        ]))
+        await ctx.send(
+            "\n".join(
+                [
+                    choice(death).format(
+                        author=ctx.message.author.display_name,
+                        victim=dead,
+                    )
+                    for dead in [kill] + list(kills)
+                ]
+            )
+        )
 
     @commands.command(aliases=["dice"])
     async def roll(self, ctx: commands.Context, *, expr: str) -> None:
@@ -503,7 +543,8 @@ class Funny(commands.Cog):
             if character not in char:
                 await ctx.send(
                     f"Invalid character : `{character}` at position "
-                    f"`{expr.index(character)}`")
+                    f"`{expr.index(character)}`"
+                )
                 return
         if not expr[0].isdigit() or not expr[-1].isdigit():
             await ctx.send("The first and last characters must be digits")
@@ -511,13 +552,14 @@ class Funny(commands.Cog):
         before = ""
         after = ""
         sign = "+"
-        total = []
+        total: t.List[t.Union[str, t.List[str]]] = []
         for i in expr:
             if i == "d":
                 if after:
                     await ctx.send(
                         "The expression you enterded isn't valid (d "
-                        "character used while rolling dice)")
+                        "character used while rolling dice)"
+                    )
                     return
                 after = "+"
             elif i.isdigit():
@@ -527,8 +569,7 @@ class Funny(commands.Cog):
                     before += i
             else:
                 if before == "" or after == "+":
-                    await ctx.send(
-                        "You cannot roll empty dices or empty times a dice")
+                    await ctx.send("You cannot roll empty dices or empty times a dice")
                     return
                 if after == "":
                     total.append(sign + before)
@@ -538,10 +579,9 @@ class Funny(commands.Cog):
                     await ctx.send("You cannot roll a 0-dice")
                     return
                 else:
-                    total.append([
-                        sign + str(randint(1, int(after)))
-                        for _ in range(int(before))
-                    ])
+                    total.append(
+                        [sign + str(randint(1, int(after))) for _ in range(int(before))]
+                    )
                     after = ""
                     before = ""
                     sign = i
@@ -554,15 +594,15 @@ class Funny(commands.Cog):
             await ctx.send("You cannot roll a 0-dice")
             return
         else:
-            total.append([
-                sign + str(randint(1, int(after))) for _ in range(int(before))
-            ])
+            total.append(
+                [sign + str(randint(1, int(after))) for _ in range(int(before))]
+            )
         await ctx.send(self.summer(total, ctx.author.mention))
 
     @staticmethod
-    def summer(number_list: list, author: str) -> str:
+    def summer(number_list: t.List[t.Union[str, t.List[str]]], author: str) -> str:
         """Sum dices."""
-        k = []
+        k: t.List[str] = []
         total = 0
         for number in number_list:
             if isinstance(number, str):
@@ -573,8 +613,9 @@ class Funny(commands.Cog):
                 k.append(str(int(number[0])))
             else:
                 plus = sum([int(i) for i in number])
-                k.append("".join([f"{j[0]} {j[1:]} "
-                                  for j in number])[1:] + f"= {plus}")
+                k.append(
+                    "".join([f"{j[0]} {j[1:]} " for j in number])[1:] + f"= {plus}"
+                )
                 total += plus
         nice_print = ",   ".join(k)
         if not nice_print[0].isdigit():

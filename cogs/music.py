@@ -70,7 +70,7 @@ def get_bar(current: int, total: int) -> str:
 class Music(commands.Cog):
     """Listen to some [music](https://www.youtube.com/watch?v=dQw4w9WgXcQ "Hello I'm a link")."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         """Initialize Music."""
         self.bot = bot
         self.paginator_queue = {}
@@ -127,7 +127,7 @@ class Music(commands.Cog):
         """Do some cleanup."""
         self.bot.lavalink._event_hooks.clear()
 
-    async def track_hook(self, event) -> None:
+    async def track_hook(self, event: t.Any) -> None:
         """Disconnect the player upon reaching the end of the queue."""
         if isinstance(event, lavalink.events.QueueEndEvent):
             guild_id = int(event.player.guild_id)

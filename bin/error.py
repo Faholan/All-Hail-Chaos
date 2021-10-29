@@ -24,6 +24,7 @@ SOFTWARE.
 import datetime
 import sys
 import traceback
+import typing as t
 from io import StringIO
 from typing import Callable
 
@@ -33,7 +34,7 @@ from discord.ext import commands
 
 def secondes(num_seconds: int) -> str:
     """Convert a number of seconds in human-readabla format."""
-    human_readable = []
+    human_readable: t.List[str] = []
     if num_seconds >= 86400:
         human_readable.append(f"{num_seconds//86400} days")
         num_seconds %= 86400
@@ -50,7 +51,7 @@ def secondes(num_seconds: int) -> str:
 
 async def error_manager(
     ctx: commands.Context,
-    error: discord.DiscordException,
+    error: Exception,
 ) -> None:
     """Error manager."""
     if isinstance(error, commands.CheckAnyFailure):
@@ -237,10 +238,10 @@ async def error_manager(
         # Send errors in files if they are too big
 
 
-def generator(bot: commands.Bot) -> Callable:
+def generator(bot: commands.Bot) -> Callable[..., None]:
     """Generate an on_error for the bot."""
     # This needs to be wrapped in order to access bot and its attributes
-    async def predictate(event: str, *args, **kwargs) -> None:
+    async def predictate(event: str, *args: t.Any, **kwargs: t.Any) -> None:
         """Process the on_error event."""
         error_type, value, raw_traceback = sys.exc_info()
         if not error_type:

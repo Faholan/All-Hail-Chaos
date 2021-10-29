@@ -1,4 +1,4 @@
-git+https://github.com/Rapptz/discord.py@master#egg=discord.py[voice]
+discord.py<2.0
 git+https://github.com/Rapptz/discord-ext-menus.git
 ksoftapi
 git+https://github.com/Devoxin/Lavalink.py@dev

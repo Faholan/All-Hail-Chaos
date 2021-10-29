@@ -28,10 +28,7 @@ from inspect import Parameter
 import discord
 import discord.utils
 
-if t.TYPE_CHECKING:
-    commands = menus = t.Any
-else:
-    from discord.ext import commands, menus
+from discord.ext import commands, menus
 
 
 class HelpSource(menus.ListPageSource):
@@ -94,8 +91,8 @@ class HelpSource(menus.ListPageSource):
 
 class Help(commands.HelpCommand):
     """The Help cog."""
-    @staticmethod
-    def get_command_signature(command: commands.Command) -> str:
+
+    def get_command_signature(self, command: commands.Command) -> str:
         """Retrieve the command's signature."""
         basis = f"{command.qualified_name}"
         for arg in command.clean_params.values():
@@ -119,7 +116,7 @@ class Help(commands.HelpCommand):
         return basis
 
     async def send_bot_help(
-            self, mapping: t.Dict[commands.Cog,
+            self, mapping: t.Dict[t.Optional[commands.Cog],
                                   t.List[commands.Command]]) -> None:
         """Send the global help."""
         ctx = self.context

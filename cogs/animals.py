@@ -27,6 +27,7 @@ from random import choice
 
 import discord
 from discord.ext import commands, tasks
+from ksoftapi.models import Image, RedditImage
 
 
 class Pic:
@@ -92,7 +93,7 @@ class Animals(commands.Cog):
             picture = await response.json()
             await self.image_sender(ctx, Pic(picture["image"], "Fox"))
 
-    async def image_sender(self, ctx: commands.Context, image) -> None:
+    async def image_sender(self, ctx: commands.Context, image: Image) -> None:
         """Embeds an image then sends it."""
         if hasattr(image, "code"):
             await ctx.send(image.message)
@@ -107,7 +108,7 @@ class Animals(commands.Cog):
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
-    async def reddit_sender(self, ctx: commands.Context, image) -> None:
+    async def reddit_sender(self, ctx: commands.Context, image: RedditImage) -> None:
         """Embeds a Reddit image then sends it."""
         if hasattr(image, "error"):
             await ctx.send(image.message)
