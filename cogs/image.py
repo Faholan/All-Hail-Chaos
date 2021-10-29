@@ -188,7 +188,7 @@ def sha(message: str) -> str:
     message += "1" + "0" * ((447 - len(message)) % 512) + completion
 
     M = [
-        [message[i : i + 512][32 * j : 32 * (j + 1)] for j in range(16)]
+        [message[i: i + 512][32 * j: 32 * (j + 1)] for j in range(16)]
         for i in range(0, len(message), 512)
     ]
 
@@ -437,7 +437,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
         try:
             async with self.bot.aio_session.get(
                 f"https://api.ksoft.si/images/rand-reddit/{sub}",
-                headers={"Authorization": (f"Bearer {self.bot.ksoft_client.api_key}")},
+                headers={"Authorization": (
+                    f"Bearer {self.bot.ksoft_client.api_key}")},
                 params={
                     "remove_nsfw": str(not check_channel(ctx.channel)),
                     "span": "week",
@@ -513,7 +514,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
             return
         embed.set_image(url=image.image_url)
         embed.set_footer(
-            text=(f"👍 {image.upvotes} | 👎 {image.downvotes} |" f" 💬 {image.comments}")
+            text=(
+                f"👍 {image.upvotes} | 👎 {image.downvotes} |" f" 💬 {image.comments}")
         )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
