@@ -193,18 +193,18 @@ def sha(message: str) -> str:
 
     for i, elem in enumerate(M):
         W = [elem[t] for t in range(16)]
-        for t in range(16, 64):
+        for tt in range(16, 64):
             w = bin(
-                (int(sha_o_1(W[t - 2]), base=2) + int(W[t - 7], base=2) +
-                 int(sha_o_0(W[t - 15]), base=2) + int(W[t - 16], base=2)) %
+                (int(sha_o_1(W[tt - 2]), base=2) + int(W[tt - 7], base=2) +
+                 int(sha_o_0(W[tt - 15]), base=2) + int(W[tt - 16], base=2)) %
                 2**32)[2:]
             W.append("0" * (32 - len(w)) + w)
         a, b, c, d, e, f, g, h = list_h
-        for t in range(64):
+        for tt in range(64):
             T1 = bin(
                 (int(h, base=2) + int(sha_e_1(e), base=2) +
-                 int(sha_ch(e, f, g), base=2) + int(constants_k[t], base=2) +
-                 int(W[t], base=2)) % 2**32)[2:]
+                 int(sha_ch(e, f, g), base=2) + int(constants_k[tt], base=2) +
+                 int(W[tt], base=2)) % 2**32)[2:]
             T1 = "0" * (32 - len(T1)) + T1
             T2 = bin(
                 (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) %
@@ -245,6 +245,7 @@ class Redditwrapper:
     """Wrap a reddit post in a class structure."""
 
     def __init__(self, json: t.Dict[str, t.Any]) -> None:
+        """Initialize the reddit wrapper."""
         if json.get("error"):
             self.error = json["error"]
             self.code = json.get("code")

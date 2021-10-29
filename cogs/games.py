@@ -270,6 +270,9 @@ class BCard:
 class BRow(t.List[BCard]):
     """A row of blackjack cards."""
 
+    def __iter__(self) -> t.Iterator[BCard]:
+        return super().__iter__()
+
     def isvalid(self) -> bool:
         """Check the row's validity."""
         return self.value_min() <= 21
