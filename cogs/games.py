@@ -43,9 +43,8 @@ class Connect4(menus.Menu):
         self.ids = cycle(list(self.id_dict))
         self.players = players
         self.next = next(self.ids, None)
-        self.status = [
-            ":black_large_square:", ":green_circle:", ":red_circle:"
-        ]
+        self.status = [":black_large_square:",
+                       ":green_circle:", ":red_circle:"]
         self.state = [[0 for _ in range(6)] for __ in range(7)]
 
     async def update(self, payload: discord.RawReactionActionEvent) -> None:
@@ -73,7 +72,8 @@ class Connect4(menus.Menu):
                 embed.description += (
                     f"\nin {self.ctx.guild} "
                     f"({self.ctx.guild.id})\n   in {self.ctx.channel.name} "
-                    f"({self.ctx.channel.id})")
+                    f"({self.ctx.channel.id})"
+                )
             elif isinstance(self.ctx.channel, discord.DMChannel):
                 embed.description += (
                     f"\nin a Private Channel ({self.ctx.channel.id})"  # noqa
@@ -81,7 +81,8 @@ class Connect4(menus.Menu):
             else:
                 embed.description += (
                     f"\nin the Group {self.ctx.channel.name} "
-                    f"({self.ctx.channel.id})")
+                    f"({self.ctx.channel.id})"
+                )
             formatted_tb = "".join(traceback.format_tb(error.__traceback__))
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
@@ -92,8 +93,7 @@ class Connect4(menus.Menu):
             try:
                 await self.bot.log_channel.send(embed=embed)
             except Exception:
-                await self.bot.log_channel.send(
-                    "Please check the logs for connect 4")
+                await self.bot.log_channel.send("Please check the logs for connect 4")
                 raise error from None
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
@@ -105,10 +105,15 @@ class Connect4(menus.Menu):
 
     def get_embed(self) -> discord.Embed:
         """Generate the next embed."""
-        return discord.Embed(description="\n".join([
-            "".join([self.status[column[5 - i]] for column in self.state])
-            for i in range(6)
-        ]))
+        return discord.Embed(
+            description="\n".join(
+                [
+                    "".join([self.status[column[5 - i]]
+                            for column in self.state])
+                    for i in range(6)
+                ]
+            )
+        )
 
     async def send_initial_message(
         self,
@@ -149,15 +154,11 @@ class Connect4(menus.Menu):
         for diagonal in range(3):
             lines = [
                 [self.state[3 + diagonal - i][i] for i in range(4 + diagonal)],
-                [
-                    self.state[i - diagonal - 4][-i - 1]
-                    for i in range(4 + diagonal)
-                ],
+                [self.state[i - diagonal - 4][-i - 1]
+                    for i in range(4 + diagonal)],
                 [self.state[i - diagonal - 4][i] for i in range(4 + diagonal)],
-                [
-                    self.state[3 + diagonal - i][-i - 1]
-                    for i in range(4 + diagonal)
-                ],
+                [self.state[3 + diagonal - i][-i - 1]
+                    for i in range(4 + diagonal)],
             ]
             if any(schema in str(line) for line in lines):
                 return True
@@ -317,8 +318,7 @@ class Deck:
 
     def __contains__(self, card: BCard) -> bool:
         """If a card is in the deck."""
-        return any(card in column
-                   for column in self.cards) and len(self.cards) < 3
+        return any(card in column for column in self.cards) and len(self.cards) < 3
 
     def __iter__(self) -> t.Iterable[BRow]:
         """Iterate over me."""
@@ -326,8 +326,7 @@ class Deck:
 
     def isvalid(self) -> bool:
         """Check the validity of the deck."""
-        return any(column.isvalid()
-                   for column in self.cards) and self.money > 0
+        return any(column.isvalid() for column in self.cards) and self.money > 0
 
     async def add(
         self,
@@ -339,13 +338,13 @@ class Deck:
         if card in self and self.cost < self.money and not ini:
 
             def check(message: discord.Message) -> bool:
-                if message.author == ctx.author and (message.channel
-                                                     == ctx.channel):
+                if message.author == ctx.author and (message.channel == ctx.channel):
                     return message.content.lower() in {"y", "yes", "n", "no"}
                 return False
 
             message1 = await ctx.send(
-                f"You have a {card.name}. Do you want to split ? (y/n)")
+                f"You have a {card.name}. Do you want to split ? (y/n)"
+            )
             try:
                 message = await ctx.bot.wait_for(
                     "message",
@@ -364,20 +363,20 @@ class Deck:
                 pass
             if answer:
                 return self.split(card)
-        row_numbers = [
-            i for i in range(len(self.cards)) if self.cards[i].isvalid()
-        ]
+        row_numbers = [i for i in range(
+            len(self.cards)) if self.cards[i].isvalid()]
         if len(row_numbers) == 1:
             card_id = row_numbers[0]
         else:
             message1 = await ctx.send(
                 f"You have {len(row_numbers)} rows available. "
-                "In which one do you want to play ?")
+                "In which one do you want to play ?"
+            )
 
             def check2(message: discord.Message) -> bool:
                 if message.author == ctx.author and (
-                        message.channel == ctx.channel
-                        and message.content.isdigit()):
+                    message.channel == ctx.channel and message.content.isdigit()
+                ):
                     try:
                         return self.cards[int(message.content) - 1].isvalid()
                     except Exception:
@@ -393,8 +392,7 @@ class Deck:
                 card_id = int(message.content) - 1
             except asyncio.TimeoutError:
                 card_id = row_numbers[0]
-                await ctx.send(f"Defaulting to row {card_id + 1}",
-                               delete_after=3)
+                await ctx.send(f"Defaulting to row {card_id + 1}", delete_after=3)
             try:
                 await message1.delete()
                 await message.delete()
@@ -458,13 +456,15 @@ class Blackjack(menus.Menu):
             if self.ctx.guild:
                 embed.description += (
                     f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in "
-                    f"{self.ctx.channel.name} ({self.ctx.channel.id})")
+                    f"{self.ctx.channel.name} ({self.ctx.channel.id})"
+                )
             elif isinstance(self.ctx.channel, discord.DMChannel):
                 embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
             else:
                 embed.description += (
                     f"\nin the Group {self.ctx.channel.name} "
-                    f"({self.ctx.channel.id})")
+                    f"({self.ctx.channel.id})"
+                )
             formatted_tb = "".join(traceback.format_tb(error.__traceback__))
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
@@ -475,8 +475,7 @@ class Blackjack(menus.Menu):
             try:
                 await self.bot.log_channel.send(embed=embed)
             except Exception:
-                await self.bot.log_channel.send(
-                    "Please check the logs for Blackjack")
+                await self.bot.log_channel.send("Please check the logs for Blackjack")
                 raise error from None
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
@@ -495,12 +494,10 @@ class Blackjack(menus.Menu):
     async def new_game(self) -> None:
         """Start a new game."""
         self.cards = [
-            BCard(i + 1, j) for i in range(13) for j in range(4)
-            for _ in range(6)
+            BCard(i + 1, j) for i in range(13) for j in range(4) for _ in range(6)
         ]
-        self.players = [
-            Deck(self.money_dict[i], self.cost, i) for i in self.money_dict
-        ]
+        self.players = [Deck(self.money_dict[i], self.cost, i)
+                        for i in self.money_dict]
         self.dealer = BRow()
         self.dealer.append(self.card)
         for player in self.players:
@@ -518,12 +515,14 @@ class Blackjack(menus.Menu):
         )
         for player in self.players:
             embed.add_field(
-                name=(f"{self.player_dict[player.player_id].display_name} "
-                      f"({player.money} GP)"),
-                value="\n".join([
-                    ", ".join([card.name for card in row])
-                    for row in player.cards
-                ]),
+                name=(
+                    f"{self.player_dict[player.player_id].display_name} "
+                    f"({player.money} GP)"
+                ),
+                value="\n".join(
+                    [", ".join([card.name for card in row])
+                     for row in player.cards]
+                ),
                 inline=False,
             )
         return embed
@@ -534,8 +533,9 @@ class Blackjack(menus.Menu):
         _: t.Any,
     ) -> discord.Message:
         """Send the first embed."""
-        return await ctx.send(self.player_dict[self.next].mention,
-                              embed=self.generate_embed())
+        return await ctx.send(
+            self.player_dict[self.next].mention, embed=self.generate_embed()
+        )
 
     async def update_embed(self, new_turn: bool = False) -> None:
         """Update the embed."""
@@ -571,11 +571,15 @@ class Blackjack(menus.Menu):
         embed.add_field(name="Dealer", value=number, inline=False)
         for player in self.players:
             numbers: t.List[str] = []
-            if (player.cards[0].value() == 21 and len(player.cards) == 1
-                    and (len(player.cards[0]) == 2)):
+            if (
+                player.cards[0].value() == 21
+                and len(player.cards) == 1
+                and (len(player.cards[0]) == 2)
+            ):
                 numbers.append(
                     "Blackjack : "
-                    f"{', '.join([card.name for card in player.cards[0]])}")
+                    f"{', '.join([card.name for card in player.cards[0]])}"
+                )
                 if dealer_score == 22:
                     player.balance += self.cost
                 else:
@@ -585,19 +589,19 @@ class Blackjack(menus.Menu):
                     if row.isvalid():
                         numbers.append(
                             f"{row.value()} points : "
-                            f"{', '.join([card.name for card in row])}")
+                            f"{', '.join([card.name for card in row])}"
+                        )
                         if row.value() == dealer_score:
                             player.balance += self.cost
                         elif row.value() > dealer_score:
                             player.balance += 2 * self.cost
                     else:
                         numbers.append(
-                            "Busted : "
-                            f"{', '.join([card.name for card in row])}")
+                            "Busted : " f"{', '.join([card.name for card in row])}"
+                        )
             embed.add_field(
                 name=(
-                    f"{self.player_dict[player.player_id]} : {player.money} GP"
-                ),
+                    f"{self.player_dict[player.player_id]} : {player.money} GP"),
                 value="\n".join(numbers),
                 inline=False,
             )
@@ -645,8 +649,9 @@ class Blackjackplayers(menus.Menu):
 
     def reaction_check(self, payload: discord.RawReactionActionEvent) -> bool:
         """Check whether or not to process the reaction."""
-        return payload.message_id == self.message.id and (payload.user_id !=
-                                                          self.bot.user.id)
+        return payload.message_id == self.message.id and (
+            payload.user_id != self.bot.user.id
+        )
 
     async def update(self, payload: discord.RawReactionActionEvent) -> None:
         """Update if necessary."""
@@ -672,13 +677,15 @@ class Blackjackplayers(menus.Menu):
             if self.ctx.guild:
                 embed.description += (
                     f"\nin {self.ctx.guild} ({self.ctx.guild.id})\n   in "
-                    f"{self.ctx.channel.name} ({self.ctx.channel.id})")
+                    f"{self.ctx.channel.name} ({self.ctx.channel.id})"
+                )
             elif isinstance(self.ctx.channel, discord.DMChannel):
                 embed.description += f"\nin a Private Channel ({self.ctx.channel.id})"
             else:
                 embed.description += (
                     f"\nin the Group {self.ctx.channel.name} "
-                    f"({self.ctx.channel.id})")
+                    f"({self.ctx.channel.id})"
+                )
             formatted_tb = "".join(traceback.format_tb(error.__traceback__))
             embed.description += f"```\n{formatted_tb}```"
             embed.set_footer(
@@ -690,7 +697,8 @@ class Blackjackplayers(menus.Menu):
                 await self.bot.log_channel.send(embed=embed)
             except Exception:
                 await self.bot.log_channel.send(
-                    "Please check the logs for Blackjack Players")
+                    "Please check the logs for Blackjack Players"
+                )
                 raise error from None
 
     async def send_initial_message(
@@ -714,8 +722,10 @@ class Blackjackplayers(menus.Menu):
         """Get the embed."""
         newline = "\n -"
         return discord.Embed(
-            title=(f"Come play blackjack ! Initial bet is {self.cost} GP "
-                   f"({self.time} seconds left)"),
+            title=(
+                f"Come play blackjack ! Initial bet is {self.cost} GP "
+                f"({self.time} seconds left)"
+            ),
             description=(
                 "Check the command's help for the rules. React with "
                 ":white_check_mark: to join, :track_next: to begin the game"
@@ -728,15 +738,17 @@ class Blackjackplayers(menus.Menu):
     async def adder(self, payload: discord.RawReactionActionEvent) -> None:
         """Add a player."""
         member = self.ctx.guild.get_member(
-            payload.user_id) or await self.ctx.guild.fetch_member(
-                payload.user_id)
+            payload.user_id
+        ) or await self.ctx.guild.fetch_member(payload.user_id)
         async with self.lock:
             row = await self.database.fetchrow(
-                "SELECT * FROM public.business WHERE id=$1", payload.user_id)
+                "SELECT * FROM public.business WHERE id=$1", payload.user_id
+            )
             if not row:
                 await self.ctx.send(
                     f"Sorry {member.mention}, but you don't have any money "
-                    "to join this table")
+                    "to join this table"
+                )
                 return
             if payload.user_id in self.money_dict:
                 del self.money_dict[payload.user_id]
@@ -745,7 +757,8 @@ class Blackjackplayers(menus.Menu):
                 if money < self.cost:
                     await self.ctx.send(
                         f"Sorry {member.mention}, but you don't have enough "
-                        "money to come to this table")
+                        "money to come to this table"
+                    )
                     return
                 self.money_dict[payload.user_id] = money
         if member in self.players:
@@ -760,7 +773,9 @@ class Blackjackplayers(menus.Menu):
         self.current_state = -1
         await self.updater()
 
-    async def prompt(self, ctx: commands.Context) -> t.Tuple[t.List[discord.User], t.Dict[int, int]]:
+    async def prompt(
+        self, ctx: commands.Context
+    ) -> t.Tuple[t.List[discord.User], t.Dict[int, int]]:
         """Start it the real way."""
         await self.start(ctx, wait=True)
         return self.players, self.money_dict
@@ -815,11 +830,13 @@ class Games(commands.Cog):
             await ctx.send("You can't bet negative money")
         async with self.bot.pool.acquire() as database:
             row = await database.fetchrow(
-                "SELECT * FROM public.business WHERE id=$1", ctx.author.id)
+                "SELECT * FROM public.business WHERE id=$1", ctx.author.id
+            )
             if not row:
                 await ctx.send(
                     "You don't have money. You can't run this command without "
-                    "yourself having money")
+                    "yourself having money"
+                )
                 return
             money = row["money"] + row["bank"]
             if money < cost:
@@ -855,7 +872,8 @@ class Games(commands.Cog):
                     )
                 else:
                     row = await database.fetchrow(
-                        "SELECT * FROM public.business WHERE id=$1", player_id)
+                        "SELECT * FROM public.business WHERE id=$1", player_id
+                    )
                     if row["money"] >= -balance_dict[player_id]:
                         await database.execute(
                             "UPDATE public.business SET money=money+$2 WHERE id=$1",
@@ -883,8 +901,7 @@ class Games(commands.Cog):
         self.blackjack_list = new
 
     @commands.command(aliases=["c4"])
-    async def connect4(self, ctx: commands.Context,
-                       member: discord.Member) -> None:
+    async def connect4(self, ctx: commands.Context, member: discord.Member) -> None:
         """Play connect 4 with a friend."""
         if member == ctx.author:
             await ctx.send("You can't play with only yourself !")
@@ -893,16 +910,18 @@ class Games(commands.Cog):
             await ctx.send("This member is a bot. Play with a human !")
             return
 
-        winner = await Connect4(ctx.author, member,
-                                clear_reactions_after=True).prompt(ctx)
+        winner = await Connect4(ctx.author, member, clear_reactions_after=True).prompt(
+            ctx
+        )
         if winner:
             await ctx.send(f"{winner.mention} won !")
         else:
             await ctx.send("Game cancelled")
 
     @staticmethod
-    def neighbours(i: int, j: int, rows: int,
-                   columns: int) -> t.List[t.Tuple[int, int]]:
+    def neighbours(
+        i: int, j: int, rows: int, columns: int
+    ) -> t.List[t.Tuple[int, int]]:
         """Get a cell's neighbours for minesweeper."""
         final: t.List[t.Tuple[int, int]] = []
         if i != 0:
@@ -932,8 +951,7 @@ class Games(commands.Cog):
         """
         difficulty = difficulty.lower().strip()
         if difficulty not in {"easy", "medium", "hard"}:
-            await ctx.send(
-                "difficulty must be one of `easy`, `medium` or `hard`")
+            await ctx.send("difficulty must be one of `easy`, `medium` or `hard`")
             return
 
         mines, rows, columns = self.mine_difficulty[difficulty]
@@ -942,8 +960,7 @@ class Games(commands.Cog):
         grid[click_x][click_y] = -2
         i, j = click_x, click_y
         for _ in range(mines):
-            while grid[i][j] < 0 or (abs(click_x - i) <= 1
-                                     and abs(click_y - j) <= 1):
+            while grid[i][j] < 0 or (abs(click_x - i) <= 1 and abs(click_y - j) <= 1):
                 i, j = randint(0, rows - 1), randint(0, columns - 1)
             grid[i][j] = -1
             for x, y in self.neighbours(i, j, rows, columns):
@@ -952,17 +969,21 @@ class Games(commands.Cog):
 
         max_len = 99 // columns
 
-        content = "\n".join([
-            " ".join([self.mine_emoji[num] for num in row])
-            for row in grid[:max_len]
-        ])
+        content = "\n".join(
+            [" ".join([self.mine_emoji[num] for num in row])
+             for row in grid[:max_len]]
+        )
         await ctx.send(f"Total number of mines: {mines}\n\n{content}")
         if rows * columns > 99:
             for i in range(1, (rows * columns) // 99):
-                await ctx.send("\n".join([
-                    " ".join([self.mine_emoji[num] for num in row])
-                    for row in grid[max_len * i:max_len * (i + 1)]
-                ]))
+                await ctx.send(
+                    "\n".join(
+                        [
+                            " ".join([self.mine_emoji[num] for num in row])
+                            for row in grid[max_len * i: max_len * (i + 1)]
+                        ]
+                    )
+                )
 
 
 def setup(bot: commands.Bot) -> None:

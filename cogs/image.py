@@ -21,8 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from datetime import datetime
 import typing as t
+from datetime import datetime
 
 import discord
 from discord.ext import commands
@@ -38,27 +38,26 @@ def check_channel(channel: discord.abc.Messageable) -> bool:
 
 def sha(message: str) -> str:
     """Use SHA-256 to hash a string."""
+
     def sha_et(part1: str, part2: str) -> str:
         return "".join(
-            [str(int(part1[i]) and int(part2[i])) for i in range(len(part1))])
+            [str(int(part1[i]) and int(part2[i])) for i in range(len(part1))]
+        )
 
     def sha_ou(part1: str, part2: str) -> str:
-        return "".join(
-            [str(int(part1[i]) or int(part2[i])) for i in range(len(part1))])
+        return "".join([str(int(part1[i]) or int(part2[i])) for i in range(len(part1))])
 
     def sha_xor(part1: str, part2: str) -> str:
-        return "".join(
-            [str(int(part1[i]) ^ int(part2[i])) for i in range(len(part1))])
+        return "".join([str(int(part1[i]) ^ int(part2[i])) for i in range(len(part1))])
 
     def complement(part1: str) -> str:
-        return "".join(
-            [str((int(part1[i]) + 1) % 2) for i in range(len(part1))])
+        return "".join([str((int(part1[i]) + 1) % 2) for i in range(len(part1))])
 
     def dec_g(part1: str, number: int) -> str:
         return part1[number:] + "0" * number
 
     def dec_d(part1: str, number: int) -> str:
-        return "0" * number + part1[:len(part1) - number]
+        return "0" * number + part1[: len(part1) - number]
 
     def sha_shr(number: int, part1: str) -> str:
         return dec_g(part1, number)
@@ -188,40 +187,54 @@ def sha(message: str) -> str:
 
     message += "1" + "0" * ((447 - len(message)) % 512) + completion
 
-    M = [[message[i:i + 512][32 * j:32 * (j + 1)] for j in range(16)]
-         for i in range(0, len(message), 512)]
+    M = [
+        [message[i : i + 512][32 * j : 32 * (j + 1)] for j in range(16)]
+        for i in range(0, len(message), 512)
+    ]
 
     for i, elem in enumerate(M):
         W = [elem[t] for t in range(16)]
         for tt in range(16, 64):
             w = bin(
-                (int(sha_o_1(W[tt - 2]), base=2) + int(W[tt - 7], base=2) +
-                 int(sha_o_0(W[tt - 15]), base=2) + int(W[tt - 16], base=2)) %
-                2**32)[2:]
+                (
+                    int(sha_o_1(W[tt - 2]), base=2)
+                    + int(W[tt - 7], base=2)
+                    + int(sha_o_0(W[tt - 15]), base=2)
+                    + int(W[tt - 16], base=2)
+                )
+                % 2 ** 32
+            )[2:]
             W.append("0" * (32 - len(w)) + w)
         a, b, c, d, e, f, g, h = list_h
         for tt in range(64):
             T1 = bin(
-                (int(h, base=2) + int(sha_e_1(e), base=2) +
-                 int(sha_ch(e, f, g), base=2) + int(constants_k[tt], base=2) +
-                 int(W[tt], base=2)) % 2**32)[2:]
+                (
+                    int(h, base=2)
+                    + int(sha_e_1(e), base=2)
+                    + int(sha_ch(e, f, g), base=2)
+                    + int(constants_k[tt], base=2)
+                    + int(W[tt], base=2)
+                )
+                % 2 ** 32
+            )[2:]
             T1 = "0" * (32 - len(T1)) + T1
             T2 = bin(
-                (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) %
-                2**32)[2:]
+                (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) % 2 ** 32
+            )[2:]
             T2 = "0" * (32 - len(T2)) + T2
             h, g, f = g, f, e
-            e = bin((int(d, base=2) + int(T1, base=2)) % 2**32)[2:]
+            e = bin((int(d, base=2) + int(T1, base=2)) % 2 ** 32)[2:]
             e = "0" * (32 - len(e)) + e
             d, c, b = c, b, a
-            a = bin((int(T1, base=2) + int(T2, base=2)) % 2**32)[2:]
+            a = bin((int(T1, base=2) + int(T2, base=2)) % 2 ** 32)[2:]
             a = "0" * (32 - len(a)) + a
         for j in range(8):
-            list_h[j] = bin((int([a, b, c, d, e, f, g, h][i], base=2) +
-                             int(list_h[j], base=2)) % 2**32)[2:]
+            list_h[j] = bin(
+                (int([a, b, c, d, e, f, g, h][i], base=2) + int(list_h[j], base=2))
+                % 2 ** 32
+            )[2:]
             list_h[j] = "0" * (32 - len(list_h[j])) + list_h[j]
-    return "".join(
-        [hex(int(list_h[i], base=2))[2:] for i in range(len(list_h))])
+    return "".join([hex(int(list_h[i], base=2))[2:] for i in range(len(list_h))])
 
 
 class Pic:
@@ -317,11 +330,13 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def koala(self, ctx: commands.Context) -> None:
         """Get a random picture of a koala."""
         async with self.bot.aio_session.get(
-                "https://some-random-api.ml/img/koala") as resp:
+            "https://some-random-api.ml/img/koala"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
-                embed = discord.Embed(title="Random Koala",
-                                      colour=discord.Colour.gold())
+                embed = discord.Embed(
+                    title="Random Koala", colour=discord.Colour.gold()
+                )
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
@@ -337,11 +352,13 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def image_nsfw(self, ctx: commands.Context) -> None:
         """Retrieve the list of all available NSFW tags."""
         tag_list = await self.bot.ksoft_client.images.tags()
-        embed = discord.Embed(timestamp=datetime.utcnow(),
-                              colour=discord.Colour.random())
+        embed = discord.Embed(
+            timestamp=datetime.utcnow(), colour=discord.Colour.random()
+        )
         embed.add_field(name="NSFW tags", value="\n".join(tag_list.nsfw_tags))
-        embed.set_author(name=ctx.author.display_name,
-                         icon_url=str(ctx.author.avatar_url))
+        embed.set_author(
+            name=ctx.author.display_name, icon_url=str(ctx.author.avatar_url)
+        )
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -366,10 +383,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
         use im_nsfw or reddit with an NSFW subreddit
         """
         async with self.bot.aio_session.get(
-                "https://api.ksoft.si/images/random-nsfw",
-                headers={
-                    "Authorization": f"Bearer {self.bot.ksoft_client.api_key}"
-                },
+            "https://api.ksoft.si/images/random-nsfw",
+            headers={"Authorization": f"Bearer {self.bot.ksoft_client.api_key}"},
         ) as response:
             await self.reddit_sender(
                 ctx,
@@ -393,7 +408,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def panda(self, ctx) -> None:
         """Get a random picture of a panda."""
         async with self.bot.aio_session.get(
-                "https://some-random-api.ml/img/panda") as resp:
+            "https://some-random-api.ml/img/panda"
+        ) as resp:
             if resp.status == 200:
                 data = await resp.json()
                 embed = discord.Embed(
@@ -403,8 +419,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 embed.set_image(url=data["link"])
                 await ctx.send(embed=embed)
             else:
-                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]"
-                               )
+                await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
                 await self.bot.log_channel.send(f"Code {resp.status} in panda")
 
     @commands.command(ignore_extra=True)
@@ -421,15 +436,12 @@ class Images(commands.Cog):  # Thanks KSoft.si
         sub = subreddit.split("r/")[-1]
         try:
             async with self.bot.aio_session.get(
-                    f"https://api.ksoft.si/images/rand-reddit/{sub}",
-                    headers={
-                        "Authorization":
-                        (f"Bearer {self.bot.ksoft_client.api_key}")
-                    },
-                    params={
-                        "remove_nsfw": str(not check_channel(ctx.channel)),
-                        "span": "week",
-                    },
+                f"https://api.ksoft.si/images/rand-reddit/{sub}",
+                headers={"Authorization": (f"Bearer {self.bot.ksoft_client.api_key}")},
+                params={
+                    "remove_nsfw": str(not check_channel(ctx.channel)),
+                    "span": "week",
+                },
             ) as response:
                 await self.reddit_sender(
                     ctx,
@@ -465,8 +477,7 @@ class Images(commands.Cog):  # Thanks KSoft.si
     async def rand_im(self, tag: str, nsfw: bool = False) -> object:
         """Random image lol."""
         try:
-            return await self.bot.ksoft_client.images.random_image(tag=tag,
-                                                                   nsfw=nsfw)
+            return await self.bot.ksoft_client.images.random_image(tag=tag, nsfw=nsfw)
         except Exception:
             return PicError()
 
@@ -501,8 +512,9 @@ class Images(commands.Cog):  # Thanks KSoft.si
             await self.bot.httpcat(ctx, 404)
             return
         embed.set_image(url=image.image_url)
-        embed.set_footer(text=(f"👍 {image.upvotes} | 👎 {image.downvotes} |"
-                               f" 💬 {image.comments}"))
+        embed.set_footer(
+            text=(f"👍 {image.upvotes} | 👎 {image.downvotes} |" f" 💬 {image.comments}")
+        )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
             icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",
