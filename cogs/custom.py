@@ -245,6 +245,9 @@ class Custom(commands.Cog):
         if not message.content.startswith(prefix) or not message.guild:
             return
 
+        if message.author.bot:
+            return
+
         async with self.bot.pool.acquire() as database:
             command = await database.fetchrow(
                 "SELECT * FROM public.custom WHERE guild_id=$1 AND name=$2",

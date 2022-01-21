@@ -123,8 +123,7 @@ class Animals(commands.Cog):
             await self.bot.httpcat(ctx, 404)
         embed.set_image(url=image.image_url)
         embed.set_footer(
-            text=(
-                f"👍 {image.upvotes} | 👎 {image.downvotes}" f" | 💬 {image.comments}"),
+            text=(f"👍 {image.upvotes} | 👎 {image.downvotes}" f" | 💬 {image.comments}"),
         )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
