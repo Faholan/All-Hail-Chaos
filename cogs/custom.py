@@ -58,7 +58,6 @@ class Custom(commands.Cog):
     @custom.command()
     async def create(self, ctx: commands.Context) -> None:
         """Interactively create a custom command."""
-
         def check(message: discord.Message) -> bool:
             """Check author and channel."""
             if message.author == ctx.author:
@@ -80,7 +79,8 @@ class Custom(commands.Cog):
             return
 
         if name in self.bot.all_commands:
-            await ctx.send(":x: Sorry, but a bot command already exists with this name")
+            await ctx.send(
+                ":x: Sorry, but a bot command already exists with this name")
             return
 
         async with self.bot.pool.acquire() as database:
@@ -93,10 +93,8 @@ class Custom(commands.Cog):
                 await ctx.send(f"A custom command named {name} already exists")
                 return
 
-        await ctx.send(
-            f"So the name's {name}. What about the description "
-            "(enter * to skip this)"
-        )
+        await ctx.send(f"So the name's {name}. What about the description "
+                       "(enter * to skip this)")
         try:
             description = await self.bot.wait_for("message", check=check)
             description = description.content
@@ -111,8 +109,7 @@ class Custom(commands.Cog):
             "What arguments will this command take (separate them with spaces)"
             " ? You can annotate them using {name}:{type}\n"
             "The types currently supported are : int, Role, Member, Channel, "
-            "str (the default type)"
-        )
+            "str (the default type)")
 
         try:
             args = await self.bot.wait_for("message", check=check)
@@ -127,8 +124,7 @@ class Custom(commands.Cog):
             if raw_arg.count(":") > 1:
                 await ctx.send(
                     "An argument can contain only up to 1 time `:`. "
-                    f"This is wrong : {raw_arg}"
-                )
+                    f"This is wrong : {raw_arg}")
                 return
             if raw_arg.count(":") == 1:
                 raw_name, raw_type = raw_arg.split(":")
@@ -162,7 +158,8 @@ class Custom(commands.Cog):
                 name,
             )
             if row:
-                await ctx.send(f":x: There is already a custom command named {name}")
+                await ctx.send(
+                    f":x: There is already a custom command named {name}")
                 return
             await database.execute(
                 "INSERT INTO public.custom VALUES ($1, $2, $3, $4, $5, $6)",
@@ -189,8 +186,7 @@ class Custom(commands.Cog):
             if not row:
                 await ctx.send(
                     f"I didn't find any command named {name}. Are you sure "
-                    "that it exists and you own it ?"
-                )
+                    "that it exists and you own it ?")
                 return
             await database.execute(
                 "DELETE FROM public.custom WHERE name=$1 AND guild_id=$2 "
@@ -211,19 +207,19 @@ class Custom(commands.Cog):
                 ctx.guild.id,
             )
         if not command:
-            await ctx.send(f"No custom command named {name} found in your guild")
+            await ctx.send(
+                f"No custom command named {name} found in your guild")
             return
         embed = discord.Embed(
             title=f"Informations about custom command {name}",
-            description=command["description"]
-            if command["description"]
-            else (discord.Embed.Empty),
+            description=command["description"] if command["description"] else
+            (discord.Embed.Empty),
             colour=0x00008B,
         )
         try:
-            owner = ctx.guild.get_member(command["owner_id"]) or (
-                await ctx.guild.fetch_member(command["owner_id"])
-            )
+            owner = ctx.guild.get_member(
+                command["owner_id"]) or (await ctx.guild.fetch_member(
+                    command["owner_id"]))
             embed.set_author(
                 name=owner.display_name,
                 icon_url=str(owner.avatar_url),
@@ -286,8 +282,7 @@ class Custom(commands.Cog):
             return
         except commands.BadArgument:
             await message.channel.send(
-                f"Couldn't convert {arg} into {raw_type.capitalize()}"
-            )
+                f"Couldn't convert {arg} into {raw_type.capitalize()}")
             return
 
         try:
@@ -298,30 +293,29 @@ class Custom(commands.Cog):
                     server=message.guild,
                     message=message.content,
                     **kwargs,
-                )
-            )
+                ))
         except ValueError:
             try:
-                owner = self.bot.get_user(command["owner_id"]) or (
-                    await self.bot.fetch_user(command["owner_id"])
-                )
+                owner = self.bot.get_user(
+                    command["owner_id"]) or (await self.bot.fetch_user(
+                        command["owner_id"]))
                 await message.channel.send(
                     "The custom command isn't correctly formatted. Please "
-                    f"contact {owner.mention} about that issue"
-                )
+                    f"contact {owner.mention} about that issue")
             except discord.NotFound:
-                await message.channel.send("The custom command raised an error")
+                await message.channel.send("The custom command raised an error"
+                                           )
         except (discord.DiscordException, KeyError):
             try:
-                owner = self.bot.get_user(command["owner_id"]) or (
-                    await self.bot.fetch_user(command["owner_id"])
-                )
+                owner = self.bot.get_user(
+                    command["owner_id"]) or (await self.bot.fetch_user(
+                        command["owner_id"]))
                 await message.channel.send(
                     "The custom command raised an error. Please contact "
-                    f"{owner.mention} about that issue"
-                )
+                    f"{owner.mention} about that issue")
             except discord.NotFound:
-                await message.channel.send("The custom command raised an error")
+                await message.channel.send("The custom command raised an error"
+                                           )
 
 
 def setup(bot: commands.Bot) -> None:
