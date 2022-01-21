@@ -108,7 +108,8 @@ class Animals(commands.Cog):
         embed.set_image(url=image.url)
         await ctx.send(embed=embed)
 
-    async def reddit_sender(self, ctx: commands.Context, image: RedditImage) -> None:
+    async def reddit_sender(self, ctx: commands.Context,
+                            image: RedditImage) -> None:
         """Embeds a Reddit image then sends it."""
         if hasattr(image, "error"):
             await ctx.send(image.message)
@@ -122,9 +123,8 @@ class Animals(commands.Cog):
         if not image.image_url:
             await self.bot.httpcat(ctx, 404)
         embed.set_image(url=image.image_url)
-        embed.set_footer(
-            text=(f"👍 {image.upvotes} | 👎 {image.downvotes}" f" | 💬 {image.comments}"),
-        )
+        embed.set_footer(text=(f"👍 {image.upvotes} | 👎 {image.downvotes}"
+                               f" | 💬 {image.comments}"), )
         embed.set_author(
             name=f"Posted by {image.author} in {image.subreddit}",
             icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",
