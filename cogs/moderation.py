@@ -1504,7 +1504,7 @@ class Moderation(commands.Cog):
     @commands.Cog.listener("on_message")
     async def no_swear_words(self, message: discord.Message) -> None:
         """Delete swear words."""
-        if message.author == self.bot or isinstance(message.author, discord.User):
+        if message.author == self.bot or isinstance(message.author, discord.User) or not isinstance(message.channel, discord.TextChannel):
             return
         if message.channel.is_nsfw() or (
             message.author.guild_permissions.manage_messages
