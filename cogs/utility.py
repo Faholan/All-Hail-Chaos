@@ -79,6 +79,7 @@ class SnipeSource(menus.ListPageSource):
 
 class SauceSource(menus.ListPageSource):
     """Source for the sauce command."""
+
     async def format_page(self, menu: menus.Menu, page: str):
         """Format the page of code."""
         max_pages = self.get_max_pages()
@@ -90,6 +91,7 @@ class SauceSource(menus.ListPageSource):
 
 def check_administrator() -> Callable:
     """Check for admin rights."""
+
     def predictate(ctx: commands.Context) -> bool:
         """Process the check."""
         if isinstance(ctx.channel, discord.TextChannel):
