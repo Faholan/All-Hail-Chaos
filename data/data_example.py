@@ -23,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import ksoftapi
-
 
 def setup(bot):
     """Add all the data to the bot."""
@@ -70,7 +68,6 @@ def setup(bot):
 
         bot.success_image = "https://storge.pic2.me/cm/5120x2880/866/57cb004d6a2e2.jpg"
 
-        bot.ksoft_client = ksoftapi.Client("MY KSOFT.SI TOKEN", bot.loop)
         bot.discord_rep = "MY DISCORDREP TOKEN"
         bot.nasa = "I AM HACKING THE NASA"  # NASA API token
 

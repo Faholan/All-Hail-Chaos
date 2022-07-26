@@ -217,35 +217,6 @@ class Utility(commands.Cog):
             await ctx.send(
                 "Sorry but my owner hasn't correctly configured this")
 
-    @commands.command(aliases=["convert"])
-    async def currency(
-        self,
-        ctx: commands.Context,
-        original: str,
-        goal: str,
-        value: float,
-    ) -> None:
-        """Convert money from one currency to another one."""
-        if not len(original) == len(goal) == 3:
-            await ctx.send(
-                "To get currency codes, refer to https://en.wikipedia.org/"
-                "wiki/ISO_4217#Active_codes")
-            return
-        async with self.bot.aio_session.get(
-                "https://api.ksoft.si/kumo/currency",
-                params={
-                    "from": original,
-                    "to": goal,
-                    "value": str(value)
-                },
-                headers={"Authorization": f"Token {self.bot.ksoft_token}"},
-        ) as resp:
-            data = await resp.json()
-        if hasattr(data, "error"):
-            await ctx.send(data["message"])
-            return
-        await ctx.send(f"The value of {value} {original} is {data['pretty']}")
-
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_webhooks=True)
@@ -383,8 +354,6 @@ class Utility(commands.Cog):
         embed.add_field(
             name="Libraries used :",
             value=(
-                "[KSoft.si](https://ksoft.si) : Whole Images Cog, currency,"
-                " reputation\n"
                 "[DiscordRep](https://discordrep.com/) : Reputation\n"
                 '[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank'
                 'chr1sBot for learning about this") : Whole Music Cog'

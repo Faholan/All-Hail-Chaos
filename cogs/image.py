@@ -20,13 +20,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
-import typing as t
-from datetime import datetime
-
 import discord
 from discord.ext import commands
-from ksoftapi.models import Image, RedditImage
 
 
 def check_channel(channel: discord.abc.Messageable) -> bool:
@@ -188,7 +183,7 @@ def sha(message: str) -> str:
     message += "1" + "0" * ((447 - len(message)) % 512) + completion
 
     M = [
-        [message[i: i + 512][32 * j: 32 * (j + 1)] for j in range(16)]
+        [message[i : i + 512][32 * j : 32 * (j + 1)] for j in range(16)]
         for i in range(0, len(message), 512)
     ]
 
@@ -202,7 +197,7 @@ def sha(message: str) -> str:
                     + int(sha_o_0(W[tt - 15]), base=2)
                     + int(W[tt - 16], base=2)
                 )
-                % 2 ** 32
+                % 2**32
             )[2:]
             W.append("0" * (32 - len(w)) + w)
         a, b, c, d, e, f, g, h = list_h
@@ -215,68 +210,26 @@ def sha(message: str) -> str:
                     + int(constants_k[tt], base=2)
                     + int(W[tt], base=2)
                 )
-                % 2 ** 32
+                % 2**32
             )[2:]
             T1 = "0" * (32 - len(T1)) + T1
             T2 = bin(
-                (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) % 2 ** 32
+                (int(sha_e_0(a), base=2) + int(sha_maj(a, b, c), base=2)) % 2**32
             )[2:]
             T2 = "0" * (32 - len(T2)) + T2
             h, g, f = g, f, e
-            e = bin((int(d, base=2) + int(T1, base=2)) % 2 ** 32)[2:]
+            e = bin((int(d, base=2) + int(T1, base=2)) % 2**32)[2:]
             e = "0" * (32 - len(e)) + e
             d, c, b = c, b, a
-            a = bin((int(T1, base=2) + int(T2, base=2)) % 2 ** 32)[2:]
+            a = bin((int(T1, base=2) + int(T2, base=2)) % 2**32)[2:]
             a = "0" * (32 - len(a)) + a
         for j in range(8):
             list_h[j] = bin(
                 (int([a, b, c, d, e, f, g, h][i], base=2) + int(list_h[j], base=2))
-                % 2 ** 32
+                % 2**32
             )[2:]
             list_h[j] = "0" * (32 - len(list_h[j])) + list_h[j]
     return "".join([hex(int(list_h[i], base=2))[2:] for i in range(len(list_h))])
-
-
-class Pic:
-    """Picture placeholder."""
-
-    def __init__(self, url: str, tag: str) -> None:
-        """Initialize the "picture"."""
-        self.url = url
-        self.tag = tag
-
-
-class PicError:
-    """Error for pics."""
-
-    def __init__(self) -> None:
-        """Initialize the error."""
-        self.code = 404
-
-
-class Redditwrapper:
-    """Wrap a reddit post in a class structure."""
-
-    def __init__(self, json: t.Dict[str, t.Any]) -> None:
-        """Initialize the reddit wrapper."""
-        if json.get("error"):
-            self.error = json["error"]
-            self.code = json.get("code")
-            self.message = json.get("message", "Error")
-        elif json.get("detail"):
-            self.error = True
-            self.message = json["detail"]
-        else:
-            self.title = json["title"]
-            self.image_url = json["image_url"]
-            self.source = json["source"]
-            self.subreddit = json["subreddit"]
-            self.upvotes = json.get("upvotes", 0)
-            self.downvotes = json.get("downvotes", 0)
-            self.comments = json.get("comments", 0)
-            self.created_at = json["created_at"]
-            self.nsfw = json["nsfw"]
-            self.author = json["author"]
 
 
 class Images(commands.Cog):  # Thanks KSoft.si
@@ -288,43 +241,6 @@ class Images(commands.Cog):  # Thanks KSoft.si
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Images."""
         self.bot = bot
-
-    @commands.command(ignore_extra=True)
-    async def dab(self, ctx: commands.Context) -> None:
-        """Get a random dab image."""
-        await self.image_sender(ctx, await self.rand_im("dab"))
-
-    @commands.command(ignore_extra=True)
-    async def doge(self, ctx: commands.Context) -> None:
-        """Get a random doge image."""
-        await self.image_sender(ctx, await self.rand_im("doge"))
-
-    @commands.command(ignore_extra=True)
-    async def fbi(self, ctx: commands.Context) -> None:
-        """Get a random FBI image."""
-        await self.image_sender(ctx, await self.rand_im("fbi"))
-
-    @commands.command(ignore_extra=True, hidden=True)
-    @commands.is_nsfw()
-    async def hentai(self, ctx: commands.Context) -> None:
-        """Get a random hentai image."""
-        await self.image_sender(ctx, await self.rand_im("hentai", True))
-
-    @commands.command(ignore_extra=True, hidden=True)
-    @commands.is_nsfw()
-    async def hentai_gif(self, ctx: commands.Context) -> None:
-        """Get a random hentai GIF."""
-        await self.image_sender(ctx, await self.rand_im("hentai_gif", True))
-
-    @commands.command(ignore_extra=True)
-    async def hug(self, ctx: commands.Context) -> None:
-        """Get a random hug image."""
-        await self.image_sender(ctx, await self.rand_im("hug"))
-
-    @commands.command(ignore_extra=True)
-    async def kappa(self, ctx: commands.Context) -> None:
-        """Get a random kappa image."""
-        await self.image_sender(ctx, await self.rand_im("kappa"))
 
     @commands.command()
     async def koala(self, ctx: commands.Context) -> None:
@@ -343,24 +259,6 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 await ctx.send("Something went wrong.")
                 await self.bot.log_channel.send(f"Code {resp.status} in koala")
 
-    @commands.command(ignore_extra=True)
-    async def kiss(self, ctx: commands.Context) -> None:
-        """Get a random kiss image."""
-        await self.image_sender(ctx, await self.rand_im("kiss"))
-
-    @commands.command(ignore_extra=True, hidden=True, aliases=["im_nsfw"])
-    async def image_nsfw(self, ctx: commands.Context) -> None:
-        """Retrieve the list of all available NSFW tags."""
-        tag_list = await self.bot.ksoft_client.images.tags()
-        embed = discord.Embed(
-            timestamp=datetime.utcnow(), colour=discord.Colour.random()
-        )
-        embed.add_field(name="NSFW tags", value="\n".join(tag_list.nsfw_tags))
-        embed.set_author(
-            name=ctx.author.display_name, icon_url=str(ctx.author.avatar_url)
-        )
-        await ctx.send(embed=embed)
-
     @commands.command()
     async def monster(self, ctx: commands.Context, *, hashed: str) -> None:
         """Get a monster image from an input."""
@@ -368,44 +266,8 @@ class Images(commands.Cog):  # Thanks KSoft.si
         embed.set_image(url=f"https://robohash.org/{sha(hashed)}.png?set=set2")
         await ctx.send(embed=embed)
 
-    @commands.command(hidden=True, ignore_extra=True)
-    @commands.is_nsfw()
-    async def neko(self, ctx: commands.Context) -> None:
-        """Get a random neko image."""
-        await self.image_sender(ctx, await self.rand_im("neko", nsfw=True))
-
-    @commands.command(hidden=True, ignore_extra=True)
-    @commands.is_nsfw()
-    async def nsfw(self, ctx: commands.Context) -> None:
-        """Retrieve random NSFW pics.
-
-        To find the other NSFW commands :
-        use im_nsfw or reddit with an NSFW subreddit
-        """
-        async with self.bot.aio_session.get(
-            "https://api.ksoft.si/images/random-nsfw",
-            headers={"Authorization": f"Bearer {self.bot.ksoft_client.api_key}"},
-        ) as response:
-            await self.reddit_sender(
-                ctx,
-                Redditwrapper(await response.json()),
-            )
-
-    @commands.command(ignore_extra=True)
-    async def meme(self, ctx: commands.Context) -> None:
-        """Retrieve a random meme from Reddit."""
-        await self.reddit_sender(
-            ctx,
-            await self.bot.ksoft_client.images.random_meme(),
-        )
-
-    @commands.command(ignore_extra=True)
-    async def pat(self, ctx: commands.Context) -> None:
-        """Get a random pat image."""
-        await self.image_sender(ctx, await self.rand_im("pat"))
-
     @commands.command()
-    async def panda(self, ctx) -> None:
+    async def panda(self, ctx: commands.Context) -> None:
         """Get a random picture of a panda."""
         async with self.bot.aio_session.get(
             "https://some-random-api.ml/img/panda"
@@ -422,106 +284,11 @@ class Images(commands.Cog):  # Thanks KSoft.si
                 await ctx.send(f"Something went boom! :( [CODE: {resp.status}]")
                 await self.bot.log_channel.send(f"Code {resp.status} in panda")
 
-    @commands.command(ignore_extra=True)
-    async def pepe(self, ctx: commands.Context) -> None:
-        """Get a random pepe image."""
-        await self.image_sender(ctx, await self.rand_im("pepe"))
-
-    @commands.command()
-    async def reddit(self, ctx: commands.Context, subreddit: str) -> None:
-        """Retrieve images from the specified subreddit.
-
-        This command may return NSFW results only in NSFW channels
-        """
-        sub = subreddit.split("r/")[-1]
-        try:
-            async with self.bot.aio_session.get(
-                f"https://api.ksoft.si/images/rand-reddit/{sub}",
-                headers={"Authorization": (
-                    f"Bearer {self.bot.ksoft_client.api_key}")},
-                params={
-                    "remove_nsfw": str(not check_channel(ctx.channel)),
-                    "span": "week",
-                },
-            ) as response:
-                await self.reddit_sender(
-                    ctx,
-                    Redditwrapper(await response.json()),
-                )
-        except Exception:
-            await ctx.send("Subreddit not found")
-
     @commands.command()
     async def robot(self, ctx: commands.Context, *, hashed: str) -> None:
         """Get a robot image from an input."""
         embed = discord.Embed(title=hashed)
         embed.set_image(url=f"https://robohash.org/{sha(hashed)}.png?set=set1")
-        await ctx.send(embed=embed)
-
-    @commands.command(ignore_extra=True)
-    async def tickle(self, ctx: commands.Context) -> None:
-        """Get a random tickle image."""
-        await self.image_sender(ctx, await self.rand_im("tickle"))
-
-    @commands.command(ignore_extra=True)
-    async def wikihow(self, ctx: commands.Context) -> None:
-        """Retrieve a weird image from WikiHow."""
-        image = await self.bot.ksoft_client.images.random_wikihow()
-        embed = discord.Embed(
-            title=image.title,
-            url=image.article_url,
-            colour=discord.Colour.blue(),
-        )
-        embed.set_image(url=image.url)
-        await ctx.send(embed=embed)
-
-    async def rand_im(self, tag: str, nsfw: bool = False) -> object:
-        """Random image lol."""
-        try:
-            return await self.bot.ksoft_client.images.random_image(tag=tag, nsfw=nsfw)
-        except Exception:
-            return PicError()
-
-    async def image_sender(self, ctx: commands.Context, image: Image) -> None:
-        """Embeds an image then sends it."""
-        if hasattr(image, "code"):
-            await self.bot.httpcat(ctx, image["code"])
-            return
-        if not image.url:
-            await self.bot.httpcat(ctx, 404)
-            return
-        embed = discord.Embed(
-            title=image.tag,
-            timestamp=datetime.utcnow(),
-            colour=discord.Colour.blue(),
-        )
-        embed.set_image(url=image.url)
-        await ctx.send(embed=embed)
-
-    async def reddit_sender(self, ctx: commands.Context, image: RedditImage) -> None:
-        """Embeds a Reddit image then sends it."""
-        if hasattr(image, "error"):
-            await ctx.send(image.message)
-            return
-        embed = discord.Embed(
-            title=image.title,
-            url=image.source,
-            timestamp=datetime.fromtimestamp(image.created_at),
-            colour=discord.Colour.blue(),
-        )
-        if not image.image_url:
-            await self.bot.httpcat(ctx, 404)
-            return
-        embed.set_image(url=image.image_url)
-        embed.set_footer(
-            text=(
-                f"👍 {image.upvotes} | 👎 {image.downvotes} |" f" 💬 {image.comments}")
-        )
-        embed.set_author(
-            name=f"Posted by {image.author} in {image.subreddit}",
-            icon_url="https://i.redd.it/qupjfpl4gvoy.jpg",
-            url="https://reddit.com" + image.author,
-        )
         await ctx.send(embed=embed)
 
 

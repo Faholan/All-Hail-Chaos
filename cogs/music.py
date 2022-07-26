@@ -159,6 +159,7 @@ class Music(commands.Cog):
                 ctx.guild.id,
                 endpoint=str(ctx.guild.region),
             )
+            await sleep(1)
 
         # Create returns a player if one exists, otherwise creates.
 
@@ -198,8 +199,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_connected:
-            embed = discord.Embed(title="Not connected.",
-                                  colour=discord.Colour.red())
+            embed = discord.Embed(title="Not connected.", colour=discord.Colour.red())
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
             return
