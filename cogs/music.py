@@ -56,8 +56,7 @@ def rq_check(ctx: commands.Context) -> bool:
     player = ctx.bot.lavalink.player_manager.get(ctx.guild.id)
     if player and player.is_playing:
         return ctx.author.id == player.current.requester or (
-            ctx.author.guild_permissions.mute_members
-        )
+            ctx.author.guild_permissions.mute_members)
     return False
 
 
@@ -175,8 +174,7 @@ class Music(commands.Cog):
                 return
 
             permissions = ctx.author.voice.channel.permissions_for(
-                ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id)
-            )
+                ctx.me or await ctx.guild.fetch_member(ctx.bot.user.id))
 
             if not permissions.connect or not permissions.speak:
                 await ctx.send("I need the `CONNECT` and `SPEAK` permissions.")
@@ -199,15 +197,15 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_connected:
-            embed = discord.Embed(title="Not connected.", colour=discord.Colour.red())
+            embed = discord.Embed(title="Not connected.",
+                                  colour=discord.Colour.red())
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
             return
 
         if not ctx.author.voice or (
-            player.is_connected
-            and ctx.author.voice.channel.id != int(player.channel_id)
-        ):
+                player.is_connected
+                and ctx.author.voice.channel.id != int(player.channel_id)):
             embed = discord.Embed(
                 title="Please get in my voicechannel first.",
                 colour=discord.Colour.red(),
@@ -232,7 +230,8 @@ class Music(commands.Cog):
         """List the first 10 search results from a given query."""
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
-        if not query.startswith("ytsearch:") and not query.startswith("scsearch:"):
+        if not query.startswith("ytsearch:") and not query.startswith(
+                "scsearch:"):
             query = "ytsearch:" + query
 
         results = await player.node.get_tracks(query)
@@ -277,9 +276,8 @@ class Music(commands.Cog):
             dur = int(player.current.duration / 1000)
         progressbar = "\n" + self.get_bar(cur, dur) if (cur and dur) else ""
         other = f"{(REPEAT_EMOJI if player.repeat else 'Repeat OFF')} | {(SHUFFLE_EMOJI if player.shuffle else 'Shuffle OFF')}"
-        cleaned_title = await (commands.clean_content(escape_markdown=True)).convert(
-            ctx, player.current.title
-        )
+        cleaned_title = await (commands.clean_content(
+            escape_markdown=True)).convert(ctx, player.current.title)
         song = f"**[{cleaned_title}]({player.current.uri})**\n({position}/{duration}){progressbar}\n{other}"
 
         embed = discord.Embed(
@@ -337,9 +335,7 @@ class Music(commands.Cog):
             await ctx.send("Nothing found!")
             return
 
-        embed = discord.Embed(
-            colour=discord.Colour.green(),
-        )
+        embed = discord.Embed(colour=discord.Colour.green(), )
 
         if results["loadType"] == "PLAYLIST_LOADED":
             tracks = results["tracks"]
@@ -359,8 +355,7 @@ class Music(commands.Cog):
             embed.title = f"{PLAY_EMOJI} | Track Enqueued"
             other = f"{(REPEAT_EMOJI if player.repeat else 'Repeat OFF')} | {(SHUFFLE_EMOJI if player.shuffle else 'Shuffle OFF')}"
             embed.description = (
-                f"[{track['info']['title']}]({track['info']['uri']})\n{other}"
-            )
+                f"[{track['info']['title']}]({track['info']['uri']})\n{other}")
             embed.set_image(
                 url=f"https://img.youtube.com/vi/{track['info']['identifier']}/hqdefault.jpg",
             )
@@ -443,8 +438,8 @@ class Music(commands.Cog):
         removed = player.queue.pop(index - 1)  # Account for 0-index.
 
         embed = discord.Embed(
-            title=f"Removed **{removed.title}** from the queue.", colour=0xFFFF00
-        )
+            title=f"Removed **{removed.title}** from the queue.",
+            colour=0xFFFF00)
         self.formatter(embed, ctx)
         await ctx.send(embed=embed)
 
@@ -465,8 +460,8 @@ class Music(commands.Cog):
 
         player.repeat = not player.repeat
         embed = discord.Embed(
-            title=f"{REPEAT_EMOJI} | Repeat "
-            + ("enabled" if player.repeat else "disabled"),
+            title=f"{REPEAT_EMOJI} | Repeat " +
+            ("enabled" if player.repeat else "disabled"),
             colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)
@@ -481,7 +476,8 @@ class Music(commands.Cog):
 
         raw_seconds = time_rx.search(time)
         if not raw_seconds:
-            await ctx.send("You need to specify the amount of seconds to skip!")
+            await ctx.send("You need to specify the amount of seconds to skip!"
+                           )
             return
 
         seconds = int(raw_seconds.group()) * 1000
@@ -490,7 +486,8 @@ class Music(commands.Cog):
         track_time = player.position + seconds
         await player.seek(track_time)
 
-        await ctx.send(f"Moved track to **{lavalink.utils.format_time(track_time)}**")
+        await ctx.send(
+            f"Moved track to **{lavalink.utils.format_time(track_time)}**")
 
     @commands.command()
     @commands.cooldown(1, 2, commands.BucketType.user)
@@ -499,16 +496,15 @@ class Music(commands.Cog):
         """Shuffle the player's queue."""
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         if not player.is_playing:
-            embed = discord.Embed(
-                title=f"{PAUSE_EMOJI} | Nothing playing.", colour=discord.Colour.red()
-            )
+            embed = discord.Embed(title=f"{PAUSE_EMOJI} | Nothing playing.",
+                                  colour=discord.Colour.red())
             self.formatter(embed, ctx)
             await ctx.send(embed=embed)
             return
         player.shuffle = not player.shuffle
         embed = discord.Embed(
-            title=f"{SHUFFLE_EMOJI} | Shuffle "
-            + ("enabled" if player.shuffle else "disabled"),
+            title=f"{SHUFFLE_EMOJI} | Shuffle " +
+            ("enabled" if player.shuffle else "disabled"),
             colour=discord.Colour.blue(),
         )
         self.formatter(embed, ctx)

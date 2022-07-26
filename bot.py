@@ -94,7 +94,8 @@ class ChaoticBot(commands.Bot):
         self.load_extension("data.data")
         # You can load an extension only after __init__ has been called
         if not self.log_channel_id:
-            raise ValueError("No log channel configured. One is required to proceed")
+            raise ValueError(
+                "No log channel configured. One is required to proceed")
 
         if self.dbl_token:
             self.dbl_client = dbl.DBLClient(
@@ -109,14 +110,13 @@ class ChaoticBot(commands.Bot):
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""
         await self.change_presence(
-            activity=discord.Game(f"{self.default_prefix}help"),
-        )
+            activity=discord.Game(f"{self.default_prefix}help"), )
         if self.first_on_ready:
             self.first_on_ready = False
 
-            self.pool = await asyncpg.create_pool(
-                min_size=20, max_size=100, **self.postgre_connection
-            )
+            self.pool = await asyncpg.create_pool(min_size=20,
+                                                  max_size=100,
+                                                  **self.postgre_connection)
             # postgresql setup
 
             query = "SELECT * FROM public.prefixes"
@@ -128,7 +128,8 @@ class ChaoticBot(commands.Bot):
             self.aio_session = aiohttp.ClientSession()
 
             self.log_channel = self.get_channel(self.log_channel_id)
-            self.suggestion_channel = self.get_channel(self.suggestion_channel_id)
+            self.suggestion_channel = self.get_channel(
+                self.suggestion_channel_id)
             # Load the channels
 
             report = []
@@ -142,8 +143,7 @@ class ChaoticBot(commands.Bot):
                     except commands.ExtensionFailed as error:
                         report.append(
                             f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})"
-                        )
+                            f"({type(error.original)} : {error.original})")
                     except commands.ExtensionNotFound:
                         report.append(f"❌ | **Extension not found** : `{ext}`")
                     except commands.NoEntryPointError:
@@ -155,8 +155,7 @@ class ChaoticBot(commands.Bot):
                 title=(
                     f"{success} extensions were loaded & "
                     f"{len(self.extensions_list) - success} extensions were "
-                    "not loaded"
-                ),
+                    "not loaded"),
                 description="\n".join(report),
                 colour=discord.Colour.green(),
             )
@@ -202,16 +201,17 @@ class ChaoticBot(commands.Bot):
                         try:
                             self.reload_extension(ext)
                             success += 1
-                            report.append(f"✅ | **Extension reloaded** : `{ext}`")
+                            report.append(
+                                f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
                             success += 1
-                            report.append(f"✅ | **Extension loaded** : `{ext}`")
+                            report.append(
+                                f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as error:
                         report.append(
                             f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})"
-                        )
+                            f"({type(error.original)} : {error.original})")
                     except commands.ExtensionNotFound:
                         report.append(f"❌ | **Extension not found** : `{ext}`")
                     except commands.NoEntryPointError:
@@ -231,8 +231,7 @@ class ChaoticBot(commands.Bot):
                 except commands.ExtensionFailed as error:
                     report.append(
                         f"❌ | **Extension error** : `{ext}` "
-                        f"({type(error.original)} : {error.original})"
-                    )
+                        f"({type(error.original)} : {error.original})")
                 except commands.ExtensionNotFound:
                     report.append(f"❌ | **Extension not found** : `{ext}`")
                 except commands.NoEntryPointError:
@@ -244,8 +243,7 @@ class ChaoticBot(commands.Bot):
                 f"{'extension was' if success == 1 else 'extensions were'} "
                 f"loaded & {total_reload - success} "
                 f"{'extension was' if not_loaded == 1 else 'extensions were'}"
-                " not loaded"
-            ),
+                " not loaded"),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
@@ -263,7 +261,8 @@ class ChaoticBot(commands.Bot):
         # actual processing
         if message.content.startswith("¤") and not_print:
             return "¤"  # Hardcoded secret prefix. Because, that's why
-        if message.content.startswith(f"{self.default_prefix}help") and not_print:
+        if message.content.startswith(
+                f"{self.default_prefix}help") and not_print:
             return self.default_prefix
         return self.prefix_dict.get(self.get_id(message), self.default_prefix)
 
@@ -275,28 +274,27 @@ class ChaoticBot(commands.Bot):
         description: str = discord.Embed.Empty,
     ) -> None:
         """Funny error picture."""
-        embed = discord.Embed(
-            title=title, colour=discord.Colour.red(), description=description
-        )
+        embed = discord.Embed(title=title,
+                              colour=discord.Colour.red(),
+                              description=description)
         embed.set_image(url=f"https://http.cat/{code}.jpg")
         try:
             await ctx.send(embed=embed)
         except discord.Forbidden:
             pass
 
-    async def fetch_answer(
-        self, ctx: commands.Context, *content, timeout: int = 30
-    ) -> discord.Message:
+    async def fetch_answer(self,
+                           ctx: commands.Context,
+                           *content,
+                           timeout: int = 30) -> discord.Message:
         """Get an answer."""
 
         # Helper function for getting an answer in a set of possibilities
         def check(message: discord.Message) -> bool:
             """Check the message."""
-            return (
-                message.author == ctx.author
-                and (message.channel == ctx.channel)
-                and message.content.lower() in content
-            )
+            return (message.author == ctx.author
+                    and (message.channel == ctx.channel)
+                    and message.content.lower() in content)
 
         return await self.wait_for("message", check=check, timeout=timeout)
 
@@ -313,7 +311,11 @@ class ChaoticBot(commands.Bot):
 
         def check(payload: discord.RawReactionActionEvent) -> bool:
             """Decide whether or not to process the reaction."""
-            return (payload.message_id, payload.channel_id, payload.user_id,) == (
+            return (
+                payload.message_id,
+                payload.channel_id,
+                payload.user_id,
+            ) == (
                 message.id,
                 message.channel.id,
                 ctx.author.id,
