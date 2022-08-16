@@ -210,11 +210,11 @@ class MusicView(ui.View):
         if not player.queue:
             self.children[2].disabled = True
         if player.repeat:
-            self.children[3].style = discord.ButtonStyle.secondary
-        if player.repeat_once:
             self.children[4].style = discord.ButtonStyle.secondary
-        if player.shuffle:
+        if player.repeat_once:
             self.children[5].style = discord.ButtonStyle.secondary
+        if player.shuffle:
+            self.children[6].style = discord.ButtonStyle.secondary
 
     @ui.button(emoji="\U000023ee\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def previous(self, _: discord.Interaction, __: ui.Button) -> None:
