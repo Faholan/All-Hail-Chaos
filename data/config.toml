@@ -1,0 +1,92 @@
+[bot]
+token = ""
+log_channel_id = 0
+extensions = [
+    "cogs.animals",
+    "cogs.business",
+    "cogs.funny",
+    # "cogs.games",
+    "cogs.image",
+    "cogs.moderation",
+    "cogs.music",
+    "cogs.nasa",
+    "cogs.owner",
+    "cogs.success",
+    "cogs.tags",
+    "cogs.utility",
+    "bin.error",
+    "bin.help",
+    "bin.markdown",
+]
+invite_permissions = 808527942
+support = "https://discord.gg/eFfjdyZ"  # Optional, but recommended
+privacy = "https://github.com/Faholan/All-Hail-Chaos/blob/master/PRIVACY.md"  # Optional
+
+[intents]  # https://discordpy.readthedocs.io/en/latest/api.html#intents
+guilds = true  # Recommended
+bans = false
+emoji = false
+integrations = false
+webhooks = false
+invites = false
+voice_states = true
+guild_messages = false
+dm_messages = false
+guild_reactions = false
+dm_reactions = false
+guild_typing = false
+dm_typing = false
+guild_scheduled_events = false
+auto_moderation_configuration = false
+auto_moderation_execution = false
+
+# Privileged intents
+members = false
+presences = false
+message_content = false
+
+
+[database]
+type = "none"  # Options : "none", "postgres"
+# If "none", the subsequent options are ignored.
+host = "localhost"
+port = 5432
+dbname = "chaotic"
+user = "chaotic"
+password = "*****"
+
+# Additional configuration
+
+[github]
+link = "https://github.com/Faholan/All-Hail-Chaos"
+
+[[lavalink_nodes]]
+host = "localhost"
+port = 2233
+password = "*****"
+region = "eu"
+resume_key = "default_node"
+
+[apis]
+discord_rep = ""
+nasa = ""
+
+[[bot_lists]]
+name = "top.gg"
+token = ""
+page = ""
+
+[[bot_lists]]
+name = "discord.bots.gg"
+token = ""
+page = ""
+
+[[bot_lists]]
+name = "bots.ondiscord.xyz"
+token = ""
+page = ""
+
+[[bot_lists]]
+name = "discordbotlist.com"
+token = ""
+page = ""

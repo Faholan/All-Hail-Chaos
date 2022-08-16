@@ -28,6 +28,7 @@ from random import choice, randint
 
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 HitReturn = t.Tuple[str, str, str, str]
 
@@ -203,8 +204,7 @@ def fumble(
     attacking: Fighter, _: Fighter, weapon_list: t.List[str]
 ) -> t.Tuple[HitReturn, HitReturn]:
     """Oh shit."""
-    message, damage, attack, url = attacking.hit(
-        choice(weapon_list).split("|"))
+    message, damage, attack, url = attacking.hit(choice(weapon_list).split("|"))
     return (
         (
             "{attacking} just hurt himself !",
@@ -324,62 +324,66 @@ chaos: t.List[t.Callable[[Fighter, Fighter, t.List[str]], t.Tuple[HitReturn, ...
 ]
 
 
-class Funny(commands.Cog):
+class Funny(commands.GroupCog):
     """Some funny commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Funny."""
         self.bot = bot
 
-    @commands.command()
-    async def chuck(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def chuck(self, interaction: discord.Interaction) -> None:
         """Get a random Chuck Norris joke."""
         if randint(0, 1):
             async with self.bot.aio_session.get(
                 "https://api.chucknorris.io/jokes/random"
             ) as response:
                 joke = await response.json()
-                await ctx.send(joke["value"])
+                await interaction.response.send_message(joke["value"])
             return
-        if ctx.guild and not ctx.channel.is_nsfw():
+
+        # TODO : Fix for threads & shit
+        if interaction.guild_id and not interaction.channel.is_nsfw():
             url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
             async with self.bot.aio_session.get(url) as response:
                 joke = await response.json()
-                await ctx.send(joke["value"]["joke"])
+                await interaction.response.send_message(joke["value"]["joke"])
             return
         async with self.bot.aio_session.get(
             "http://api.icndb.com/jokes/random"
         ) as response:
             joke = await response.json()
-            await ctx.send(joke["value"]["joke"].replace("&quote", '"'))
+            await interaction.response.send_message(
+                joke["value"]["joke"].replace("&quote", '"')
+            )
 
-    @commands.command()
-    async def dad(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def dad(self, interaction: discord.Interaction) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
             "https://icanhazdadjoke.com/slack"
         ) as response:
             joke = await response.json()
-            await ctx.send(joke["attachments"][0]["text"])
+            await interaction.response.send_message(joke["attachments"][0]["text"])
 
-    @commands.command()
+    @app_commands.command()
     async def dong(
         self,
-        ctx: commands.Context,
+        ctx: discord.Interaction,
         dick: t.Optional[discord.Member] = None,
     ) -> None:
         """How long is this person's dong."""
         dickfinal = dick or ctx.author
-        await ctx.send(
+        await interaction.response.send_message(
             f"{dickfinal.mention}'s magnum dong is this long : 8"
             f"{'=' * randint(0, 10)}>"
         )
 
-    @commands.command(ignore_extra=True)
-    async def excuse(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def excuse(self, interaction: discord.Interaction) -> None:
         """We all do mishaps, and we all need a good excuse once in a while."""
         newline = "\n"  # One cannot use backslash in a f-string
-        await ctx.send(
+        await interaction.response.send_message(
             "I'm sorry master... it's because "
             f"{choice(excuses[0].split('|')).strip(newline)} "
             f"{choice(excuses[1].split('|')).strip(newline)} in "
@@ -390,9 +394,9 @@ class Funny(commands.Cog):
             "so it's not my fault !"
         )
 
-    @commands.command(aliases=["baston"])
-    @commands.guild_only()
-    @commands.max_concurrency(1, commands.BucketType.guild)
+    # TODO : work on that
+    # @app_commands.command(aliases=["baston"])
+    # @app_commands.guild_only()
     async def fight(
         self,
         ctx: commands.Context,
@@ -456,8 +460,7 @@ class Funny(commands.Cog):
                     colour=discord.Colour.blurple(),
                 )
                 embed.set_thumbnail(url=next_player.avatar_url)
-                embed.add_field(name="Remaining HP :",
-                                value=str(next_player.pv))
+                embed.add_field(name="Remaining HP :", value=str(next_player.pv))
                 await ctx.send(embed=embed)
                 if next_player.pv > 0 and fight[0].pv > 0:
 
@@ -497,8 +500,8 @@ class Funny(commands.Cog):
                         f"{fight[0].display_name}. What a show !"
                     )
 
-    # @commands.command()
-    async def joke(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def joke(self, interaction: discord.Interaction) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
             "https://mrwinson.me/api/jokes/random"
@@ -508,129 +511,26 @@ class Funny(commands.Cog):
                 embed = discord.Embed(
                     description=data["joke"], colour=discord.Colour.gold()
                 )
-                await ctx.send(embed=embed)
+                await interaction.response.send_message(embed=embed)
             else:
-                await ctx.send("Something went wrong.")
+                await interaction.response.send_message("Something went wrong.")
                 await self.bot.log_channel.send(f"Code {resp.status} in joke")
 
-    @commands.command()
+    @app_commands.command()
     async def kill(
         self,
-        ctx: commands.Context,
-        kill: str,
-        *kills: str,
+        interaction: discord.Interaction,
+        target: str,
     ) -> None:
-        """Just in case you wanna kill your neighbour.
-
-        If you have an idea for an horrible death, use €suggestion fight [idea]
-        """
-        await ctx.send(
-            "\n".join(
-                [
-                    choice(death).format(
-                        author=ctx.message.author.display_name,
-                        victim=dead,
-                    )
-                    for dead in [kill] + list(kills)
-                ]
+        """Just in case you wanna kill your neighbour."""
+        await interaction.response.send_message(
+            choice(death).format(
+                author=interaction.user.display_name,
+                victim=target,
             )
         )
 
-    @commands.command(aliases=["dice"])
-    async def roll(self, ctx: commands.Context, *, expr: str) -> None:
-        """To roll dices.
 
-        Syntax example : €roll 1d5+7 - 3d8 (whitespaces are ignored)
-        """
-        expr = expr.replace(" ", "")
-        char = [str(i) for i in range(10)] + ["d", "+", "-"]
-        for character in expr:
-            if character not in char:
-                await ctx.send(
-                    f"Invalid character : `{character}` at position "
-                    f"`{expr.index(character)}`"
-                )
-                return
-        if not expr[0].isdigit() or not expr[-1].isdigit():
-            await ctx.send("The first and last characters must be digits")
-            return
-        before = ""
-        after = ""
-        sign = "+"
-        total: t.List[t.Union[str, t.List[str]]] = []
-        for i in expr:
-            if i == "d":
-                if after:
-                    await ctx.send(
-                        "The expression you enterded isn't valid (d "
-                        "character used while rolling dice)"
-                    )
-                    return
-                after = "+"
-            elif i.isdigit():
-                if after:
-                    after += i
-                else:
-                    before += i
-            else:
-                if before == "" or after == "+":
-                    await ctx.send("You cannot roll empty dices or empty times a dice")
-                    return
-                if after == "":
-                    total.append(sign + before)
-                    before = ""
-                    sign = i
-                elif int(after) == 0:
-                    await ctx.send("You cannot roll a 0-dice")
-                    return
-                else:
-                    total.append(
-                        [sign + str(randint(1, int(after)))
-                         for _ in range(int(before))]
-                    )
-                    after = ""
-                    before = ""
-                    sign = i
-        if before == "":
-            await ctx.send("You cannot roll empty dices or empty times a dice")
-            return
-        if after == "":
-            total.append(sign + before)
-        elif int(after) == 0:
-            await ctx.send("You cannot roll a 0-dice")
-            return
-        else:
-            total.append(
-                [sign + str(randint(1, int(after)))
-                 for _ in range(int(before))]
-            )
-        await ctx.send(self.summer(total, ctx.author.mention))
-
-    @staticmethod
-    def summer(number_list: t.List[t.Union[str, t.List[str]]], author: str) -> str:
-        """Sum dices."""
-        k: t.List[str] = []
-        total = 0
-        for number in number_list:
-            if isinstance(number, str):
-                k.append(str(int(number)))
-                total += int(number)
-            elif len(number) == 1:
-                total += int(number[0])
-                k.append(str(int(number[0])))
-            else:
-                plus = sum([int(i) for i in number])
-                k.append(
-                    "".join([f"{j[0]} {j[1:]} " for j in number])[
-                        1:] + f"= {plus}"
-                )
-                total += plus
-        nice_print = ",   ".join(k)
-        if not nice_print[0].isdigit():
-            nice_print = nice_print[1:]
-        return f"{author} rolled **{total}**. ({nice_print})"
-
-
-def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     """Load the Funny cog."""
-    bot.add_cog(Funny(bot))
+    await bot.add_cog(Funny(bot))

@@ -26,12 +26,13 @@ from random import randint
 from time import time
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 
 def p_vol(streak: int) -> float:
     """Return the probability of stealing based off the strek."""
-    return 75 - (25 * 0.8 ** streak)
+    return 75 - (25 * 0.8**streak)
 
 
 class Businessguy:
@@ -136,94 +137,106 @@ class Businessguy:
         return stolen
 
 
-class Business(commands.Cog):
+class Business(commands.GroupCog):
     """Some commands involving money."""
 
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Business."""
         self.bot = bot
 
-    async def _fetcher(self, identifier: int, database: t.Any) -> t.Dict[str, t.Any]:
+    async def _fetcher(self, identifier: int, connection: t.Any) -> t.Dict[str, t.Any]:
         """Fetch the guy's data."""
-        return await database.fetchrow(
-            "SELECT * FROM public.business WHERE id=$1",
-            identifier,
-        )
+        return await (
+            await connection.execute(
+                "SELECT * FROM public.business WHERE id=$1",
+                identifier,
+            )
+        ).fetchone()
 
-    @commands.command(ignore_extra=True)
-    @commands.cooldown(1, 86400, commands.BucketType.user)
-    async def daily(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    @app_commands.checks.cooldown(1, 86400)
+    async def daily(self, interaction: discord.Interaction) -> None:
         """Get your daily GP (100 * streak, max : 500)."""
-        async with self.bot.pool.acquire(timeout=5) as database:
+        async with self.bot.pool.connection() as connection:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database),
-                ctx.author,
-                database,
+                await self._fetcher(interaction.user.id, connection),
+                interaction.user,
+                connection,
             )
-            await ctx.send(await business.daily())
+            await interaction.response.send_message(await business.daily())
 
-    @commands.command()
-    async def deposit(self, ctx: commands.Context, money: int) -> None:
+    @app_commands.command()
+    async def deposit(self, interaction: discord.Interaction, money: int) -> None:
         """Deposit your money in a safe at the bank."""
-        async with self.bot.pool.acquire(timeout=5) as database:
+        async with self.bot.pool.connection() as connection:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database),
-                ctx.author,
-                database,
+                await self._fetcher(interaction.user.id, connection),
+                interaction.user,
+                connection,
             )
-            await ctx.send(await business.deposit(money))
+            await interaction.response.send_message(await business.deposit(money))
 
-    @commands.command(ignore_extra=True)
-    @commands.guild_only()
-    @commands.cooldown(1, 86400, commands.BucketType.guild)
-    async def gift(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.checks.cooldown(
+        1, 86400, key=lambda interaction: interaction.guild_id
+    )
+    async def gift(self, interaction: discord.Interaction) -> None:
         """Get the guild's 500 GP of daily gift."""
-        async with self.bot.pool.acquire(timeout=5) as database:
+        async with self.bot.pool.connection() as connection:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database), ctx.author, database
+                await self._fetcher(interaction.user.id, connection),
+                interaction.user,
+                connection,
             )
-            await ctx.send(await business.gift(ctx.guild.name))
+            await interaction.response.send_message(
+                await business.gift(interaction.guild.name)
+            )
 
-    @commands.command(ignore_extra=True)
-    async def money(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def money(self, interaction: discord.Interaction) -> None:
         """Check how much money you have."""
-        async with self.bot.pool.acquire(timeout=5) as database:
+        async with self.bot.pool.connection(timeout=5) as connection:
             business = Businessguy(
-                await self._fetcher(ctx.author.id, database),
-                ctx.author,
-                database,
+                await self._fetcher(interaction.user.id, connection),
+                interaction.user,
+                connection,
             )
             embed = business.money_out()
-            embed.set_thumbnail(url=str(ctx.bot.user.avatar_url))
-            await ctx.send(embed=embed)
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+            await interaction.response.send_message(embed=embed)
 
-    @commands.command()
-    @commands.cooldown(1, 600, commands.BucketType.user)
-    @commands.guild_only()
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.checks.cooldown(
+        1, 600, key=lambda interaction: (interaction.guild_id, interaction.user.id)
+    )
     async def steal(
         self,
-        ctx: commands.Context,
+        interaction: discord.Interaction,
         victim: discord.Member,
     ) -> None:
         """Stealing is much more gainful than killing."""
-        async with self.bot.pool.acquire(timeout=5) as database:
+        async with self.bot.pool.connection() as connection:
             pickpocket = Businessguy(
-                await self._fetcher(ctx.author.id, database),
-                ctx.author,
-                database,
+                await self._fetcher(interaction.user.id, connection),
+                interaction.user,
+                connection,
             )
             stolen = Businessguy(
-                await self._fetcher(victim.id, database),
+                await self._fetcher(victim.id, connection),
                 victim,
-                database,
+                connection,
             )
             if pickpocket == stolen:
                 self.steal.reset_cooldown(ctx)
-                await ctx.send("Are you seriously tring to steal yourself ?")
+                await interaction.response.send_message(
+                    "Are you seriously tring to steal yourself ?"
+                )
                 return
             if stolen.money == 0:
                 self.steal.reset_cooldown(ctx)
-                await ctx.send(
+                await interaction.response.send_message(
                     f"`{victim.display_name}` doesn't have money on him. "
                     "What a shame."
                 )
@@ -235,7 +248,7 @@ class Business(commands.Cog):
             if randint(1, 100) < threshold:
                 pickpocket.steal_streak = 0
                 await pickpocket.save()
-                await ctx.send(
+                await interaction.response.send_message(
                     "You failed in your attempt to steal "
                     f"{victim.display_name}."
                     " He hit you, so you must now wait 10 minutes to regain "
@@ -244,18 +257,12 @@ class Business(commands.Cog):
             else:
                 self.steal.reset_cooldown(ctx)
                 pickpocket.steal_streak += 1
-                await ctx.send(
+                await interaction.response.send_message(
                     f"You robbed `{await pickpocket.steal(stolen)}` GP from "
                     f"{victim.display_name}"
                 )
 
-    @steal.error
-    async def steal_error(self, ctx: commands.Context, error: Exception):
-        """Mainly, reset the cooldown."""
-        if not isinstance(error, commands.CommandOnCooldown):
-            self.steal.reset_cooldown(ctx)
 
-
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     """Load the Business cog."""
-    bot.add_cog(Business(bot))
+    await bot.add_cog(Business(bot))

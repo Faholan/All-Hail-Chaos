@@ -25,7 +25,12 @@ import typing as t
 from asyncio import all_tasks
 from datetime import datetime
 
+
+import toml
 import aiohttp
+import psycopg_pool
+from discord import app_commands
+
 import asyncpg
 import dbl
 import discord
@@ -36,100 +41,90 @@ from github import Github
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
-    used_intents = discord.Intents(
-        guilds=True,
-        members=False,
-        bans=False,
-        emojis=False,
-        integrations=False,
-        webhooks=False,
-        invites=False,
-        voice_states=True,
-        presences=False,
-        messages=True,
-        reactions=True,
-        typing=False,
-    )
-
-    def __init__(self) -> None:
+    def __init__(self, configpath: str = "data/config.toml") -> None:
         """Initialize the bot."""
-        self.token: t.Optional[str] = None
+        with open(configpath, "r", encoding="utf-8") as file:
+            config = toml.load(file)
 
-        self.default_prefix: str = "sudo "
-        # This is replaced - value isn't important
+        if "bot" not in config:
+            raise ValueError("No bot section in config")
 
-        self.first_on_ready = True
-        # makes it so on_ready behaves differently on first call
-        self.last_update = datetime.utcnow()
-        # used in the info command
+        self.token: str = config["bot"].get("token", "")
+        self.log_channel_id: int = config["bot"].get("log_channel_id", 0)
+        self.extensions_list: t.List[str] = config["bot"].get("extensions", [])
+        self.support: t.Optional[str] = config["bot"].get("support")
+        self.privacy: t.Optional[str] = config["bot"].get("privacy")
+        self.invite_permissions: int = config["bot"].get("invite_permissions", 0)
 
-        self.dbl_token: t.Optional[str] = None
-        self.github_token: t.Optional[str] = None
-        self.ksoft_client: t.Any = None
+        parameters = config.get("database", {})
+        if "type" in parameters:
+            parameters.pop("type")
 
-        self.pool: asyncpg.pool.Pool = None
-        self.postgre_connection: t.Dict[str, t.Any] = {}
-        # PostgreSQL connection
-
-        self.aio_session: aiohttp.ClientSession = None
-        # Used for all internet fetches
-
-        self.log_channel: discord.TextChannel = None
-        self.suggestion_channel: t.Optional[discord.TextChannel] = None
-        self.log_channel_id = 0
-        self.suggestion_channel_id = 0
-        # Important channels
-
-        self.privacy = ""  # Privacy policy
-
-        self.extensions_list: t.List[str] = []
-
-        self.prefix_dict: t.Dict[int, str] = {}
-
-        super().__init__(
-            command_prefix=self.get_m_prefix,
-            intents=self.used_intents,
+        self.pool = psycopg_pool.AsyncConnectionPool(
+            open=False,
+            **parameters,
         )
 
-        self.load_extension("data.data")
-        # You can load an extension only after __init__ has been called
-        if not self.log_channel_id:
-            raise ValueError(
-                "No log channel configured. One is required to proceed")
+        intents = discord.Intents(**config.get("intents", {}))
 
-        if self.dbl_token:
-            self.dbl_client = dbl.DBLClient(
-                self,
-                self.dbl_token,
-                autopost=True,
+        super().__init__(  # type: ignore
+            command_prefix="",  # Not important
+            intents=intents,
+        )
+
+        self.tree = app_commands.CommandTree(self)
+
+        self.log_channel: discord.abc.Messageable
+        self.aio_session: aiohttp.ClientSession
+
+        self.raw_config = config
+
+        # Music
+        self.lavalink_nodes: t.List[t.Dict[str, t.Any]] = config.get(
+            "lavalink_nodes", []
+        )
+
+    async def on_message(self, message: discord.Message) -> None:
+        """Ignore messages (only slash commands used)."""
+        return
+
+    async def setup_hook(self) -> None:
+        """Setup everything."""
+        await self.pool.open()  # type: ignore
+        try:
+            channel = self.get_channel(self.log_channel_id) or await self.fetch_channel(
+                self.log_channel_id
             )
 
-        if self.github_token:
-            self.github = Github(self.github_token)
+            if not isinstance(channel, discord.abc.Messageable):
+                print("LOG CHANNEL NOT MESSAGEABLE !")
+                raise ValueError()
+            self.log_channel = channel
+        except discord.NotFound:
+            print("LOG CHANNEL NOT FOUND !")
+            await self.close()
+        except ValueError:
+            await self.close()
+
+        self.aio_session = aiohttp.ClientSession()
+
+    async def close(self) -> None:
+        """Cleanup upon closing."""
+        await self.pool.close()
+        await super().close()
 
     async def on_ready(self) -> None:
         """Operations processed when the bot's ready."""
         await self.change_presence(
-            activity=discord.Game(f"{self.default_prefix}help"), )
+            activity=discord.Game(f"{self.default_prefix}help"),
+        )
         if self.first_on_ready:
             self.first_on_ready = False
-
-            self.pool = await asyncpg.create_pool(min_size=20,
-                                                  max_size=100,
-                                                  **self.postgre_connection)
-            # postgresql setup
-
-            query = "SELECT * FROM public.prefixes"
-            async with self.pool.acquire(timeout=5) as database:
-                for row in await database.fetch(query):
-                    self.prefix_dict[row["ctx_id"]] = row["prefix"]
-            # Load all prefixes in memory
 
             self.aio_session = aiohttp.ClientSession()
 
             self.log_channel = self.get_channel(self.log_channel_id)
-            self.suggestion_channel = self.get_channel(
-                self.suggestion_channel_id)
+            self.suggestion_channel = self.get_channel(self.suggestion_channel_id)
             # Load the channels
 
             report = []
@@ -143,7 +138,8 @@ class ChaoticBot(commands.Bot):
                     except commands.ExtensionFailed as error:
                         report.append(
                             f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})")
+                            f"({type(error.original)} : {error.original})"
+                        )
                     except commands.ExtensionNotFound:
                         report.append(f"❌ | **Extension not found** : `{ext}`")
                     except commands.NoEntryPointError:
@@ -155,7 +151,8 @@ class ChaoticBot(commands.Bot):
                 title=(
                     f"{success} extensions were loaded & "
                     f"{len(self.extensions_list) - success} extensions were "
-                    "not loaded"),
+                    "not loaded"
+                ),
                 description="\n".join(report),
                 colour=discord.Colour.green(),
             )
@@ -201,17 +198,16 @@ class ChaoticBot(commands.Bot):
                         try:
                             self.reload_extension(ext)
                             success += 1
-                            report.append(
-                                f"✅ | **Extension reloaded** : `{ext}`")
+                            report.append(f"✅ | **Extension reloaded** : `{ext}`")
                         except commands.ExtensionNotLoaded:
                             self.load_extension(ext)
                             success += 1
-                            report.append(
-                                f"✅ | **Extension loaded** : `{ext}`")
+                            report.append(f"✅ | **Extension loaded** : `{ext}`")
                     except commands.ExtensionFailed as error:
                         report.append(
                             f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})")
+                            f"({type(error.original)} : {error.original})"
+                        )
                     except commands.ExtensionNotFound:
                         report.append(f"❌ | **Extension not found** : `{ext}`")
                     except commands.NoEntryPointError:
@@ -231,7 +227,8 @@ class ChaoticBot(commands.Bot):
                 except commands.ExtensionFailed as error:
                     report.append(
                         f"❌ | **Extension error** : `{ext}` "
-                        f"({type(error.original)} : {error.original})")
+                        f"({type(error.original)} : {error.original})"
+                    )
                 except commands.ExtensionNotFound:
                     report.append(f"❌ | **Extension not found** : `{ext}`")
                 except commands.NoEntryPointError:
@@ -243,7 +240,8 @@ class ChaoticBot(commands.Bot):
                 f"{'extension was' if success == 1 else 'extensions were'} "
                 f"loaded & {total_reload - success} "
                 f"{'extension was' if not_loaded == 1 else 'extensions were'}"
-                " not loaded"),
+                " not loaded"
+            ),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
@@ -261,8 +259,7 @@ class ChaoticBot(commands.Bot):
         # actual processing
         if message.content.startswith("¤") and not_print:
             return "¤"  # Hardcoded secret prefix. Because, that's why
-        if message.content.startswith(
-                f"{self.default_prefix}help") and not_print:
+        if message.content.startswith(f"{self.default_prefix}help") and not_print:
             return self.default_prefix
         return self.prefix_dict.get(self.get_id(message), self.default_prefix)
 
@@ -274,27 +271,28 @@ class ChaoticBot(commands.Bot):
         description: str = discord.Embed.Empty,
     ) -> None:
         """Funny error picture."""
-        embed = discord.Embed(title=title,
-                              colour=discord.Colour.red(),
-                              description=description)
+        embed = discord.Embed(
+            title=title, colour=discord.Colour.red(), description=description
+        )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
         try:
             await ctx.send(embed=embed)
         except discord.Forbidden:
             pass
 
-    async def fetch_answer(self,
-                           ctx: commands.Context,
-                           *content,
-                           timeout: int = 30) -> discord.Message:
+    async def fetch_answer(
+        self, ctx: commands.Context, *content, timeout: int = 30
+    ) -> discord.Message:
         """Get an answer."""
 
         # Helper function for getting an answer in a set of possibilities
         def check(message: discord.Message) -> bool:
             """Check the message."""
-            return (message.author == ctx.author
-                    and (message.channel == ctx.channel)
-                    and message.content.lower() in content)
+            return (
+                message.author == ctx.author
+                and (message.channel == ctx.channel)
+                and message.content.lower() in content
+            )
 
         return await self.wait_for("message", check=check, timeout=timeout)
 
@@ -311,11 +309,7 @@ class ChaoticBot(commands.Bot):
 
         def check(payload: discord.RawReactionActionEvent) -> bool:
             """Decide whether or not to process the reaction."""
-            return (
-                payload.message_id,
-                payload.channel_id,
-                payload.user_id,
-            ) == (
+            return (payload.message_id, payload.channel_id, payload.user_id,) == (
                 message.id,
                 message.channel.id,
                 ctx.author.id,

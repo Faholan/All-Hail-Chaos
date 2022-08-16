@@ -408,63 +408,6 @@ class Utility(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("Aborting")
 
-    @commands.command(aliases=["polls"])
-    @commands.guild_only()
-    async def poll(self, ctx: commands.Context, title, *options) -> None:
-        """Make a poll with the given options.
-
-        If an option or the title contains whitespaces, wrap it in quotes.
-        For example :
-        €poll "Which is better?" Lotr "Honor Harrington" "Harry Potter"
-        """
-        if len(options) < 2:
-            await ctx.send("I cannot create a poll with less than two answers."
-                           )
-            return
-        if len(options) > 26:
-            await ctx.send("I cannot create a poll with more than 26 answers.")
-            return
-
-        description = "\n\n\n".join(
-            [f"{POLL_EMOJIS[i]} {value}" for i, value in enumerate(options)])
-
-        if len(description) > 2048:
-            await ctx.send("Error: formatted message is over 2048 characters.")
-            return
-
-        embed = discord.Embed(
-            title=title,
-            colour=discord.Colour.random(),
-            description=description,
-        )
-        embed.timestamp = datetime.utcnow()
-        message = await ctx.send(embed=embed)
-        for i in range(len(options)):
-            await message.add_reaction(POLL_EMOJIS[i])
-
-    @commands.command()
-    @check_administrator()
-    async def prefix(self, ctx: commands.Context, *, pref: str = None) -> None:
-        """Change the bot's prefix for this guild or private channel."""
-        if pref:
-            if pref.startswith(f"{self.bot.default_prefix}help"):
-                await ctx.send(f"You can't use {pref} as a prefix.")
-                return
-            async with self.bot.pool.acquire(timeout=5) as database:
-                ctx_id = self.bot.get_id(ctx)
-                await database.execute(
-                    "INSERT INTO public.prefixes VALUES ($1, $2) ON CONFLICT "
-                    "(ctx_id) DO UPDATE SET prefix=$2",
-                    ctx_id,
-                    pref,
-                )
-                self.bot.prefix_dict[ctx_id] = pref
-                await ctx.send(f"Prefix changed to `{escape_markdown(pref)}`")
-                return
-        old_prefix = escape_markdown(await self.bot.get_m_prefix(
-            ctx.bot, ctx.message, False))
-        await ctx.send(f"The prefix for this channel is `{old_prefix}`")
-
     @commands.command(aliases=["sauce"])
     async def source(
         self,
