@@ -65,7 +65,7 @@ class Owner(commands.Cog):
 
     async def cog_load(self) -> None:
         """Sync the custom commands."""
-        await self.bot.tree.sync()
+        await self.bot.tree.sync(694804646086312026)
 
     @staticmethod
     def cleanup_code(content: str) -> str:
