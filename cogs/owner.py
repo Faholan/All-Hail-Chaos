@@ -41,6 +41,11 @@ class EvalInput(ui.Modal, title="Code input"):
 
     code = ui.TextInput(label="Code", style=discord.TextStyle.paragraph)
 
+    @staticmethod
+    async def on_submit(interaction: discord.Interaction) -> None:
+        """Defer the interaction."""
+        await interaction.response.defer()
+
 
 class ExtensionSelector(ui.Modal, title="Extensions selector"):
 
@@ -53,6 +58,11 @@ class ExtensionSelector(ui.Modal, title="Extensions selector"):
             self.add_option(label=extension)
 
         self.max_values = len(bot.extensions_list)
+
+    @staticmethod
+    async def on_submit(interaction: discord.Interaction) -> None:
+        """Defer the interaction."""
+        await interaction.response.defer()
 
 
 class Owner(commands.Cog):
