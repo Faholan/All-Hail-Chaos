@@ -35,7 +35,6 @@ OPTION_TYPES = {
     discord.AppCommandOptionType.role: "a role",
     discord.AppCommandOptionType.mentionable: "a mention",
     discord.AppCommandOptionType.attachment: "an attached file",
-
 }
 
 
@@ -85,18 +84,18 @@ class CommandTree(app_commands.CommandTree):
             roles: t.List[str] = []
             for role in error.missing_roles:
                 if isinstance(role, int):
-                guild_role = interaction.guild.get_role(role)
-                if guild_role is None:
-                    role = str(role)
-                else:
-                    role = guild_role.name
+                    guild_role = interaction.guild.get_role(role)
+                    if guild_role is None:
+                        role = str(role)
+                    else:
+                        role = guild_role.name
                 roles.append(role)
 
             await self.client.httpcat(
                 interaction,
                 403,
                 f"Sorry, but you need to have one of the following roles to use this command",
-                "-" + "\n-".join(roles)
+                "-" + "\n-".join(roles),
             )
             return
 
@@ -165,7 +164,9 @@ class CommandTree(app_commands.CommandTree):
         )
 
         embed = discord.Embed(colour=0xFF0000)
-        embed.set_author(name=str(interaction.user), icon_url=interaction.user.display_avatar.url)
+        embed.set_author(
+            name=str(interaction.user), icon_url=interaction.user.display_avatar.url
+        )
         embed.title = f"{interaction.user.id} caused an error in {interaction.command}"
         embed.description = f"{type(error).__name__} : {error}"
 
@@ -189,7 +190,8 @@ class CommandTree(app_commands.CommandTree):
         except discord.DiscordException:
             await self.client.log_channel.send(
                 file=discord.File(
-                    StringIO(f"{embed.title}\n\n{embed.description}"), filename="error.md"
+                    StringIO(f"{embed.title}\n\n{embed.description}"),
+                    filename="error.md",
                 )
             )
             # Send errors in files if they are too big
