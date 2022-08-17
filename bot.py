@@ -209,6 +209,9 @@ class ChaoticBot(commands.Bot):
         """Cleanup upon closing."""
         await self.aio_session.close()
         await self.pool.close()
+
+        self.tree.clear_commands(guild=None)
+        await self.tree.sync()
         await super().close()
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
