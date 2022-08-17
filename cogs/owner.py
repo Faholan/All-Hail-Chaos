@@ -55,7 +55,7 @@ class ExtensionSelector(ui.Modal, title="Extensions selector"):
         """Initialize the selector."""
         super().__init__()
         for extension in bot.extensions_list:
-            self.add_option(label=extension)
+            self.extensions.add_option(label=extension)
 
         self.max_values = len(bot.extensions_list)
 
