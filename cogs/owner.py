@@ -63,6 +63,10 @@ class Owner(commands.Cog):
         self.bot = bot
         self._last_result = None
 
+    async def cog_load(self) -> None:
+        """Sync the custom commands."""
+        await self.bot.tree.sync()
+
     @staticmethod
     def cleanup_code(content: str) -> str:
         """Automatically removes code blocks from the code."""
