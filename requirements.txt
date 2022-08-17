@@ -1,4 +1,4 @@
-git+https://github.com/Rapptz/discord.py.git[voice]
+discord.py[voice]@git+https://github.com/Rapptz/discord.py.git
 toml
 psycopg[binary, pool]
 lavalink
