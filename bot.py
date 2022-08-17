@@ -29,6 +29,8 @@ import sys
 import toml
 import aiohttp
 import psycopg_pool
+from psycopg.conninfo import make_conninfo
+from psycopg.rows import dict_row
 
 import discord
 from discord import app_commands
@@ -61,8 +63,9 @@ class ChaoticBot(commands.Bot):
             parameters.pop("type")
 
         self.pool = psycopg_pool.AsyncConnectionPool(
+            make_conninfo(**parameters),
             open=False,
-            **parameters,
+            # row_factory=dict_row,
         )
 
         intents = discord.Intents(**config.get("intents", {}))
