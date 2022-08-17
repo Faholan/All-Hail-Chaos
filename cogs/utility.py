@@ -87,12 +87,38 @@ class Utility(commands.GroupCog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize the utility."""
         self.bot = bot
-        if self.bot.discord_bots:
-            self.discord_bots.start()
-        if self.bot.xyz:
-            self.xyz.start()
-        if self.bot.discord_bot_list:
-            self.discord_bot_list.start()
+        self.top_gg_token = (
+            self.discord_bots_token
+        ) = self.xyz_token = self.discordbotlist_token = None
+
+        for bot_list in self.bot.config.get("bot_lists", []):
+            if not isinstance(bot_list, dict):  # type: ignore
+                continue
+
+            bot_list: t.Dict[str, str]
+
+            if bot_list.get("name") == "top.gg":
+                pass  # Custom top.gg runner I believe
+
+            if bot_list.get("name") == "discord.bots.gg":
+                if self.discord_bots.is_running():
+                    continue
+                self.discord_bots_token = bot_list.get("token")
+                self.discord_bots.start()
+
+            if bot_list.get("name") == "bots.ondiscord.xyz":
+                if self.xyz.is_running():
+                    continue
+
+                self.xyz_token = bot_list.get("token")
+                self.xyz.start()
+
+            if bot_list.get("name") == "discordbotlist.com":
+                if self.discordbotlist.is_running():
+                    continue
+
+                self.discordbotlist_token = bot_list.get("token")
+                self.discordbotlist.start()
 
     @app_commands.command()
     async def add(self, interaction: discord.Interaction) -> None:
@@ -146,7 +172,7 @@ class Utility(commands.GroupCog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
-    async def info(self, ctx: commands.Context) -> None:
+    async def info(self, interaction: discord.Interaction) -> None:
         """Get info about me."""
         link = discord.utils.oauth_url(
             self.bot.user.id,
@@ -207,23 +233,22 @@ class Utility(commands.GroupCog):
             name="GitHub repository",
             value=(f"[It's open source !]({self.bot.github_link})"),
         )
-        embed.add_field(
-            name="Description page :",
-            value=(
-                f"[top.gg page]({self.bot.top_gg})\n"
-                f"[bots on discord page]({self.bot.bots_on_discord})\n"
-                f"[Discord bots page]({self.bot.discord_bots_page})\n"
-                f"[Discord bot list page]({self.bot.discord_bot_list_page})"
-            ),
-            inline=False,
-        )
+        # embed.add_field(
+        #    name="Description page :",
+        #    value=(
+        #        f"[top.gg page]({self.bot.top_gg})\n"
+        #        f"[bots on discord page]({self.bot.bots_on_discord})\n"
+        #        f"[Discord bots page]({self.bot.discord_bots_page})\n"
+        #        f"[Discord bot list page]({self.bot.discord_bot_list_page})"
+        #    ),
+        #    inline=False,
+        # )
         embed.add_field(
             name="Libraries used :",
             value=(
-                "[DiscordRep](https://discordrep.com/) : Reputation\n"
                 '[Lavalink](https://github.com/Frederikam/Lavalink/ "I thank'
                 'chr1sBot for learning about this") : Whole Music Cog'
-                '\n[discord.py](https://discordapp.com/ "More exactly '
+                '\n[discord.py](https://discordpy.readthedocs.io "More exactly '
                 'discord.ext.commands") : Basically this whole bot\n'
                 '[NASA](https://api.nasa.gov/ "Yes I hacked the NASA") : '
                 "Whole NASA Cog"
@@ -332,31 +357,43 @@ class Utility(commands.GroupCog):
     @tasks.loop(minutes=30)
     async def discord_bots(self):
         """Update the profile ont discord.bots.gg."""
+        if not self.discord_bots_token:
+            self.discord_bots.stop()
+            return
+
         await self.bot.aio_session.post(
             f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",
             json={"guildCount": len(self.bot.guilds)},
-            headers={"authorization": self.bot.discord_bots},
+            headers={"authorization": self.discord_bots_token},
         )
 
     @tasks.loop(minutes=30)
     async def xyz(self):
         """Update the profile on bots.ondiscord.xyz."""
+        if not self.xyz_token:
+            self.xyz.stop()
+            return
+
         await self.bot.aio_session.post(
             "https://bots.ondiscord.xyz/bot-api/bots/" f"{self.bot.user.id}/guilds",
             json={"guildCount": len(self.bot.guilds)},
-            headers={"Authorization": self.bot.xyz},
+            headers={"Authorization": self.xyz_token},
         )
 
     @tasks.loop(minutes=30)
-    async def discord_bot_list(self):
+    async def discordbotlist(self):
         """Update the profile on discordbotlist.com."""
+        if not self.discordbotlist_token:
+            self.discordbotlist.stop()
+            return
+
         await self.bot.aio_session.post(
             f"https://discordbotlist.com/api/bots/{self.bot.user.id}/stats",
             json={
                 "guilds": len(self.bot.guilds),
                 "users": sum(guild.member_count for guild in self.bot.guilds),
             },
-            headers={"Authorization": f"Bot {self.bot.discord_bot_list}"},
+            headers={"Authorization": f"Bot {self.discordbotlist_token}"},
         )
 
 

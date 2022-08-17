@@ -54,6 +54,8 @@ class ChaoticBot(commands.Bot):
         self.privacy: t.Optional[str] = config["bot"].get("privacy")
         self.invite_permissions: int = config["bot"].get("invite_permissions", 0)
 
+        self.github_link: str = config.get("github", {}).get("link", "")
+
         parameters = config.get("database", {})
         if "type" in parameters:
             parameters.pop("type")
