@@ -70,7 +70,7 @@ class ChaoticBot(commands.Bot):
 
         intents = discord.Intents(**config.get("intents", {}))
 
-        tree_location: t.Dict[str, str] = config["bot"].get("tree_location")
+        tree_location: t.Dict[str, str] = config["bot"].get("command_tree")
         if tree_location is not None:
             if not isinstance(tree_location, dict):
                 raise ValueError("Tree location must be a table")

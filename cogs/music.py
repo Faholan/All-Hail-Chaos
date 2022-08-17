@@ -285,7 +285,7 @@ async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     """Get the interface for the music player."""
     embed = discord.Embed()  # TODO : FILL ME !!!
 
-    return embed
+    return None
 
 
 @app_commands.guild_only()
@@ -359,7 +359,7 @@ class Music(commands.GroupCog):
 
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
         else:
-            if player.channel_id != user.voice.channel.id:
+            if player.channel_id != interaction.user.voice.channel.id:
                 await interaction.response.send_message(
                     "I'm already in a different voice channel.", ephemeral=True
                 )
