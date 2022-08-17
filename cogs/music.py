@@ -186,7 +186,7 @@ class MusicInput(ui.Modal, title="Music search"):
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Submit the search."""
         await interaction.response.defer()
-        if await self.player.add_query(self, interaction, self.children[0].value):
+        if await self.player.add_query(interaction, self.children[0].value):
             self.stop()
             await interaction.edit_original_response(
                 embed=await get_music_embed(self.player), view=MusicView(self.player)
