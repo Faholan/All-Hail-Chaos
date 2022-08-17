@@ -33,7 +33,8 @@ import typing as t
 import discord
 import humanize
 import psutil
-from discord.ext import commands, menus, tasks
+# from discord.ext import commands, menus, tasks
+from discord.ext import commands, tasks
 
 ZWS = "\u200b"
 POLL_EMOJIS = [chr(0x1F1E6 + i) for i in range(0x1A)]

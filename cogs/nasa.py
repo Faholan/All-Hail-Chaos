@@ -107,7 +107,9 @@ class NASA(commands.GroupCog):
 
     @app_commands.command()
     async def epic(
-        self, interaction: discord.Interaction, max_n: app_commands.Range[int, 1, 10] = 1
+        self,
+        interaction: discord.Interaction,
+        max_n: app_commands.Range[int, 1, 10] = 1,
     ) -> None:
         """Retrieve images from DSCOVR's Earth Polychromatic Imaging Camera.
 
@@ -140,7 +142,7 @@ class NASA(commands.GroupCog):
     @app_commands.command()
     async def mars(
         self,
-        interaction: interaction: discord.Interaction,
+        interaction: discord.Interaction,
         date: str,
         rover: t.Optional[str] = None,
         number: app_commands.Range[int, 1, 10] = 1,

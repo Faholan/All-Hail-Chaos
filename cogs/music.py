@@ -69,7 +69,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
         if not url_rx.match(query):
             query = f"ytsearch:{query}"
 
-        results = await self.not.get_tracks(query)
+        results = await self.get_tracks(query)
 
         if not results or not results["tracks"]:
             await interaction.response.send_message("Nothing found !", ephemeral=True)
@@ -83,7 +83,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
             await interaction.response.send_message(
                 f"Enqueued playlist {results['playlistInfo']['name']} - {len(tracks)} tracks",
-                ephemeral=True
+                ephemeral=True,
             )
         else:
             track = results["tracks"][0]
@@ -187,7 +187,9 @@ class MusicInput(ui.Modal, title="Music search"):
         if await self.player.add_query(self, interaction, self.children[0].value):
             self.stop()
             message = await interaction.original_message()
-            await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+            await message.edit(
+                embed=await get_music_embed(self.player), view=MusicView(self.player)
+            )
 
 
 class MusicView(ui.View):
@@ -217,21 +219,27 @@ class MusicView(ui.View):
         """Go to the previous track."""
         await self.player.previous()
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U000023ef\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def pause_play(self, _: discord.Interaction, __: ui.Button) -> None:
         """Play or pause the player."""
         await self.player.set_pause(not self.player.paused)
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U000023ed\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def next(self, _: discord.Interaction, __: ui.Button) -> None:
         """Go to the next track."""
         await self.player.skip()
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.danger, row=2)
     async def stop(self, _: discord.Interaction, __: ui.Button) -> None:
@@ -245,21 +253,27 @@ class MusicView(ui.View):
         """Toggle repeat."""
         self.player.set_repeat(not self.player.repeat)
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U0001f502", style=discord.ButtonStyle.primary, row=2)
     async def repeat_once(self, _: discord.Interaction, __: ui.Button) -> None:
         """Toggle repeat once."""
         self.player.set_repeat_once(not self.player.repeat_once)
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U0001f500", style=discord.ButtonStyle.primary, row=2)
     async def shuffle(self, _: discord.Interaction, __: ui.Button) -> None:
         """Toggle shuffle."""
         self.player.set_shuffle(not self.player.shuffle)
         message = await interaction.original_message()
-        await message.edit(embed=await get_music_embed(self.player), view=MusicView(self.player))
+        await message.edit(
+            embed=await get_music_embed(self.player), view=MusicView(self.player)
+        )
 
     @ui.button(emoji="\U0001f50e", style=discord.ButtonStyle.primary, row=2)
     async def search(self, interaction: discord.Interaction, __: ui.Button) -> None:
@@ -354,7 +368,9 @@ class Music(commands.GroupCog):
         return True
 
     @app_commands.command(aliases=["p"])
-    async def play(self, interaction: discord.Interaction, query: t.Optional[str]) -> None:
+    async def play(
+        self, interaction: discord.Interaction, query: t.Optional[str]
+    ) -> None:
         """Play music."""
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
@@ -367,14 +383,18 @@ class Music(commands.GroupCog):
         if player.paused:
             await player.set_pause(False)
 
-        await interaction.followup.send(embed=await get_music_embed(player), view=MusicView(player))
+        await interaction.followup.send(
+            embed=await get_music_embed(player), view=MusicView(player)
+        )
 
     @app_commands.command()
     async def np(self, interaction: discord.Interaction) -> None:
         """Check the current status of player."""
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
-        await interaction.response.send_message(embed=await get_music_embed(player), view=MusicView(player))
+        await interaction.response.send_message(
+            embed=await get_music_embed(player), view=MusicView(player)
+        )
 
 
 async def setup(bot: commands.Bot) -> None:

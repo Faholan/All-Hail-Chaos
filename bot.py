@@ -203,7 +203,7 @@ class ChaoticBot(commands.Bot):
             colour=discord.Colour.green(),
         )
         await self.log_channel.send(embed=embed)
-        await ctx.bot.tree.sync()
+        await self.tree.sync()
 
     async def close(self) -> None:
         """Cleanup upon closing."""

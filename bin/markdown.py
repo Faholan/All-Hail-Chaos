@@ -88,6 +88,6 @@ class MarkdownParser(HTMLParser):
         self.output += data
 
 
-def setup(bot) -> None:
+async def setup(bot) -> None:
     """Add the parser to the bot."""
     bot.markdownhtml = MarkdownParser

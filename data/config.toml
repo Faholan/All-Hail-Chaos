@@ -8,12 +8,9 @@ extensions = [
     "cogs.funny",
     # "cogs.games",
     "cogs.image",
-    "cogs.moderation",
     "cogs.music",
     "cogs.nasa",
     "cogs.owner",
-    "cogs.success",
-    "cogs.tags",
     "cogs.utility",
     # "bin.error",
     # "bin.help",
@@ -31,7 +28,7 @@ class_name = "CommandTree"
 [intents]  # https://discordpy.readthedocs.io/en/latest/api.html#intents
 guilds = true  # Recommended
 bans = false
-emoji = false
+emojis = false
 integrations = false
 webhooks = false
 invites = false
