@@ -56,18 +56,6 @@ class SauceSource:
         return embed
 
 
-def check_administrator() -> Callable:
-    """Check for admin rights."""
-
-    def predictate(ctx: commands.Context) -> bool:
-        """Process the check."""
-        if isinstance(ctx.channel, discord.TextChannel):
-            return ctx.channel.permissions_for(ctx.author).administrator
-        return True
-
-    return commands.check(predictate)
-
-
 def secondes(number: int) -> str:
     """Convert a number of seconds in human-readable format."""
     formatted: t.List[str] = []
