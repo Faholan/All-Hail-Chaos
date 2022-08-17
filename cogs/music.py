@@ -69,7 +69,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
         if not url_rx.match(query):
             query = f"ytsearch:{query}"
 
-        results = await self.get_tracks(query)
+        results = await self.node.get_tracks(query)
 
         if not results or not results["tracks"]:
             await interaction.response.send_message("Nothing found !", ephemeral=True)
