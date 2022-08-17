@@ -130,10 +130,8 @@ async def error_manager(
         await ctx.bot.httpcat(
             ctx,
             401,
-            "\n-".join(
-                ["Try again with the following permission(s) :"] +
-                error.missing_perms
-            ),
+            "Try again with the following permission(s)",
+            "\n-".join(error.missing_perms),
         )
         return
     if isinstance(error, commands.BotMissingPermissions):

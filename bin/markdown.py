@@ -21,6 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+# Used in the NASA cog
+
 from html.parser import HTMLParser
 
 from discord.utils import find

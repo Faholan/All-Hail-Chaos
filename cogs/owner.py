@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import asyncio
 import io
 import textwrap
 import traceback
@@ -43,8 +42,6 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         """Initialize Owner."""
         self.bot = bot
         self._last_result = None
-        self._stat_conn: t.Any = None
-        self._stat_lock: t.Any = None
 
     @staticmethod
     def cleanup_code(content: str) -> str:
@@ -62,23 +59,12 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
             return True
         raise OwnerError()
 
-    async def cog_command_error(self, ctx: commands.Context,
-                                error: Exception) -> None:
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         """Call that on error."""
         if isinstance(error, OwnerError):
-            await ctx.bot.httpcat(
-                ctx,
-                401,
-                "Only my owner can use the command " + ctx.invoked_with,
-            )
+            await ctx.send("Only my owner can use the command " + ctx.invoked_with)
             return
         raise error
-
-    def cog_unload(self):
-        """Do some cleanup."""
-        if self._stat_conn:
-            asyncio.create_task(self.bot.pool.release(self._stat_conn))
-        self.bot.remove_listener(self.stats_listener)
 
     @commands.command(name="eval")
     async def _eval(self, ctx: commands.Context, *, body: str) -> None:
@@ -156,11 +142,15 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 name=f"{ctx.author.name}#{ctx.author.discriminator}",
                 icon_url=str(ctx.author.avatar_url),
             )
-            prefix = discord.utils.escape_markdown(await self.bot.get_m_prefix(
-                ctx.message, False))
-            embed.set_footer(text=(
-                f"Use the command `{prefix}block` if you don't want me to"
-                " DM you anymore"), )
+            prefix = discord.utils.escape_markdown(
+                await self.bot.get_m_prefix(ctx.message, False)
+            )
+            embed.set_footer(
+                text=(
+                    f"Use the command `{prefix}block` if you don't want me to"
+                    " DM you anymore"
+                ),
+            )
             try:
                 await user.send(
                     f"Use `{prefix}contact` to answer this message, or click "
@@ -197,8 +187,10 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                     report.append(f"✅ | **Extension loaded** : `{ext}`")
                 success += 1
             except commands.ExtensionFailed as error:
-                report.append(f"❌ | **Extension error** : `{ext}` "
-                              f"({type(error.original)} : {error.original})")
+                report.append(
+                    f"❌ | **Extension error** : `{ext}` "
+                    f"({type(error.original)} : {error.original})"
+                )
             except commands.ExtensionNotFound:
                 report.append(f"❌ | **Extension not found** : `{ext}`")
             except commands.NoEntryPointError:
@@ -206,72 +198,69 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
         failure = total_ext - success
         embed = discord.Embed(
-            title=(f"{success} "
-                   f"{'extension was' if success == 1 else 'extensions were'} "
-                   f"loaded & {failure} "
-                   f"{'extension was' if failure == 1 else 'extensions were'}"
-                   " not loaded"),
+            title=(
+                f"{success} "
+                f"{'extension was' if success == 1 else 'extensions were'} "
+                f"loaded & {failure} "
+                f"{'extension was' if failure == 1 else 'extensions were'}"
+                " not loaded"
+            ),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
+        await ctx.bot.tree.sync()
 
     @commands.command()
     async def reload(self, ctx: commands.Context, *extensions) -> None:
         """Reload extensions."""
-        await self.bot.cog_reloader(ctx, extensions)
+        report: t.List[str] = []
+        success = 0
 
-    @commands.command()
-    async def stats(self, ctx: commands.Context) -> None:
-        """Send stats about the bot's usage."""
-        async with self.bot.pool.acquire() as database:
-            rows = await database.fetch("SELECT * FROM public.stats")
-            embed = discord.Embed(
-                title="Usage stats",
-                colour=discord.Colour.blue(),
-            )
-            embed.set_author(
-                name=ctx.author.display_name,
-                icon_url=str(ctx.author.avatar_url),
-            )
-            records = sorted(
-                rows,
-                key=lambda elem: elem["usage_count"],
-                reverse=True,
-            )[:10]
-            for record in records:
-                embed.add_field(
-                    name=record["command"],
-                    value=record["usage_count"],
-                    inline=False,
-                )
-            await ctx.send(embed=embed)
+        if not extensions:
+            extensions = self.extensions_list
 
-    @commands.Cog.listener("on_command_completion")
-    async def stats_listener(self, ctx: commands.Context) -> None:
-        """Log usage of the bot."""
-        if await ctx.bot.is_owner(ctx.author):  # Do not log owner usage.
-            return
-        if not self._stat_conn:
-            self._stat_conn = await self.bot.pool.acquire()
-            self._stat_lock = asyncio.Lock()
-        async with self._stat_lock:
-            record = await self._stat_conn.fetchrow(
-                "SELECT * FROM public.stats WHERE command=$1",
-                ctx.command.name,
-            )
-            if record:
-                await self._stat_conn.execute(
-                    "UPDATE public.stats SET usage_count=$1 WHERE command=$2",
-                    record["usage_count"] + 1,
-                    ctx.command.name,
-                )
+        total_reload = len(extensions)
+
+        for ext in extensions:
+            if ext in extensions_list:
+                try:
+                    try:
+                        await self.bot.reload_extension(ext)
+                        success += 1
+                        report.append(f"✅ | **Extension reloaded** : `{ext}`")
+                    except commands.ExtensionNotLoaded:
+                        await self.bot.load_extension(ext)
+                        success += 1
+                        report.append(f"✅ | **Extension loaded** : `{ext}`")
+                except commands.ExtensionFailed as error:
+                    report.append(
+                        f"❌ | **Extension error** : `{ext}` "
+                        f"({type(error.original)} : {error.original})"
+                    )
+                except commands.ExtensionNotFound:
+                    report.append(f"❌ | **Extension not found** : `{ext}`")
+                except commands.NoEntryPointError:
+                    report.append(f"❌ | **setup not defined** : `{ext}`")
             else:
-                await self._stat_conn.execute(
-                    "INSERT INTO public.stats VALUES ($1, 1)",
-                    ctx.command.name,
-                )
+                report.append(f"❌ | `{ext}` is not a valid extension")
+
+        not_loaded = total_reload - success
+        embed = discord.Embed(
+            title=(
+                f"{success} "
+                f"{'extension was' if success == 1 else 'extensions were'} "
+                f"loaded & {total_reload - success} "
+                f"{'extension was' if not_loaded == 1 else 'extensions were'}"
+                " not loaded"
+            ),
+            description="\n".join(report),
+            colour=discord.Colour.green(),
+        )
+        await self.bot.log_channel.send(embed=embed)
+        await ctx.send(embed=embed)
+        await ctx.bot.tree.sync()
 
     @commands.command()
     async def unload(self, ctx: commands.Context, *extensions) -> None:
@@ -287,7 +276,7 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         success = 0
         for ext in extensions:
             try:
-                self.bot.unload_extension(ext)
+                await self.bot.unload_extension(ext)
                 success += 1
                 report.append(f"✅ | **Extension unloaded** : `{ext}`")
             except commands.ExtensionNotLoaded:
@@ -295,18 +284,21 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
 
         failure = total_ext - success
         embed = discord.Embed(
-            title=(f"{success} "
-                   f"{'extension was' if success == 1 else 'extensions were'} "
-                   f"unloaded & {failure} "
-                   f"{'extension was' if failure == 1 else 'extensions were'} "
-                   "not unloaded"),
+            title=(
+                f"{success} "
+                f"{'extension was' if success == 1 else 'extensions were'} "
+                f"unloaded & {failure} "
+                f"{'extension was' if failure == 1 else 'extensions were'} "
+                "not unloaded"
+            ),
             description="\n".join(report),
             colour=discord.Colour.green(),
         )
         await self.bot.log_channel.send(embed=embed)
         await ctx.send(embed=embed)
+        await ctx.bot.tree.sync()
 
 
-def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     """Load the Owner cog."""
-    bot.add_cog(Owner(bot))
+    await bot.add_cog(Owner(bot))

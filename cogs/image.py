@@ -20,6 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -32,7 +33,7 @@ def check_channel(channel: discord.abc.Messageable) -> bool:
     return True
 
 
-class Images(commands.GroupCog):  # Thanks KSoft.si
+class Images(commands.GroupCog):
     """Commands to get random images.
 
     You can try using the nsfw command, if you dare

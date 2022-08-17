@@ -22,20 +22,17 @@ SOFTWARE.
 """
 
 import typing as t
-from asyncio import all_tasks
-from datetime import datetime
+import importlib.util
+import sys
 
 
 import toml
 import aiohttp
 import psycopg_pool
-from discord import app_commands
 
-import asyncpg
-import dbl
 import discord
+from discord import app_commands
 from discord.ext import commands
-from github import Github
 
 
 class ChaoticBot(commands.Bot):
@@ -51,6 +48,7 @@ class ChaoticBot(commands.Bot):
 
         self.token: str = config["bot"].get("token", "")
         self.log_channel_id: int = config["bot"].get("log_channel_id", 0)
+        self.suggestion_channel_id: int = config["bot"].get("suggestion_channel_id", 0)
         self.extensions_list: t.List[str] = config["bot"].get("extensions", [])
         self.support: t.Optional[str] = config["bot"].get("support")
         self.privacy: t.Optional[str] = config["bot"].get("privacy")
@@ -67,14 +65,70 @@ class ChaoticBot(commands.Bot):
 
         intents = discord.Intents(**config.get("intents", {}))
 
-        super().__init__(  # type: ignore
-            command_prefix="",  # Not important
-            intents=intents,
-        )
+        tree_location: t.Dict[str, str] = config["bot"].get("tree_location")
+        if tree_location is not None:
+            if not isinstance(tree_location, dict):
+                raise ValueError("Tree location must be a table")
+            if "module_name" not in tree_location:
+                raise ValueError("Invalid tree location (no module name specified)")
+            if "class_name" not in tree_location:
+                raise ValueError("Invalid tree location (no class name specified)")
 
-        self.tree = app_commands.CommandTree(self)
+            module_name = tree_location["module_name"]
+            class_name = tree_location["class_name"]
+            package = tree_location.get("package")
+
+            if (
+                not isinstance(module_name, str)
+                or not isinstance(class_name, str)
+                or not (isinstance(package, str) or package is None)
+            ):
+                raise ValueError(
+                    "Invalid tree location (module_name, class_name and package must be strings)"
+                )
+
+            name = importlib.util.resolve_name(
+                module_name, tree_location.get("package", None)
+            )
+            spec = importlib.util.find_spec(name)
+
+            if spec is None:
+                raise ValueError("Couldn't find the command tree module.")
+
+            lib = importlib.util.module_from_spec(spec)
+            sys.modules[name] = lib
+
+            try:
+                spec.loader.exec_module(lib)
+            except Exception:
+                del sys.modules[name]
+                raise
+
+            try:
+                tree_cls = getattr(lib, tree_location["class_name"])
+            except AttributeError:
+                raise ValueError(
+                    f"No class {tree_location['class_name']} in module {name}"
+                ) from None
+
+            if not isinstance(tree_cls, app_commands.CommandTree):
+                raise ValueError("Command tree class must be a subclass of CommandTree")
+
+            super().__init__(  # type: ignore
+                command_prefix=commands.when_mentioned,
+                intents=intents,
+                tree_cls=tree_cls,
+                help_command=None,
+            )
+        else:
+            super().__init__(  # type: ignore
+                command_prefix=commands.when_mentioned,
+                intents=intents,
+                help_command=None,
+            )
 
         self.log_channel: discord.abc.Messageable
+        self.suggestion_channel: t.Optional[discord.abc.Messageable] = None
         self.aio_session: aiohttp.ClientSession
 
         self.raw_config = config
@@ -86,7 +140,8 @@ class ChaoticBot(commands.Bot):
 
     async def on_message(self, message: discord.Message) -> None:
         """Ignore messages (only slash commands used)."""
-        return
+        if await self.is_owner(message.author):
+            await self.process_commands(message)
 
     async def setup_hook(self) -> None:
         """Setup everything."""
@@ -103,62 +158,53 @@ class ChaoticBot(commands.Bot):
         except discord.NotFound:
             print("LOG CHANNEL NOT FOUND !")
             await self.close()
+            return
         except ValueError:
             await self.close()
+            return
+
+        channel = self.get_channel(self.suggestion_channel_id)
+        if isinstance(channel, discord.abc.Messageable):
+            self.suggestion_channel = channel
 
         self.aio_session = aiohttp.ClientSession()
 
+        report = []
+        success = 0
+        for ext in self.extensions_list:
+            try:
+                await self.load_extension(ext)
+                success += 1
+                report.append(f"✅ | **Extension loaded** : `{ext}`")
+            except commands.ExtensionNotFound:
+                report.append(f"❌ | **Extension not found** : `{ext}`")
+            except commands.ExtensionAlreadyLoaded:
+                pass
+            except commands.NoEntryPointError:
+                report.append(f"❌ | **setup not defined** : `{ext}`")
+            except commands.ExtensionFailed as error:
+                report.append(
+                    f"❌ | **Extension error** : `{ext}` "
+                    f"({type(error.original)} : {error.original})"
+                )
+
+        embed = discord.Embed(
+            title=(
+                f"{success} extensions were loaded & "
+                f"{len(self.extensions_list) - success} extensions were "
+                "not loaded"
+            ),
+            description="\n".join(report),
+            colour=discord.Colour.green(),
+        )
+        await self.log_channel.send(embed=embed)
+        await ctx.bot.tree.sync()
+
     async def close(self) -> None:
         """Cleanup upon closing."""
+        await self.aio_session.close()
         await self.pool.close()
         await super().close()
-
-    async def on_ready(self) -> None:
-        """Operations processed when the bot's ready."""
-        await self.change_presence(
-            activity=discord.Game(f"{self.default_prefix}help"),
-        )
-        if self.first_on_ready:
-            self.first_on_ready = False
-
-            self.aio_session = aiohttp.ClientSession()
-
-            self.log_channel = self.get_channel(self.log_channel_id)
-            self.suggestion_channel = self.get_channel(self.suggestion_channel_id)
-            # Load the channels
-
-            report = []
-            success = 0
-            for ext in self.extensions_list:
-                if ext not in self.extensions:
-                    try:
-                        self.load_extension(ext)
-                        report.append(f"✅ | **Extension loaded** : `{ext}`")
-                        success += 1
-                    except commands.ExtensionFailed as error:
-                        report.append(
-                            f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})"
-                        )
-                    except commands.ExtensionNotFound:
-                        report.append(f"❌ | **Extension not found** : `{ext}`")
-                    except commands.NoEntryPointError:
-                        report.append(f"❌ | **setup not defined** : `{ext}`")
-            # Load every single extension
-            # Looping on the /cogs and /bin folders does not allow fine control
-
-            embed = discord.Embed(
-                title=(
-                    f"{success} extensions were loaded & "
-                    f"{len(self.extensions_list) - success} extensions were "
-                    "not loaded"
-                ),
-                description="\n".join(report),
-                colour=discord.Colour.green(),
-            )
-            await self.log_channel.send(embed=embed)
-        else:
-            await self.log_channel.send("on_ready called again")
 
     async def on_guild_join(self, guild: discord.Guild) -> None:
         """Log message on guild join."""
@@ -168,166 +214,25 @@ class ChaoticBot(commands.Bot):
         """Log message on guild remove."""
         await self.log_channel.send(f"{guild.name} left")
 
-    async def close(self) -> None:
-        """Do some cleanup."""
-        await self.aio_session.close()
-        await self.ksoft_client.close()
-        for task in all_tasks(loop=self.loop):
-            task.cancel()
-        for ext in tuple(self.extensions):
-            self.unload_extension(ext)
-        await self.pool.close()
-        await super().close()
-
-    async def cog_reloader(
-        self,
-        ctx: commands.Context,
-        extensions: t.List[str],
-    ) -> None:
-        """Reload cogs."""
-        self.last_update = datetime.utcnow()
-        report = []
-        success = 0
-        self.reload_extension("data.data")
-        # First of all, reload the data file
-        total_reload = len(extensions) or len(self.extensions_list)
-        if extensions:
-            for ext in extensions:
-                if ext in self.extensions_list:
-                    try:
-                        try:
-                            self.reload_extension(ext)
-                            success += 1
-                            report.append(f"✅ | **Extension reloaded** : `{ext}`")
-                        except commands.ExtensionNotLoaded:
-                            self.load_extension(ext)
-                            success += 1
-                            report.append(f"✅ | **Extension loaded** : `{ext}`")
-                    except commands.ExtensionFailed as error:
-                        report.append(
-                            f"❌ | **Extension error** : `{ext}` "
-                            f"({type(error.original)} : {error.original})"
-                        )
-                    except commands.ExtensionNotFound:
-                        report.append(f"❌ | **Extension not found** : `{ext}`")
-                    except commands.NoEntryPointError:
-                        report.append(f"❌ | **setup not defined** : `{ext}`")
-                else:
-                    report.append(f"❌ | `{ext}` is not a valid extension")
-        else:
-            for ext in self.extensions_list:
-                try:
-                    try:
-                        self.reload_extension(ext)
-                        success += 1
-                        report.append(f"✔️ | **Extension reloaded** : `{ext}`")
-                    except commands.ExtensionNotLoaded:
-                        self.load_extension(ext)
-                        report.append(f"✔️ | **Extension loaded** : `{ext}`")
-                except commands.ExtensionFailed as error:
-                    report.append(
-                        f"❌ | **Extension error** : `{ext}` "
-                        f"({type(error.original)} : {error.original})"
-                    )
-                except commands.ExtensionNotFound:
-                    report.append(f"❌ | **Extension not found** : `{ext}`")
-                except commands.NoEntryPointError:
-                    report.append(f"❌ | **setup not defined** : `{ext}`")
-        not_loaded = total_reload - success
-        embed = discord.Embed(
-            title=(
-                f"{success} "
-                f"{'extension was' if success == 1 else 'extensions were'} "
-                f"loaded & {total_reload - success} "
-                f"{'extension was' if not_loaded == 1 else 'extensions were'}"
-                " not loaded"
-            ),
-            description="\n".join(report),
-            colour=discord.Colour.green(),
-        )
-        await self.log_channel.send(embed=embed)
-        await ctx.send(embed=embed)
-
-    async def get_m_prefix(
-        self,
-        _,
-        message: discord.Message,
-        not_print: bool = True,
-    ) -> str:
-        """Get the prefix from a message."""
-        # not_print : this is not for displaying in a help command, but for
-        # actual processing
-        if message.content.startswith("¤") and not_print:
-            return "¤"  # Hardcoded secret prefix. Because, that's why
-        if message.content.startswith(f"{self.default_prefix}help") and not_print:
-            return self.default_prefix
-        return self.prefix_dict.get(self.get_id(message), self.default_prefix)
-
     async def httpcat(
         self,
-        ctx: commands.Context,
+        interaction: discord.Interaction,
         code: int,
-        title: str = discord.Embed.Empty,
-        description: str = discord.Embed.Empty,
+        title: t.Optional[str] = None,
+        description: t.Optional[str] = None,
     ) -> None:
         """Funny error picture."""
+        if title is None and description is None:
+            return
         embed = discord.Embed(
             title=title, colour=discord.Colour.red(), description=description
         )
         embed.set_image(url=f"https://http.cat/{code}.jpg")
-        try:
-            await ctx.send(embed=embed)
-        except discord.Forbidden:
-            pass
 
-    async def fetch_answer(
-        self, ctx: commands.Context, *content, timeout: int = 30
-    ) -> discord.Message:
-        """Get an answer."""
-
-        # Helper function for getting an answer in a set of possibilities
-        def check(message: discord.Message) -> bool:
-            """Check the message."""
-            return (
-                message.author == ctx.author
-                and (message.channel == ctx.channel)
-                and message.content.lower() in content
-            )
-
-        return await self.wait_for("message", check=check, timeout=timeout)
-
-    async def fetch_confirmation(
-        self,
-        ctx: commands.Context,
-        question: str,
-        timeout: int = 30,
-    ) -> bool:
-        """Get a yes or no reaction-based answer."""
-        message = await ctx.send(question)
-        await message.add_reaction("\U00002705")  # ✅
-        await message.add_reaction("\U0000274c")  # ❌
-
-        def check(payload: discord.RawReactionActionEvent) -> bool:
-            """Decide whether or not to process the reaction."""
-            return (payload.message_id, payload.channel_id, payload.user_id,) == (
-                message.id,
-                message.channel.id,
-                ctx.author.id,
-            ) and payload.emoji.name in {"\U00002705", "\U0000274c"}
-
-        payload = await self.wait_for(
-            "raw_reaction_add",
-            check=check,
-            timeout=timeout,
-        )
-        return payload.emoji.name == "\U00002705"
-
-    @staticmethod
-    def get_id(ctx: t.Union[commands.Context, discord.Message]) -> int:
-        """Get a context's id."""
-        if ctx.guild:
-            return ctx.guild.id
-        return ctx.channel.id
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.send_message(embed=embed)
 
     def launch(self) -> None:
         """Launch the bot."""

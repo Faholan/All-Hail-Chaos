@@ -1,15 +1,11 @@
-from discord import app_commands, ui
-
-import discord
-
-from discord.ext import commands
-
 from random import choice
 import re
-
-import lavalink
-
 import typing as t
+
+from discord import app_commands, ui
+from discord.ext import commands
+import discord
+import lavalink
 
 
 # TODO : better error messages & handling

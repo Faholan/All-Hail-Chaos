@@ -1,6 +1,7 @@
 [bot]
 token = ""
 log_channel_id = 0
+suggestion_channel_id = 0  # Optional, but recommended
 extensions = [
     "cogs.animals",
     "cogs.business",
@@ -14,13 +15,18 @@ extensions = [
     "cogs.success",
     "cogs.tags",
     "cogs.utility",
-    "bin.error",
-    "bin.help",
+    # "bin.error",
+    # "bin.help",
     "bin.markdown",
 ]
 invite_permissions = 808527942
 support = "https://discord.gg/eFfjdyZ"  # Optional, but recommended
 privacy = "https://github.com/Faholan/All-Hail-Chaos/blob/master/PRIVACY.md"  # Optional
+
+[bot.command_tree]
+module_name = "bin.tree"
+# package =
+class_name = "CommandTree"
 
 [intents]  # https://discordpy.readthedocs.io/en/latest/api.html#intents
 guilds = true  # Recommended
@@ -68,7 +74,6 @@ region = "eu"
 resume_key = "default_node"
 
 [apis]
-discord_rep = ""
 nasa = ""
 
 [[bot_lists]]
