@@ -27,7 +27,7 @@ OPTION_TYPES = {
     discord.AppCommandOptionType.subcommand: "a subcommand",
     discord.AppCommandOptionType.subcommand_group: "a subcommand group",
     discord.AppCommandOptionType.string: "a string",  # Wait, what ?
-    discord.AppCommandOptionType.int: "an integer",
+    discord.AppCommandOptionType.integer: "an integer",
     discord.AppCommandOptionType.boolean: "a boolean",
     discord.AppCommandOptionType.number: "a number",
     discord.AppCommandOptionType.user: "a Discord user",
