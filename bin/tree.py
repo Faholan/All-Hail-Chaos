@@ -41,10 +41,15 @@ OPTION_TYPES = {
 class CommandTree(app_commands.CommandTree):
     """Custom command tree with error management."""
 
-    async def sync(self) -> None:
+    async def sync(self, *, guild: t.Optional[int] = None) -> None:
         """Synchronize the command Tree."""
-        await self.client.log_channel.send("Synchronizing command tree...")
-        await super().sync()
+        if guild:
+            await self.client.log_channel.send(
+                f"Synchronizing command tree for guild id {694804646086312026}..."
+            )
+        else:
+            await self.client.log_channel.send("Synchronizing global command tree...")
+        await super().sync(guild=guild)
 
     async def on_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
