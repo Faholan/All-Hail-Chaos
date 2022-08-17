@@ -180,7 +180,7 @@ class Owner(commands.Cog):
 
         if reload_all:
             extensions = self.bot.extensions_list
-            await interaction.defer(thinking=True)
+            await interaction.response.defer(thinking=True)
         elif len(self.bot.extensions_list) > 25:
             await interaction.response.send_message("Too many extensions for a modal")
             return
