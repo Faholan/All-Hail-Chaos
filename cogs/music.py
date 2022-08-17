@@ -385,9 +385,14 @@ class Music(commands.GroupCog):
         if player.paused:
             await player.set_pause(False)
 
-        await interaction.followup.send(
-            embed=await get_music_embed(player), view=MusicView(player)
-        )
+        if interaction.response.is_done():
+            await interaction.followup.send(
+                embed=await get_music_embed(player), view=MusicView(player)
+            )
+        else:
+            await interaction.response.send_message(
+                embed=await get_music_embed(player), view=MusicView(player)
+            )
 
     @app_commands.command()
     async def np(self, interaction: discord.Interaction) -> None:
