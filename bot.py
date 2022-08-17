@@ -203,15 +203,12 @@ class ChaoticBot(commands.Bot):
             colour=discord.Colour.green(),
         )
         await self.log_channel.send(embed=embed)
-        await self.tree.sync()
 
     async def close(self) -> None:
         """Cleanup upon closing."""
         await self.aio_session.close()
         await self.pool.close()
 
-        self.tree.clear_commands(guild=None)
-        await self.tree.sync()
         await super().close()
 
     async def on_guild_join(self, guild: discord.Guild) -> None:

@@ -63,10 +63,6 @@ class Owner(commands.Cog):
         self.bot = bot
         self._last_result = None
 
-    async def cog_load(self) -> None:
-        """Sync the custom commands."""
-        await self.bot.tree.sync(guild=discord.Object(694804646086312026))
-
     @staticmethod
     def cleanup_code(content: str) -> str:
         """Automatically removes code blocks from the code."""
@@ -224,7 +220,17 @@ class Owner(commands.Cog):
         )
         await self.bot.log_channel.send(embed=embed)
         await interaction.followup.send(embed=embed)
-        await self.bot.tree.sync()
+
+    @commands.command()
+    @commands.is_owner()
+    async def sync(self, ctx: commands.Context, guild: t.Optional[int]) -> None:
+        """Sync the command tree."""
+        if guild is None:
+            await self.bot.tree.sync()
+            await ctx.reply("Synced the global command tree.")
+        else:
+            await self.bot.tree.sync(guild=discord.Object(guild))
+            await ctx.reply(f"Synced the command tree for guild {guild}")
 
 
 async def setup(bot: commands.Bot) -> None:
