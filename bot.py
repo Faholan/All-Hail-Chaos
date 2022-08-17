@@ -116,7 +116,7 @@ class ChaoticBot(commands.Bot):
                     f"No class {tree_location['class_name']} in module {name}"
                 ) from None
 
-            if not isinstance(tree_cls, app_commands.CommandTree):
+            if not issubclass(tree_cls, app_commands.CommandTree):
                 raise ValueError("Command tree class must be a subclass of CommandTree")
 
             super().__init__(  # type: ignore
