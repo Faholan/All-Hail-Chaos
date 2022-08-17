@@ -108,7 +108,7 @@ class Owner(commands.Cog):
             "bot": self.bot,
             "interaction": interaction,
             "channel": interaction.channel,
-            "author": interaction.author,
+            "author": interaction.user,
             "guild": interaction.guild,
             "_": self._last_result,
         }
