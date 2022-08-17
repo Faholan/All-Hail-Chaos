@@ -311,6 +311,16 @@ async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     return None
 
 
+class MusicError(app_commands.CheckFailure):
+    """Music error."""
+
+    def __init__(self, code: int, message: str) -> None:
+        """Initialize."""
+        self.code = code
+        self.message = message
+        super().__init__()
+
+
 class Music(commands.Cog):
     """Play music."""
 
@@ -336,14 +346,21 @@ class Music(commands.Cog):
             if guild:
                 await guild.voice_client.disconnect(force=True)
 
+    async def cog_app_command_error(
+        self, interaction: discord.Interaction, error: Exception
+    ) -> None:
+        """Catch the errors."""
+        if isinstance(error, MusicError):
+            await self.bot.httpcat(
+                interaction, error.code, error.message, ephemeral=True
+            )
+            return
+        raise error
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Check if the interaction should be processed."""
         if not interaction.user.voice or not interaction.user.voice.channel:
-            await interaction.response.send_message(
-                "You must be in a voice channel to use this command.",
-                ephemeral=True,
-            )
-            return False
+            raise MusicError(412, "You must be in a voice channel to use this command.")
 
         should_connect = (
             interaction.command is not None and interaction.command.name == "play"
@@ -353,31 +370,24 @@ class Music(commands.Cog):
 
         if not player.is_connected:
             if not should_connect:
-                await interaction.response.send_message(
-                    "I'm not connected to a voice channel.",
-                    ephemeral=True,
-                )
-                return False
+                raise MusicError(417, "I'm not connected to a voice channel.")
 
             permissions = interaction.user.voice.channel.permissions_for(
                 interaction.guild.me
             )
 
             if not permissions.connect or not permissions.speak:
-                await interaction.response.send_message(
+                raise MusicError(
+                    424,
                     "I don't have the permissions to join and speak in your voice channel.",
-                    ephemeral=True,
                 )
-                return False
 
             if interaction.user.voice.channel.user_limit == len(
                 interaction.user.voice.channel.members
             ):
-                await interaction.response.send_message(
-                    "I can't join this voice channel because it is full.",
-                    ephemeral=True,
+                raise MusicError(
+                    413, "I can't join this voice channel because it is full."
                 )
-                return False
 
             if await interaction.guild.voice_client:  # Cleanup strange state
                 await interaction.guild.voice_client.disconnect(force=True)
@@ -385,10 +395,7 @@ class Music(commands.Cog):
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
         else:
             if player.channel_id != interaction.user.voice.channel.id:
-                await interaction.response.send_message(
-                    "I'm already in a different voice channel.", ephemeral=True
-                )
-                return False
+                raise MusicError(421, "I'm already in a different voice channel.")
 
         return True
 

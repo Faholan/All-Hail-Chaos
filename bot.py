@@ -228,6 +228,7 @@ class ChaoticBot(commands.Bot):
         code: int,
         title: t.Optional[str] = None,
         description: t.Optional[str] = None,
+        ephemeral: bool = False,
     ) -> None:
         """Funny error picture."""
         if title is None and description is None:
@@ -238,9 +239,9 @@ class ChaoticBot(commands.Bot):
         embed.set_image(url=f"https://http.cat/{code}.jpg")
 
         if interaction.response.is_done():
-            await interaction.followup.send(embed=embed)
+            await interaction.followup.send(embed=embed, ephemeral=ephemeral)
         else:
-            await interaction.response.send_message(embed=embed)
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
 
     def launch(self) -> None:
         """Launch the bot."""

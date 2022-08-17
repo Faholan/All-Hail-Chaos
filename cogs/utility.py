@@ -315,7 +315,7 @@ class Utility(commands.Cog):
         await pages.start(ctx)
 
     @app_commands.command()
-    @app_commands.cooldown(2, 600)
+    @app_commands.checks.cooldown(2, 600)
     async def suggestion(
         self,
         interaction: discord.Interaction,

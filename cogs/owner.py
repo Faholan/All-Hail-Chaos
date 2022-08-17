@@ -28,14 +28,15 @@ import typing as t
 from contextlib import redirect_stdout
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 
-class OwnerError(commands.CheckFailure):
+class OwnerError(app_commands.CheckFailure):
     """Error specific to this cog."""
 
 
-class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
+class Owner(commands.Cog):
     """Owner-specific commands."""
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -53,16 +54,25 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
         # remove `foo`
         return content.strip("` \n")
 
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Decide if you can run the command."""
-        if await ctx.bot.is_owner(ctx.author):
+        raise OwnerError()
+        if await self.bot.is_owner(interaction.user):
             return True
         raise OwnerError()
 
-    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        """Call that on error."""
+    async def cog_app_command_error(
+        self, interaction: discord.Interaction, error: Exception
+    ) -> None:
+        """Catch the errors."""
         if isinstance(error, OwnerError):
-            await ctx.send("Only my owner can use the command " + ctx.invoked_with)
+            await self.bot.httpcat(
+                interaction,
+                400,
+                "Only my owner can use the command "
+                + interaction.command.qualified_name,
+                ephemeral=True,
+            )
             return
         raise error
 
@@ -113,59 +123,10 @@ class Owner(commands.Cog, command_attrs={"help": "Owner command"}):
                 self._last_result = ret
                 await ctx.send(f"```py\n{value}{ret}\n```")
 
-    @commands.command()
-    async def system(
-        self,
-        ctx: commands.Context,
-        user: discord.User = None,
-        *,
-        message: str,
-    ) -> None:
-        """Make the bot send a message to the specified user."""
-        if not user:
-            await ctx.send("I couldn't find this user")
-            return
-        async with self.bot.pool.acquire() as database:
-            result = await database.fetchrow(
-                "SELECT * FROM block WHERE id=$1",
-                user.id,
-            )
-            if result:
-                await ctx.send("This user blocked me. Sorry")
-                return
-            embed = discord.Embed(
-                title="Message from my owner",
-                description=message,
-                url=self.bot.support,
-            )
-            embed.set_author(
-                name=f"{ctx.author.name}#{ctx.author.discriminator}",
-                icon_url=str(ctx.author.avatar_url),
-            )
-            prefix = discord.utils.escape_markdown(
-                await self.bot.get_m_prefix(ctx.message, False)
-            )
-            embed.set_footer(
-                text=(
-                    f"Use the command `{prefix}block` if you don't want me to"
-                    " DM you anymore"
-                ),
-            )
-            try:
-                await user.send(
-                    f"Use `{prefix}contact` to answer this message, or click "
-                    "on the title to go to my support server",
-                    embed=embed,
-                )
-            except discord.Forbidden:
-                await ctx.send("This user blocked his DM. I can't message him")
-            else:
-                await ctx.send("DM successfully sent !")
-
-    @commands.command(ignore_extra=True)
-    async def logout(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def logout(self, interaction: discord.Interaction) -> None:
         """Kill the bot."""
-        await ctx.send("Logging out...")
+        await interaction.response.send_message("Logging out...", ephemeral=True)
         await self.bot.close()
 
     @commands.command(ignore_extra=True)
