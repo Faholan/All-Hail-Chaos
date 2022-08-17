@@ -185,7 +185,7 @@ class MusicInput(ui.Modal, title="Music search"):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Submit the search."""
-        await interaction.defer()
+        await interaction.response.defer()
         if await self.player.add_query(self, interaction, self.children[0].value):
             self.stop()
             await interaction.edit_original_response(
@@ -218,7 +218,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U000023ee\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def previous(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Go to the previous track."""
-        await interaction.defer()
+        await interaction.response.defer()
         await self.player.previous()
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
@@ -227,7 +227,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U000023ef\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def pause_play(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Play or pause the player."""
-        await interaction.defer()
+        await interaction.response.defer()
         await self.player.set_pause(not self.player.paused)
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
@@ -236,7 +236,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U000023ed\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def next(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Go to the next track."""
-        await interaction.defer()
+        await interaction.response.defer()
         await self.player.skip()
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
@@ -245,7 +245,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.danger, row=2)
     async def stop(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Stop playing altogether."""
-        await interaction.defer()
+        await interaction.response.defer()
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=None
         )
@@ -254,7 +254,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U0001f501", style=discord.ButtonStyle.primary, row=2)
     async def repeat(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle repeat."""
-        await interaction.defer()
+        await interaction.response.defer()
         self.player.set_repeat(not self.player.repeat)
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
@@ -263,7 +263,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U0001f502", style=discord.ButtonStyle.primary, row=2)
     async def repeat_once(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle repeat once."""
-        await interaction.defer()
+        await interaction.response.defer()
         self.player.set_repeat_once(not self.player.repeat_once)
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
@@ -272,7 +272,7 @@ class MusicView(ui.View):
     @ui.button(emoji="\U0001f500", style=discord.ButtonStyle.primary, row=2)
     async def shuffle(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle shuffle."""
-        await interaction.defer()
+        await interaction.response.defer()
         self.player.set_shuffle(not self.player.shuffle)
         await interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=MusicView(self.player)
