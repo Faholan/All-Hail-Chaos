@@ -171,6 +171,7 @@ class MusicInput(ui.Modal, title="Music search"):
 
     def __init__(self, player: CustomPlayer):
         """Initialize the input."""
+        super().__init__()
         self.add_item(
             ui.TextInput(
                 label="Music to search for",
@@ -215,7 +216,7 @@ class MusicView(ui.View):
             self.children[6].style = discord.ButtonStyle.secondary
 
     @ui.button(emoji="\U000023ee\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
-    async def previous(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def previous(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Go to the previous track."""
         await self.player.previous()
         message = await interaction.original_message()
@@ -224,7 +225,7 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U000023ef\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
-    async def pause_play(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def pause_play(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Play or pause the player."""
         await self.player.set_pause(not self.player.paused)
         message = await interaction.original_message()
@@ -233,7 +234,7 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U000023ed\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
-    async def next(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def next(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Go to the next track."""
         await self.player.skip()
         message = await interaction.original_message()
@@ -242,14 +243,14 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.danger, row=2)
-    async def stop(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def stop(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Stop playing altogether."""
         message = await interaction.original_message()
         await message.edit(embed=await get_music_embed(self.player), view=None)
         await self.player.stop()
 
     @ui.button(emoji="\U0001f501", style=discord.ButtonStyle.primary, row=2)
-    async def repeat(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def repeat(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle repeat."""
         self.player.set_repeat(not self.player.repeat)
         message = await interaction.original_message()
@@ -258,7 +259,7 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U0001f502", style=discord.ButtonStyle.primary, row=2)
-    async def repeat_once(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def repeat_once(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle repeat once."""
         self.player.set_repeat_once(not self.player.repeat_once)
         message = await interaction.original_message()
@@ -267,7 +268,7 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U0001f500", style=discord.ButtonStyle.primary, row=2)
-    async def shuffle(self, _: discord.Interaction, __: ui.Button) -> None:
+    async def shuffle(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Toggle shuffle."""
         self.player.set_shuffle(not self.player.shuffle)
         message = await interaction.original_message()
@@ -276,7 +277,7 @@ class MusicView(ui.View):
         )
 
     @ui.button(emoji="\U0001f50e", style=discord.ButtonStyle.primary, row=2)
-    async def search(self, interaction: discord.Interaction, __: ui.Button) -> None:
+    async def search(self, interaction: discord.Interaction, _: ui.Button) -> None:
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
