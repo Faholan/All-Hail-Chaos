@@ -65,7 +65,7 @@ class Owner(commands.Cog):
 
     async def cog_load(self) -> None:
         """Sync the custom commands."""
-        await self.bot.tree.sync(guild=694804646086312026)
+        await self.bot.tree.sync(guild=discord.Object(694804646086312026))
 
     @staticmethod
     def cleanup_code(content: str) -> str:
@@ -99,7 +99,7 @@ class Owner(commands.Cog):
         raise error
 
     @app_commands.command(name="eval")
-    @app_commands.guilds(discord.Object(694804646086312026))
+    @app_commands.guilds(694804646086312026)
     async def _eval(self, interaction: discord.Interaction) -> None:
         """Evaluate a Python code."""
         modal = EvalInput()
@@ -156,7 +156,7 @@ class Owner(commands.Cog):
                 await interaction.followup.send(f"```py\n{value}{ret}\n```")
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(694804646086312026))
+    @app_commands.guilds(694804646086312026)
     async def logout(self, interaction: discord.Interaction) -> None:
         """Kill the bot."""
         await interaction.response.send_message("Logging out...", ephemeral=True)
@@ -164,7 +164,7 @@ class Owner(commands.Cog):
 
     @app_commands.command()
     @app_commands.rename(reload_all="all")
-    @app_commands.guilds(discord.Object(694804646086312026))
+    @app_commands.guilds(694804646086312026)
     async def reload(
         self, interaction: discord.Interaction, reload_all: bool = False
     ) -> None:
