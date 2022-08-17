@@ -367,7 +367,7 @@ class Music(commands.GroupCog):
 
         return True
 
-    @app_commands.command(aliases=["p"])
+    @app_commands.command()
     async def play(
         self, interaction: discord.Interaction, query: t.Optional[str]
     ) -> None:

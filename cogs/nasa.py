@@ -36,7 +36,9 @@ class NASA(commands.GroupCog):
     def __init__(self, bot: commands.Bot) -> None:
         """Hack the NASA."""
         self.bot = bot
-        self.api_key = bot.nasa
+        self.api_key = bot.config.get("apis", {}).get("nasa")
+        if not self.api_key:
+            raise ValueError("No NASA API key found")
         self.apod_update.start()
         self.apod_pic = {
             "hdurl": (

@@ -33,6 +33,7 @@ import typing as t
 import discord
 import humanize
 import psutil
+
 # from discord.ext import commands, menus, tasks
 from discord.ext import commands, tasks
 
@@ -41,10 +42,12 @@ POLL_EMOJIS = [chr(0x1F1E6 + i) for i in range(0x1A)]
 # :regional_indicator_a: up to :regional_indicator_z
 
 
-class SauceSource(menus.ListPageSource):
+# class SauceSource(menus.ListPageSource):
+class SauceSource:
     """Source for the sauce command."""
 
-    async def format_page(self, menu: menus.Menu, page: str):
+    # async def format_page(self, menu: menus.Menu, page: str):
+    async def format_page():
         """Format the page of code."""
         max_pages = self.get_max_pages()
         embed = discord.Embed(description=page, colour=discord.Colour.purple())
