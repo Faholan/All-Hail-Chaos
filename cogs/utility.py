@@ -85,7 +85,7 @@ class Utility(commands.Cog):
             self.discord_bots_token
         ) = self.xyz_token = self.discordbotlist_token = None
 
-        for bot_list in self.bot.config.get("bot_lists", []):
+        for bot_list in self.bot.raw_config.get("bot_lists", []):
             if not isinstance(bot_list, dict):  # type: ignore
                 continue
 

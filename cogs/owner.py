@@ -28,12 +28,31 @@ import typing as t
 from contextlib import redirect_stdout
 
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 
 
 class OwnerError(app_commands.CheckFailure):
     """Error specific to this cog."""
+
+
+class EvalInput(ui.Modal, title="Code input"):
+    """Modal to input code."""
+
+    code = ui.TextInput(label="Code", style=discord.TextStyle.paragraph)
+
+
+class ExtensionSelector(ui.Modal, title="Extensions selector"):
+
+    extensions = ui.Select()
+
+    def __init__(self, bot: commands.Bot) -> None:
+        """Initialize the selector."""
+        super().__init__()
+        for extension in bot.extensions_list:
+            self.add_option(label=extension)
+
+        self.max_values = len(bot.extensions_list)
 
 
 class Owner(commands.Cog):
@@ -56,7 +75,6 @@ class Owner(commands.Cog):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Decide if you can run the command."""
-        raise OwnerError()
         if await self.bot.is_owner(interaction.user):
             return True
         raise OwnerError()
@@ -76,16 +94,22 @@ class Owner(commands.Cog):
             return
         raise error
 
-    @commands.command(name="eval")
-    async def _eval(self, ctx: commands.Context, *, body: str) -> None:
+    @app_commands.command(name="eval")
+    @app_commands.guilds(694804646086312026)
+    async def _eval(self, interaction: discord.Interaction) -> None:
         """Evaluate a Python code."""
+        modal = EvalInput()
+        await interaction.response.send_modal(modal)
+        if await modal.wait():
+            return
+        body = modal.code.value
+
         env = {
             "bot": self.bot,
-            "ctx": ctx,
-            "channel": ctx.channel,
-            "author": ctx.author,
-            "guild": ctx.guild,
-            "message": ctx.message,
+            "interaction": interaction,
+            "channel": interaction.channel,
+            "author": interaction.author,
+            "guild": interaction.guild,
             "_": self._last_result,
         }
 
@@ -99,7 +123,9 @@ class Owner(commands.Cog):
         try:
             exec(to_compile, env)
         except Exception as error:
-            await ctx.send(f"```py\n{error.__class__.__name__}: {error}\n```")
+            await interaction.followup.send(
+                f"```py\n{error.__class__.__name__}: {error}\n```"
+            )
             return
 
         func = env["func"]
@@ -108,79 +134,52 @@ class Owner(commands.Cog):
                 ret = await func()
         except Exception:
             value = stdout.getvalue()
-            await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
+            await interaction.followup.send(
+                f"```py\n{value}{traceback.format_exc()}\n```"
+            )
         else:
             value = stdout.getvalue()
-            try:
-                await ctx.message.add_reaction("\u2705")
-            except discord.DiscordException:
-                pass
 
             if ret is None:
                 if value:
-                    await ctx.send(f"```py\n{value}\n```")
+                    await interaction.followup.send(f"```py\n{value}\n```")
+                else:
+                    await interaction.followup.send(
+                        "Executed successfully", ephemeral=True
+                    )
             else:
                 self._last_result = ret
-                await ctx.send(f"```py\n{value}{ret}\n```")
+                await interaction.followup.send(f"```py\n{value}{ret}\n```")
 
     @app_commands.command()
+    @app_commands.guilds(694804646086312026)
     async def logout(self, interaction: discord.Interaction) -> None:
         """Kill the bot."""
         await interaction.response.send_message("Logging out...", ephemeral=True)
         await self.bot.close()
 
-    @commands.command(ignore_extra=True)
-    async def load(self, ctx: commands.Context, *extensions) -> None:
-        """Load an extension."""
-        if not extensions:
-            await ctx.send("Please specify at least one extension to unload")
-            return
-        total_ext = len(extensions)
-        report = []
-        success = 0
-        for ext in extensions:
-            try:
-                try:
-                    self.bot.reload_extension(ext)
-                    report.append(f"✅ | **Extension reloaded** : `{ext}`")
-                except commands.ExtensionNotLoaded:
-                    self.bot.load_extension(ext)
-                    report.append(f"✅ | **Extension loaded** : `{ext}`")
-                success += 1
-            except commands.ExtensionFailed as error:
-                report.append(
-                    f"❌ | **Extension error** : `{ext}` "
-                    f"({type(error.original)} : {error.original})"
-                )
-            except commands.ExtensionNotFound:
-                report.append(f"❌ | **Extension not found** : `{ext}`")
-            except commands.NoEntryPointError:
-                report.append(f"❌ | **setup not defined** : `{ext}`")
-
-        failure = total_ext - success
-        embed = discord.Embed(
-            title=(
-                f"{success} "
-                f"{'extension was' if success == 1 else 'extensions were'} "
-                f"loaded & {failure} "
-                f"{'extension was' if failure == 1 else 'extensions were'}"
-                " not loaded"
-            ),
-            description="\n".join(report),
-            colour=discord.Colour.green(),
-        )
-        await self.bot.log_channel.send(embed=embed)
-        await ctx.send(embed=embed)
-        await ctx.bot.tree.sync()
-
-    @commands.command()
-    async def reload(self, ctx: commands.Context, *extensions) -> None:
+    @app_commands.command()
+    @app_commands.rename(reload_all="all")
+    @app_commands.guilds(694804646086312026)
+    async def reload(
+        self, interaction: discord.Interaction, reload_all: bool = False
+    ) -> None:
         """Reload extensions."""
         report: t.List[str] = []
         success = 0
 
-        if not extensions:
-            extensions = self.extensions_list
+        if reload_all:
+            extensions = self.bot.extensions_list
+            await interaction.defer(thinking=True)
+        elif len(self.bot.extensions_list) > 25:
+            await interaction.response.send_message("Too many extensions for a modal")
+            return
+        else:
+            modal = ExtensionSelector(self.bot)
+            await interaction.response.send_modal(modal)
+            if await modal.wait():
+                return  # Modal timed out
+            extensions = modal.extensions.values
 
         total_reload = len(extensions)
 
@@ -220,44 +219,8 @@ class Owner(commands.Cog):
             colour=discord.Colour.green(),
         )
         await self.bot.log_channel.send(embed=embed)
-        await ctx.send(embed=embed)
-        await ctx.bot.tree.sync()
-
-    @commands.command()
-    async def unload(self, ctx: commands.Context, *extensions) -> None:
-        """Unload extensions."""
-        if "cogs.owner" in extensions:
-            await ctx.send("You shouldn't unload me")
-            return
-        if not extensions:
-            await ctx.send("Please specify at least one extension to unload")
-            return
-        total_ext = len(extensions)
-        report = []
-        success = 0
-        for ext in extensions:
-            try:
-                await self.bot.unload_extension(ext)
-                success += 1
-                report.append(f"✅ | **Extension unloaded** : `{ext}`")
-            except commands.ExtensionNotLoaded:
-                report.append(f"❌ | **Extension not loaded** : `{ext}`")
-
-        failure = total_ext - success
-        embed = discord.Embed(
-            title=(
-                f"{success} "
-                f"{'extension was' if success == 1 else 'extensions were'} "
-                f"unloaded & {failure} "
-                f"{'extension was' if failure == 1 else 'extensions were'} "
-                "not unloaded"
-            ),
-            description="\n".join(report),
-            colour=discord.Colour.green(),
-        )
-        await self.bot.log_channel.send(embed=embed)
-        await ctx.send(embed=embed)
-        await ctx.bot.tree.sync()
+        await interaction.followup.send(embed=embed)
+        await self.bot.tree.sync()
 
 
 async def setup(bot: commands.Bot) -> None:
