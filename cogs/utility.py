@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -335,8 +335,8 @@ class Utility(commands.Cog):
             colour=0xFFFF00,
         )
         embed.set_author(
-            name=str(ctx.author),
-            icon_url=ctx.author.display_avatar.url,
+            name=str(interaction.user),
+            icon_url=interaction.user.display_avatar.url,
         )
         if self.bot.suggestion_channel:
             await self.bot.suggestion_channel.send(embed=embed)
@@ -349,7 +349,7 @@ class Utility(commands.Cog):
             )
 
     @tasks.loop(minutes=30)
-    async def discord_bots(self):
+    async def discord_bots(self) -> None:
         """Update the profile ont discord.bots.gg."""
         if not self.discord_bots_token:
             self.discord_bots.stop()
@@ -362,7 +362,7 @@ class Utility(commands.Cog):
         )
 
     @tasks.loop(minutes=30)
-    async def xyz(self):
+    async def xyz(self) -> None:
         """Update the profile on bots.ondiscord.xyz."""
         if not self.xyz_token:
             self.xyz.stop()
@@ -375,7 +375,7 @@ class Utility(commands.Cog):
         )
 
     @tasks.loop(minutes=30)
-    async def discordbotlist(self):
+    async def discordbotlist(self) -> None:
         """Update the profile on discordbotlist.com."""
         if not self.discordbotlist_token:
             self.discordbotlist.stop()

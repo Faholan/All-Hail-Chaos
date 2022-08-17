@@ -119,14 +119,14 @@ class ChaoticBot(commands.Bot):
             if not issubclass(tree_cls, app_commands.CommandTree):
                 raise ValueError("Command tree class must be a subclass of CommandTree")
 
-            super().__init__(  # type: ignore
+            super().__init__(
                 command_prefix=commands.when_mentioned,
                 intents=intents,
                 tree_cls=tree_cls,
                 help_command=None,
             )
         else:
-            super().__init__(  # type: ignore
+            super().__init__(
                 command_prefix=commands.when_mentioned,
                 intents=intents,
                 help_command=None,
@@ -143,14 +143,14 @@ class ChaoticBot(commands.Bot):
             "lavalink_nodes", []
         )
 
-    async def on_message(self, message: discord.Message) -> None:
+    async def on_message(self, message: discord.Message, /) -> None:
         """Ignore messages (only slash commands used)."""
         if await self.is_owner(message.author):
             await self.process_commands(message)
 
     async def setup_hook(self) -> None:
         """Setup everything."""
-        await self.pool.open()  # type: ignore
+        await self.pool.open()
         try:
             channel = self.get_channel(self.log_channel_id) or await self.fetch_channel(
                 self.log_channel_id

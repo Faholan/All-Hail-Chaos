@@ -1,3 +1,26 @@
+"""MIT License
+
+Copyright (c) 2022 Faholan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 from random import choice
 import re
 import typing as t
@@ -37,7 +60,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 continue
             try:
                 await interaction.edit_original_response(
-                    embed=await get_music_embed(self), view=MusicView(self)
+                    embed=await get_music_embed(self), view=MusicView(self, interaction)
                 )
             except discord.NotFound:  # interaction message deleted
                 self.interactions.pop(i)
@@ -140,7 +163,7 @@ class LavalinkVoiceClient(discord.VoiceClient):
     """Manage the voice connection."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self, client: discord.Client, channel: discord.abc.Connectable):
+    def __init__(self, client: discord.Client, channel: discord.VoiceChannel):
         """Initialise the voice client."""
         self.client = client
         self.channel = channel
@@ -169,6 +192,10 @@ class LavalinkVoiceClient(discord.VoiceClient):
         """Handle disconnects."""
         player = self.lavalink.player_manager.get(self.channel.guild.id)
 
+        if player is None:
+            await self.channel.guild.change_voice_state(channel=None)
+            self.cleanup()
+
         if not force and not player.is_connected:
             return
 
@@ -176,7 +203,7 @@ class LavalinkVoiceClient(discord.VoiceClient):
         player.channel_id = None
         self.cleanup()
 
-    async def on_voice_server_update(self, data: t.Dict[t.Any, t.Any]) -> None:
+    async def on_voice_server_update(self, data: t.Any) -> None:
         """Manage voice server update events."""
         await self.lavalink.voice_update_handler(
             {
@@ -185,7 +212,7 @@ class LavalinkVoiceClient(discord.VoiceClient):
             }
         )
 
-    async def on_voice_state_update(self, data: t.Dict[t.Any, t.Any]) -> None:
+    async def on_voice_state_update(self, data: t.Any) -> None:
         """Manage voice state update events."""
         await self.lavalink.voice_update_handler(
             {
@@ -198,23 +225,25 @@ class LavalinkVoiceClient(discord.VoiceClient):
 class MusicInput(ui.Modal, title="Music search"):
     """Music modal input."""
 
+    music_input = ui.TextInput(
+        label="Music to search for",
+        placeholder=choice(
+            ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
+        ),
+        required=True,
+    )
+
     def __init__(self, player: CustomPlayer):
         """Initialize the input."""
         super().__init__()
-        self.add_item(
-            ui.TextInput(
-                label="Music to search for",
-                placeholder=choice(
-                    ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
-                ),
-                required=True,
-            )
+        self.music_input.placeholder = choice(
+            ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
         )
         self.player = player
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Submit the search."""
-        if await self.player.add_query(interaction, self.children[0].value):
+        if await self.player.add_query(interaction, self.music_input.value):
             self.stop()
             await self.player.update_interactions()
 
@@ -228,20 +257,20 @@ class MusicView(ui.View):
 
         self.player = player
         self.interaction = interaction
-        player.history.append(interaction)
+        player.interactions.append(interaction)
 
         if not player.history:
-            self.children[0].disabled = True
+            self.previous.disabled = True
         if player.paused:
-            self.children[1].style = discord.ButtonStyle.secondary
+            self.pause_play.style = discord.ButtonStyle.secondary
         if not player.queue:
-            self.children[2].disabled = True
+            self.next.disabled = True
         if player.repeat:
-            self.children[4].style = discord.ButtonStyle.secondary
+            self.repeat.style = discord.ButtonStyle.secondary
         if player.repeat_once:
-            self.children[5].style = discord.ButtonStyle.secondary
+            self.repeat_once.style = discord.ButtonStyle.secondary
         if player.shuffle:
-            self.children[6].style = discord.ButtonStyle.secondary
+            self.shuffle.style = discord.ButtonStyle.secondary
 
     async def on_timeout(self) -> None:
         """Handle timeouts."""
@@ -255,7 +284,7 @@ class MusicView(ui.View):
         """Go to the previous track."""
         await interaction.response.defer()
         await self.player.previous()
-        await self.players.update_interactions()
+        await self.player.update_interactions()
 
     @ui.button(emoji="\U000023ef\U0000fe0f", style=discord.ButtonStyle.primary, row=1)
     async def pause_play(self, interaction: discord.Interaction, _: ui.Button) -> None:
@@ -343,7 +372,7 @@ class Music(commands.Cog):
         if isinstance(event, lavalink.events.QueueEndEvent):
             guild_id = event.player.guild_id
             guild = self.bot.get_guild(guild_id)
-            if guild:
+            if guild and guild.voice_client:
                 await guild.voice_client.disconnect(force=True)
 
     async def cog_app_command_error(
@@ -359,6 +388,13 @@ class Music(commands.Cog):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Check if the interaction should be processed."""
+        if (
+            not interaction.guild
+            or not interaction.guild_id
+            or isinstance(interaction.user, discord.User)
+        ):
+            raise MusicError(412, "You need to be in a guild to use this command.")
+
         if not interaction.user.voice or not interaction.user.voice.channel:
             raise MusicError(412, "You must be in a voice channel to use this command.")
 
@@ -389,7 +425,7 @@ class Music(commands.Cog):
                     413, "I can't join this voice channel because it is full."
                 )
 
-            if await interaction.guild.voice_client:  # Cleanup strange state
+            if interaction.guild.voice_client:  # Cleanup strange state
                 await interaction.guild.voice_client.disconnect(force=True)
 
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)

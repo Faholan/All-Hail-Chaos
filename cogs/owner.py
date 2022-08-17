@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -194,27 +194,24 @@ class Owner(commands.Cog):
         total_reload = len(extensions)
 
         for ext in extensions:
-            if ext in extensions_list:
+            try:
                 try:
-                    try:
-                        await self.bot.reload_extension(ext)
-                        success += 1
-                        report.append(f"✅ | **Extension reloaded** : `{ext}`")
-                    except commands.ExtensionNotLoaded:
-                        await self.bot.load_extension(ext)
-                        success += 1
-                        report.append(f"✅ | **Extension loaded** : `{ext}`")
-                except commands.ExtensionFailed as error:
-                    report.append(
-                        f"❌ | **Extension error** : `{ext}` "
-                        f"({type(error.original)} : {error.original})"
-                    )
-                except commands.ExtensionNotFound:
-                    report.append(f"❌ | **Extension not found** : `{ext}`")
-                except commands.NoEntryPointError:
-                    report.append(f"❌ | **setup not defined** : `{ext}`")
-            else:
-                report.append(f"❌ | `{ext}` is not a valid extension")
+                    await self.bot.reload_extension(ext)
+                    success += 1
+                    report.append(f"✅ | **Extension reloaded** : `{ext}`")
+                except commands.ExtensionNotLoaded:
+                    await self.bot.load_extension(ext)
+                    success += 1
+                    report.append(f"✅ | **Extension loaded** : `{ext}`")
+            except commands.ExtensionFailed as error:
+                report.append(
+                    f"❌ | **Extension error** : `{ext}` "
+                    f"({type(error.original)} : {error.original})"
+                )
+            except commands.ExtensionNotFound:
+                report.append(f"❌ | **Extension not found** : `{ext}`")
+            except commands.NoEntryPointError:
+                report.append(f"❌ | **setup not defined** : `{ext}`")
 
         not_loaded = total_reload - success
         embed = discord.Embed(

@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,8 @@ class NASA(commands.Cog):
             else:
                 preview = self.apod_pic.get("url", "").split("=")[-1]
             embed.set_image(url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
+            if embed.description is None:
+                embed.description = ""
             embed.description += (
                 "\nWatch the video using [This link]("
                 f'{self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
@@ -159,7 +161,9 @@ class NASA(commands.Cog):
             rover = choice(("curiosity", "opportunity", "spirit"))
 
         if rover.lower() not in {"curiosity", "opportunity", "spirit"}:
-            await ctx.send("Sorry but this rover doesn't exist")
+            await interaction.response.send_message(
+                "Sorry but this rover doesn't exist"
+            )
             return
         async with self.bot.aio_session.get(
             "https://api.nasa.gov/mars-photos/api/v1/rovers/"
@@ -170,7 +174,7 @@ class NASA(commands.Cog):
             images = await response.json()
             if not images.get("photos"):
                 await self.bot.httpcat(
-                    ctx,
+                    interaction,
                     404,
                     "I didn't find anything for your query. It's probably "
                     f"because the rover {rover.capitalize()} wasn't in "
@@ -205,7 +209,7 @@ class NASA(commands.Cog):
         try:
             data = jresult["collection"]["items"][0]["data"][0]
         except (KeyError, IndexError):
-            await ctx.send(
+            await interaction.response.send_message(
                 f"I didn't find anything for your query `{escape_markdown(query)}`"
             )
             return

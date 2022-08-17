@@ -1,9 +1,32 @@
-import discord
-from discord import app_commands
+"""MIT License
+
+Copyright (c) 2022 Faholan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 from io import StringIO
-
+import traceback
 import typing as t
+
+import discord
+from discord import app_commands
 
 
 def display_time(num_seconds: int) -> str:
@@ -41,7 +64,9 @@ OPTION_TYPES = {
 class CommandTree(app_commands.CommandTree):
     """Custom command tree with error management."""
 
-    async def sync(self, *, guild: t.Optional[discord.abc.Snowflake] = None) -> None:
+    async def sync(
+        self, *, guild: t.Optional[discord.abc.Snowflake] = None
+    ) -> t.List[app_commands.AppCommand]:
         """Synchronize the command Tree."""
         if guild:
             await self.client.log_channel.send(
@@ -49,11 +74,11 @@ class CommandTree(app_commands.CommandTree):
             )
         else:
             await self.client.log_channel.send("Synchronizing global command tree...")
-        await super().sync(guild=guild)
+        return await super().sync(guild=guild)
 
     async def on_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
-    ):
+    ) -> None:
         """Manage app command errors."""
         if isinstance(error, app_commands.TransformerError):
             await self.client.httpcat(
@@ -72,11 +97,10 @@ class CommandTree(app_commands.CommandTree):
         if isinstance(error, app_commands.MissingRole):
             role = error.missing_role
             if isinstance(role, int):
-                guild_role = interaction.guild.get_role(role)
-                if guild_role is None:
-                    role = str(role)
-                else:
-                    role = guild_role.name
+                if interaction.guild:
+                    guild_role = interaction.guild.get_role(role)
+                    if guild_role is not None:
+                        role = guild_role.name
 
             await self.client.httpcat(
                 interaction,
@@ -89,17 +113,23 @@ class CommandTree(app_commands.CommandTree):
             roles: t.List[str] = []
             for role in error.missing_roles:
                 if isinstance(role, int):
-                    guild_role = interaction.guild.get_role(role)
-                    if guild_role is None:
-                        role = str(role)
+                    if interaction.guild is not None:
+                        guild_role = interaction.guild.get_role(role)
+                        if guild_role is None:
+                            role = str(role)
+                        else:
+                            role = guild_role.name
                     else:
-                        role = guild_role.name
+                        role = str(role)
                 roles.append(role)
 
             await self.client.httpcat(
                 interaction,
                 403,
-                f"Sorry, but you need to have one of the following roles to use this command",
+                (
+                    "Sorry, but you need to have one of "
+                    "the following roles to use this command"
+                ),
                 "-" + "\n-".join(roles),
             )
             return
@@ -109,7 +139,7 @@ class CommandTree(app_commands.CommandTree):
                 interaction,
                 401,
                 "Try again with the following permission(s)",
-                "-" + "\n-".join(error.missing_perms),
+                "-" + "\n-".join(error.missing_permissions),
             )
             return
 
@@ -117,7 +147,7 @@ class CommandTree(app_commands.CommandTree):
             await self.client.httpcat(
                 interaction,
                 401,
-                "\n-".join(["I need these permissions :"] + error.missing_perms),
+                "\n-".join(["I need these permissions :"] + error.missing_permissions),
             )
             return
 
@@ -159,13 +189,16 @@ class CommandTree(app_commands.CommandTree):
             return
 
         if isinstance(error, app_commands.CommandInvokeError):
-            error = error.original
+            error = error.original  # type: ignore
 
         await self.client.httpcat(
             interaction,
             500,
             "Internal error",
-            "An error ocurred while calling the command. Reporting the error to the developers...",
+            (
+                "An error ocurred while calling the command. "
+                "Reporting the error to the developers..."
+            ),
         )
 
         embed = discord.Embed(colour=0xFF0000)
@@ -175,10 +208,14 @@ class CommandTree(app_commands.CommandTree):
         embed.title = f"{interaction.user.id} caused an error in {interaction.command}"
         embed.description = f"{type(error).__name__} : {error}"
 
-        if interaction.guild:
+        if (
+            interaction.guild
+            and interaction.channel
+            and not isinstance(interaction.channel, discord.PartialMessageable)
+        ):
             embed.description += (
-                f"\nin {interaction.guild} ({interaction.guild_id})\n   in {interaction.channel.name} "
-                f"({interaction.channel_id})"
+                f"\nin {interaction.guild} ({interaction.guild_id})"
+                f"\n   in {interaction.channel.name} ({interaction.channel_id})"
             )
         else:
             embed.description += f"\nin a Private Channel ({interaction.channel_id})"
@@ -195,7 +232,7 @@ class CommandTree(app_commands.CommandTree):
         except discord.DiscordException:
             await self.client.log_channel.send(
                 file=discord.File(
-                    StringIO(f"{embed.title}\n\n{embed.description}"),
+                    StringIO(f"{embed.title}\n\n{embed.description}"),  # type: ignore
                     filename="error.md",
                 )
             )

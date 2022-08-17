@@ -1,6 +1,6 @@
 """MIT License..
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -369,11 +369,11 @@ class Funny(commands.Cog):
     @app_commands.command()
     async def dong(
         self,
-        ctx: discord.Interaction,
+        interaction: discord.Interaction,
         dick: t.Optional[discord.Member] = None,
     ) -> None:
         """How long is this person's dong."""
-        dickfinal = dick or ctx.author
+        dickfinal = dick or interaction.user
         await interaction.response.send_message(
             f"{dickfinal.mention}'s magnum dong is this long : 8"
             f"{'=' * randint(0, 10)}>"

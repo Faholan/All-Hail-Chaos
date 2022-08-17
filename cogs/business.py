@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -190,7 +190,8 @@ class Business(commands.Cog):
                 connection,
             )
             await interaction.response.send_message(
-                await business.gift(interaction.guild.name)
+                await business.gift(interaction.guild.name)  # type: ignore
+                # guild only check guaratees that guild is not None
             )
 
     @app_commands.command()
@@ -203,7 +204,8 @@ class Business(commands.Cog):
                 connection,
             )
             embed = business.money_out()
-            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)  # type: ignore
+            # Bot is logged in
             await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -229,13 +231,11 @@ class Business(commands.Cog):
                 connection,
             )
             if pickpocket == stolen:
-                self.steal.reset_cooldown(ctx)
                 await interaction.response.send_message(
                     "Are you seriously tring to steal yourself ?"
                 )
                 return
             if stolen.money == 0:
-                self.steal.reset_cooldown(ctx)
                 await interaction.response.send_message(
                     f"`{victim.display_name}` doesn't have money on him. "
                     "What a shame."
@@ -255,7 +255,6 @@ class Business(commands.Cog):
                     "your usual sneakiness"
                 )
             else:
-                self.steal.reset_cooldown(ctx)
                 pickpocket.steal_streak += 1
                 await interaction.response.send_message(
                     f"You robbed `{await pickpocket.steal(stolen)}` GP from "

@@ -3,17 +3,11 @@ version = 1
 [[analyzers]]
 name = "python"
 enabled = true
+    [analyzers.meta]
+    max_line_length = 88
 
 [[analyzers]]
 name = "secrets"
-enabled = true
-
-[[transformers]]
-name = "autopep8"
-enabled = true
-
-[[transformers]]
-name = "isort"
 enabled = true
 
 [[transformers]]
@@ -21,5 +15,5 @@ name = "black"
 enabled = true
 
 [[transformers]]
-name = "yapf"
+name = "isort"
 enabled = true
