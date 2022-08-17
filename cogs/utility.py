@@ -276,7 +276,7 @@ class Utility(commands.GroupCog):
     # @app_commands.command(aliases=["sauce"])
     async def source(
         self,
-        interaction: Interaction,
+        interaction: discord.Interaction,
         *,
         command_name: str,
     ) -> None:
