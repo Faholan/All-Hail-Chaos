@@ -137,7 +137,7 @@ class Businessguy:
         return stolen
 
 
-class Business(commands.GroupCog):
+class Business(commands.Cog):
     """Some commands involving money."""
 
     def __init__(self, bot: commands.Bot) -> None:

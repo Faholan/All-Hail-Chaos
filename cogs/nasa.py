@@ -30,7 +30,7 @@ from discord.ext import commands, tasks
 from discord.utils import escape_markdown
 
 
-class NASA(commands.GroupCog):
+class NASA(commands.Cog):
     """It's so easy to hack the NASA."""
 
     def __init__(self, bot: commands.Bot) -> None:

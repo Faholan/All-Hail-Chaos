@@ -311,8 +311,7 @@ async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     return None
 
 
-@app_commands.guild_only()
-class Music(commands.GroupCog):
+class Music(commands.Cog):
     """Play music."""
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -393,6 +392,7 @@ class Music(commands.GroupCog):
 
         return True
 
+    @app_commands.guild_only()
     @app_commands.command()
     async def play(
         self, interaction: discord.Interaction, query: t.Optional[str]
@@ -418,8 +418,9 @@ class Music(commands.GroupCog):
                 embed=await get_music_embed(player), view=MusicView(player, interaction)
             )
 
+    @app_commands.guild_only()
     @app_commands.command()
-    async def np(self, interaction: discord.Interaction) -> None:
+    async def now(self, interaction: discord.Interaction) -> None:
         """Check the current status of player."""
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 

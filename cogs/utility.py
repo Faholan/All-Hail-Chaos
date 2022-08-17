@@ -75,7 +75,7 @@ def secondes(number: int) -> str:
     return ", ".join(formatted)
 
 
-class Utility(commands.GroupCog):
+class Utility(commands.Cog):
     """Manage the bot and get informations about it."""
 
     def __init__(self, bot: commands.Bot) -> None:

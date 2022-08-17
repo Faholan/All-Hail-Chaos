@@ -324,7 +324,7 @@ chaos: t.List[t.Callable[[Fighter, Fighter, t.List[str]], t.Tuple[HitReturn, ...
 ]
 
 
-class Funny(commands.GroupCog):
+class Funny(commands.Cog):
     """Some funny commands."""
 
     def __init__(self, bot: commands.Bot) -> None:

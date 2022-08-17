@@ -33,7 +33,7 @@ def check_channel(channel: discord.abc.Messageable) -> bool:
     return True
 
 
-class Images(commands.GroupCog):
+class Images(commands.Cog):
     """Commands to get random images.
 
     You can try using the nsfw command, if you dare
