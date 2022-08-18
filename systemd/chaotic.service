@@ -5,7 +5,6 @@ Wants=network.target lavalink.service
 After=network.target lavalink.service
 
 [Service]
-Environment=PATH=/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 WorkingDirectory=/home/user/github/All-Hail-Chaos
 ExecStart=/bin/bash /home/user/github/All-Hail-Chaos/startup.sh
 User=user
