@@ -82,41 +82,32 @@ class Utility(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize the utility."""
         self.bot = bot
-        self.top_gg_token = (
-            self.discord_bots_token
-        ) = self.xyz_token = self.discordbotlist_token = None
 
         for bot_list in self.bot.raw_config.get("bot_lists", []):
             if not isinstance(bot_list, dict):  # type: ignore
                 continue
 
-            bot_list: t.Dict[str, str]
+            bot_list: t.Dict[str, str]  # type: ignore
 
             if bot_list.get("name") == "top.gg":
                 if self.top_gg.is_running():
                     continue
-                self.top_gg_token = bot_list.get("token")
-                self.top_gg.start()
+                self.top_gg.start(bot_list.get("token"))
 
             if bot_list.get("name") == "discord.bots.gg":
                 if self.discord_bots.is_running():
                     continue
-                self.discord_bots_token = bot_list.get("token")
-                self.discord_bots.start()
+                self.discord_bots.start(bot_list.get("token"))
 
             if bot_list.get("name") == "bots.ondiscord.xyz":
                 if self.xyz.is_running():
                     continue
-
-                self.xyz_token = bot_list.get("token")
-                self.xyz.start()
+                self.xyz.start(bot_list.get("token"))
 
             if bot_list.get("name") == "discordbotlist.com":
                 if self.discordbotlist.is_running():
                     continue
-
-                self.discordbotlist_token = bot_list.get("token")
-                self.discordbotlist.start()
+                self.discordbotlist.start(bot_list.get("token"))
 
     @app_commands.command()
     async def add(self, interaction: discord.Interaction) -> None:
@@ -231,16 +222,29 @@ class Utility(commands.Cog):
             name="GitHub repository",
             value=(f"[It's open source !]({self.bot.github_link})"),
         )
-        # embed.add_field(
-        #    name="Description page :",
-        #    value=(
-        #        f"[top.gg page]({self.bot.top_gg})\n"
-        #        f"[bots on discord page]({self.bot.bots_on_discord})\n"
-        #        f"[Discord bots page]({self.bot.discord_bots_page})\n"
-        #        f"[Discord bot list page]({self.bot.discord_bot_list_page})"
-        #    ),
-        #    inline=False,
-        # )
+
+        descr_pages = []
+
+        for bot_list in self.bot.raw_config.get("bot_lists", []):
+            if not isinstance(bot_list, dict):
+                continue
+            bot_list: t.Dict[str, str]  # type: ignore
+
+            if not bot_list.get("page"):
+                continue
+
+            name = bot_list.get("display_name") or bot_list.get("name")
+
+            if not name:
+                continue
+
+            descr_pages.append(f"[{name} page]({bot_list.get('page')})")
+
+        if descr_pages:
+            embed.add_field(
+                name="Description pages", value="\n".join(descr_pages), inline=False
+            )
+
         embed.add_field(
             name="Libraries used :",
             value=(
@@ -277,7 +281,7 @@ class Utility(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     # TODO : create a v2 paginator
-    # @app_commands.command(aliases=["sauce"])
+    # @app_commands.command()
     async def source(
         self,
         interaction: discord.Interaction,
@@ -286,13 +290,15 @@ class Utility(commands.Cog):
     ) -> None:
         """Get the source code of a command."""
         command = self.bot.tree.get_command(command_name)
-        if not command:
-            await ctx.send(f"No command named `{command_name}` found.")
+        if not command or isinstance(command, app_commands.Group):
+            await interaction.response.send_message(
+                f"No command named `{command_name}` found."
+            )
             return
         try:
             source_lines, _ = inspect.getsourcelines(command.callback)
         except (TypeError, OSError):
-            await ctx.send(
+            await interaction.response.send_message(
                 "I was unable to retrieve the source for "
                 f"`{command_name}` for some reason."
             )
@@ -353,35 +359,35 @@ class Utility(commands.Cog):
             )
 
     @tasks.loop(minutes=30)
-    async def discord_bots(self) -> None:
+    async def discord_bots(self, token: t.Optional[str]) -> None:
         """Update the profile ont discord.bots.gg."""
-        if not self.discord_bots_token:
+        if not token:
             self.discord_bots.stop()
             return
 
         await self.bot.aio_session.post(
             f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",
             json={"guildCount": len(self.bot.guilds)},
-            headers={"authorization": self.discord_bots_token},
+            headers={"authorization": token},
         )
 
     @tasks.loop(minutes=30)
-    async def xyz(self) -> None:
+    async def xyz(self, token: t.Optional[str]) -> None:
         """Update the profile on bots.ondiscord.xyz."""
-        if not self.xyz_token:
+        if not token:
             self.xyz.stop()
             return
 
         await self.bot.aio_session.post(
             "https://bots.ondiscord.xyz/bot-api/bots/" f"{self.bot.user.id}/guilds",
             json={"guildCount": len(self.bot.guilds)},
-            headers={"Authorization": self.xyz_token},
+            headers={"Authorization": token},
         )
 
     @tasks.loop(minutes=30)
-    async def discordbotlist(self) -> None:
+    async def discordbotlist(self, token: t.Optional[str]) -> None:
         """Update the profile on discordbotlist.com."""
-        if not self.discordbotlist_token:
+        if not token:
             self.discordbotlist.stop()
             return
 
@@ -391,13 +397,13 @@ class Utility(commands.Cog):
                 "guilds": len(self.bot.guilds),
                 "users": sum(guild.member_count for guild in self.bot.guilds),
             },
-            headers={"Authorization": f"Bot {self.discordbotlist_token}"},
+            headers={"Authorization": f"Bot {token}"},
         )
 
     @tasks.loop(minutes=30)
-    async def top_gg(self) -> None:
+    async def top_gg(self, token: t.Optional[str]) -> None:
         """Update the profile on top.gg."""
-        if not self.top_gg_token:
+        if not token:
             self.top_gg.stop()
             return
 
@@ -408,7 +414,7 @@ class Utility(commands.Cog):
         await self.bot.aio_session.post(
             f"https://top.gg/api/bots/{self.bot.user.id}/stats",
             data=data,
-            headers={"Authorization": self.top_gg_token},
+            headers={"Authorization": token},
         )
 
 

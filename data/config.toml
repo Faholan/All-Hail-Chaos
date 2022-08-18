@@ -33,8 +33,8 @@ integrations = false
 webhooks = false
 invites = false
 voice_states = true
-guild_messages = false
-dm_messages = false
+guild_messages = true
+dm_messages = true
 guild_reactions = false
 dm_reactions = false
 guild_typing = false
@@ -75,20 +75,24 @@ nasa = ""
 
 [[bot_lists]]
 name = "top.gg"
+display_name = "Top.gg"
 token = ""
 page = ""
 
 [[bot_lists]]
 name = "discord.bots.gg"
+display_name = "Discord bots"
 token = ""
 page = ""
 
 [[bot_lists]]
 name = "bots.ondiscord.xyz"
+display_name = "Bots on Discord"
 token = ""
 page = ""
 
 [[bot_lists]]
 name = "discordbotlist.com"
+display_name = "Discord Bot list"
 token = ""
 page = ""
