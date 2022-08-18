@@ -44,79 +44,102 @@ class CustomPlayer(lavalink.DefaultPlayer):
         """Initialise the player."""
         super().__init__(guild_id, node)
 
-        self.repeat_once = False
+        self.repeat_once = False  # Repeat a single track forever
 
-        self.history: t.List[lavalink.AudioTrack] = []
+        self.history: t.List[lavalink.AudioTrack] = []  # Tracks previously played
 
         self.interactions: t.List[discord.Interaction] = []
+        # All interactions with views controlling the player
+        # Stored in order to update
 
     async def update_interactions(self) -> None:
         """Update the interfaces."""
         i = 0
         while i < len(self.interactions):
+            # We may need to invalidate some interactions, hence a while loop rather than a for
             interaction = self.interactions[i]
-            if interaction.is_expired():
+            if interaction.is_expired():  # If the interaction is expired, delete it
                 self.interactions.pop(i)
                 continue
             try:
-                await interaction.edit_original_response(
+                await interaction.edit_original_response(  # Update the interaction with new data
                     embed=await get_music_embed(self), view=MusicView(self, interaction)
                 )
-            except discord.NotFound:  # interaction message deleted
+            except discord.NotFound:  # Interaction message got deleted, purge it
                 self.interactions.pop(i)
             else:
                 i += 1
 
     def set_repeat_once(self, repeat_once: bool) -> None:
         """Set the player's repeat once state."""
-        self.repeat_once = repeat_once
+        # This is the same type of method as the rest of the Player API
+        if not self.repeat and not self.shuffle:
+            # This loop is incompatible with shuffling & repeating
+            self.repeat_once = repeat_once
 
-    async def _handle_event(self, event: lavalink.Event) -> None:
-        """Handle events and add to history."""
-        if isinstance(event, lavalink.TrackEndEvent):
-            if self.repeat_once:
-                self.add(event.track.requester, event.track, 0)
-            elif not self.repeat:
-                self.history.append(event.track)
+    def set_repeat(self, repeat: bool) -> None:
+        """Set the player's repeat status."""
+        if not self.repeat_once:
+            # You can only have a single loop type
+            super().set_repeat(repeat)
 
-        await super()._handle_event(event)
+    async def play(
+        self,
+        track: t.Optional[t.Union[lavalink.AudioTrack, dict]] = None,
+        start_time: int = 0,
+        end_time: int = 0,
+        no_replace: bool = False,
+        no_history: bool = False,
+    ) -> None:
+        """Manage the history & repeat states when playing."""
+        if not self.current or no_history:
+            # If there is no current track, then there is nothing to ad to history or queue
+            # no_history : Do not add the track to history
+            await super().play(track, start_time, end_time, no_replace)  # type: ignore
+            return
+
+        if self.repeat_once:
+            self.queue.insert(0, self.current)
+        elif not self.repeat:
+            self.history.append(self.current)  # type: ignore
+
+        # Lavalink messed up the types : play can accept a track of None
+        # and current is an AudioTrack, not a dict (according to official docs & source)
+        await super().play(track, start_time, end_time, no_replace)  # type: ignore
 
     async def previous(self) -> None:
         """Got to the previous track in the history."""
         if not self.history:
-            await self.set_pause(True)
+            # If nothing is in the history, i. e. this is the first track,
+            # go the the start of the song
             await self.seek(0)
             return
 
-        previous_track = self.history.pop()
+        previous_track = self.history.pop()  # Get the previous track
 
-        self.add(self.current.requester, self.current, 0)
-        await self.play(previous_track)
-        await self.set_pause(False)
-
-    async def skip(self) -> None:
-        """Skip the current track."""
-        if self.current is not None:
-            self.history.append(self.current)
-        await super().skip()
+        self.queue.insert(0, self.current)  # Add the current track to the queue
+        await self.play(
+            previous_track, no_history=True
+        )  # The track was already added to history, so do not add a second time
+        await self.set_pause(False)  # Unpause if we were paused
 
     async def add_query(self, interaction: discord.Interaction, query: str) -> str:
         """Query Lavalink and add the results to the queue.
 
-        Returns The message to send as followup.
+        Returns the message to send as followup.
         """
 
-        query = query.strip("<>")
-
         if not url_rx.match(query):
+            # If this is not an URL, search for it on YouTube
             query = f"ytsearch:{query}"
 
-        results = await self.node.get_tracks(query)
+        results = await self.node.get_tracks(query)  # Query Lavalink
 
         if not results or not results["tracks"]:
             return "Nothing found !"
 
         if results["loadType"] == "PLAYLIST_LOADED":
+            # Found a playlist, add all tracks to the queue
             tracks = results["tracks"]
 
             for track in tracks:
@@ -124,6 +147,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
             return f"Enqueued playlist {results['playlistInfo']['name']} - {len(tracks)} tracks"
 
+        # Found a single track, add it to the queue
         track = results["tracks"][0]
         audiotrack = lavalink.models.AudioTrack(track, interaction.user.id)
         self.add(interaction.user.id, audiotrack)
@@ -135,8 +159,9 @@ class CustomPlayer(lavalink.DefaultPlayer):
         for interaction in self.interactions:
             try:
                 await interaction.delete_original_response()
+                # Remove all the player managers
             except discord.NotFound:
-                continue
+                continue  # Message was already deleted
         self.interactions = []
         await super().stop()
 
@@ -152,6 +177,8 @@ def add_lavalink(client: discord.Client) -> None:
 
 class LavalinkVoiceClient(discord.VoiceClient):
     """Manage the voice connection."""
+
+    # This is based on the official Lavalink example
 
     # pylint: disable=super-init-not-called
     def __init__(self, client: discord.Client, channel: discord.VoiceChannel):
@@ -226,7 +253,7 @@ class MusicInput(ui.Modal, title="Music search"):
         super().__init__()
         self.music_input.placeholder = choice(
             ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
-        )
+        )  # Provide variaions in the placeholder
         self.player = player
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
@@ -247,12 +274,12 @@ class MusicView(ui.View):
         self.interaction = interaction
         player.interactions.append(interaction)
 
-        if not player.history:
-            self.previous.disabled = True
         if player.paused:
             self.pause_play.style = discord.ButtonStyle.secondary
         if not player.queue:
-            self.next.disabled = True
+            self.next.disabled = (
+                True  # Disable the next button if there is nothing in the queue
+            )
         if player.repeat:
             self.repeat.style = discord.ButtonStyle.secondary
         if player.repeat_once:

@@ -26,7 +26,6 @@ import textwrap
 import traceback
 import typing as t
 from contextlib import redirect_stdout
-from os import system
 
 import discord
 from discord import app_commands, ui

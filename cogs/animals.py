@@ -35,7 +35,7 @@ class Animals(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Animals."""
         self.bot = bot
-        self.all_facts: t.List[t.Dict[str, str]] = []
+        self.all_facts: t.List[t.Dict[str, str]] = []  # Cache of cat facts
         self.catfact_update.start()
 
     @tasks.loop(hours=12)

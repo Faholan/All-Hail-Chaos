@@ -46,7 +46,7 @@ def display_time(num_seconds: int) -> str:
     return ", ".join(human_readable)
 
 
-OPTION_TYPES = {
+OPTION_TYPES = {  # Convert the options into human readable format
     discord.AppCommandOptionType.subcommand: "a subcommand",
     discord.AppCommandOptionType.subcommand_group: "a subcommand group",
     discord.AppCommandOptionType.string: "a string",  # Wait, what ?
@@ -110,18 +110,16 @@ class CommandTree(app_commands.CommandTree):
             return
 
         if isinstance(error, app_commands.MissingAnyRole):
-            roles: t.List[str] = []
+            roles: t.List[str] = []  # List of names of needed roles
             for role in error.missing_roles:
                 if isinstance(role, int):
                     if interaction.guild is not None:
                         guild_role = interaction.guild.get_role(role)
-                        if guild_role is None:
-                            role = str(role)
-                        else:
+                        if guild_role is not None:
                             role = guild_role.name
-                    else:
-                        role = str(role)
-                roles.append(role)
+
+                if isinstance(role, str):
+                    roles.append(role)
 
             await self.client.httpcat(
                 interaction,
@@ -201,6 +199,7 @@ class CommandTree(app_commands.CommandTree):
             ),
         )
 
+        # Send the errors into the log channel
         embed = discord.Embed(colour=0xFF0000)
         embed.set_author(
             name=str(interaction.user), icon_url=interaction.user.display_avatar.url
@@ -212,7 +211,7 @@ class CommandTree(app_commands.CommandTree):
             interaction.guild
             and interaction.channel
             and not isinstance(interaction.channel, discord.PartialMessageable)
-        ):
+        ):  # Correct typehints - in a guild
             embed.description += (
                 f"\nin {interaction.guild} ({interaction.guild_id})"
                 f"\n   in {interaction.channel.name} ({interaction.channel_id})"
@@ -233,6 +232,7 @@ class CommandTree(app_commands.CommandTree):
             await self.client.log_channel.send(
                 file=discord.File(
                     StringIO(f"{embed.title}\n\n{embed.description}"),  # type: ignore
+                    # Sneaky way of sending the file content
                     filename="error.md",
                 )
             )
