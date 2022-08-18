@@ -271,7 +271,7 @@ class Owner(commands.Cog):
     @app_commands.guilds(694804646086312026)
     async def pull(self, interaction: discord.Interaction) -> None:
         """Execute a git pull."""
-        await self.sh.callback(interaction, "git pull")
+        await self.sh.callback(self, interaction, "git pull")
 
     @commands.command()
     @commands.is_owner()
