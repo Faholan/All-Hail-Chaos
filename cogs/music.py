@@ -335,15 +335,36 @@ def duration_str(mili_sec: int) -> str:
 
 async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     """Get the interface for the music player."""
-    embed = discord.Embed()  # TODO : FILL ME !!!
+    if not player.history:
+        embed = discord.Embed(
+            title = "Music history"
+        )
+        embed.set_author(
+            name = "Chaotic Bot",
+            icon_url="https://cdn.discordapp.com/avatars/636359675943583775/b590ab94e21ce55c2bfc77cf062d16ff.webp"
+        )
+        return embed
+    mus = player.history[-1]
+    desc_chans = "-Playing now\n-"
+    desc_chans += duration_str(mus.duration)
+    desc_chans += "\n-" + mus.author
+    desc_chans += "\n-" + mus.title
+    embed = discord.Embed(
+        title = "Music history",
+        description = desc_chans
+    )
     n = len(player.history)
     embed.set_author(
-        name = "Music history",
+        name = "Chaotic Bot",
         icon_url="https://cdn.discordapp.com/avatars/636359675943583775/b590ab94e21ce55c2bfc77cf062d16ff.webp"
     )
-    fin = min(n,20)
-    for i in range(fin):
-        mus = player.history[n-i-1]
+    try:
+        embed.set_thumbnail(url="https://youtube.com/watch?v="+mus.identifier)
+    except:
+        embed.set_thumbnail(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    fin = min(n,5)
+    for i in range(1,fin):
+        mus = player.history[-i-1]
         datas = duration_str(mus.duration)
         datas += " : " + mus.title
         datas += " from " + mus.author
