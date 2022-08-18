@@ -33,6 +33,7 @@ import typing as t
 import discord
 import humanize
 import psutil
+import ujson
 
 from discord import app_commands
 
@@ -92,7 +93,10 @@ class Utility(commands.Cog):
             bot_list: t.Dict[str, str]
 
             if bot_list.get("name") == "top.gg":
-                pass  # Custom top.gg runner I believe
+                if self.top_gg.is_running():
+                    continue
+                self.top_gg_token = bot_list.get("token")
+                self.top_gg.start()
 
             if bot_list.get("name") == "discord.bots.gg":
                 if self.discord_bots.is_running():
@@ -388,6 +392,23 @@ class Utility(commands.Cog):
                 "users": sum(guild.member_count for guild in self.bot.guilds),
             },
             headers={"Authorization": f"Bot {self.discordbotlist_token}"},
+        )
+
+    @tasks.loop(minutes=30)
+    async def top_gg(self) -> None:
+        """Update the profile on top.gg."""
+        if not self.top_gg_token:
+            self.top_gg.stop()
+            return
+
+        payload = {"server_count": len(self.bot.guilds)}
+
+        data = ujson.dumps(payload, ensure_ascii=True)
+
+        await self.bot.aio_session.post(
+            f"https://top.gg/api/bots/{self.bot.user.id}/stats",
+            data=data,
+            headers={"Authorization": self.top_gg_token},
         )
 
 
