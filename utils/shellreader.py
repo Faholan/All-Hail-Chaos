@@ -143,7 +143,9 @@ class ShellReader:
         """Read the next line from the queue."""
         last_output = time.perf_counter()
 
-        while not self.closed or not self.queue.empty():
+        while (
+            not self.closed or not self.queue.empty()
+        ) and self.process.poll() is None:
             try:
                 item = await asyncio.wait_for(self.queue.get(), timeout=1)
             except asyncio.TimeoutError as exception:
