@@ -205,6 +205,7 @@ class Owner(commands.Cog):
                 "Select the extensions to reload", view=view
             )
             if await view.wait():
+                await interaction.followup.send("Timed out")
                 return  # Modal timed out
             extensions = view.extensions.values
 
