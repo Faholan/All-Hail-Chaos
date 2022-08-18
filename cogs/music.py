@@ -100,10 +100,10 @@ class CustomPlayer(lavalink.DefaultPlayer):
             self.history.append(self.current)
         await super().skip()
 
-    async def add_query(self, interaction: discord.Interaction, query: str) -> bool:
+    async def add_query(self, interaction: discord.Interaction, query: str) -> str:
         """Query Lavalink and add the results to the queue.
 
-        Returns True if the query returned results, False otherwise.
+        Returns The message to send as followup.
         """
 
         query = query.strip("<>")
@@ -114,8 +114,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
         results = await self.node.get_tracks(query)
 
         if not results or not results["tracks"]:
-            await interaction.response.send_message("Nothing found !", ephemeral=True)
-            return False
+            return "Nothing found !"
 
         if results["loadType"] == "PLAYLIST_LOADED":
             tracks = results["tracks"]
@@ -123,21 +122,13 @@ class CustomPlayer(lavalink.DefaultPlayer):
             for track in tracks:
                 self.add(requester=interaction.user.id, track=track)
 
-            await interaction.response.send_message(
-                f"Enqueued playlist {results['playlistInfo']['name']} - {len(tracks)} tracks",
-                ephemeral=True,
-            )
-        else:
-            track = results["tracks"][0]
+            return f"Enqueued playlist {results['playlistInfo']['name']} - {len(tracks)} tracks"
 
-            await interaction.response.send_message(
-                f"Enqueued track {track['info']['title']}",
-                ephemeral=True,
-            )
-            track = lavalink.models.AudioTrack(track, interaction.user.id)
-            self.add(interaction.user.id, track)
+        track = results["tracks"][0]
+        audiotrack = lavalink.models.AudioTrack(track, interaction.user.id)
+        self.add(interaction.user.id, audiotrack)
 
-        return True
+        return f"Enqueued track {track['info']['title']}"
 
     async def stop(self) -> None:
         """Stop the player."""
@@ -243,9 +234,9 @@ class MusicInput(ui.Modal, title="Music search"):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Submit the search."""
-        if await self.player.add_query(interaction, self.music_input.value):
-            self.stop()
-            await self.player.update_interactions()
+        response = await self.player.add_query(interaction, self.music_input.value)
+        await interaction.response.send_message(response, ephemeral=True)
+        await self.player.update_interactions()
 
 
 class MusicView(ui.View):
@@ -277,7 +268,10 @@ class MusicView(ui.View):
         await self.interaction.edit_original_response(
             embed=await get_music_embed(self.player), view=None
         )
-        self.player.interactions.remove(self.interaction)
+        try:
+            self.player.interactions.remove(self.interaction)
+        except ValueError:
+            pass
 
     @ui.button(emoji="\U000023ee\U0000fe0f", style=discord.ButtonStyle.primary, row=0)
     async def previous(self, interaction: discord.Interaction, _: ui.Button) -> None:
@@ -445,8 +439,10 @@ class Music(commands.Cog):
         """Play music."""
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
+        response = None
+
         if query is not None:
-            await player.add_query(interaction, query)
+            response = await player.add_query(interaction, query)
 
         if player.queue and not player.is_playing:
             await player.play()
@@ -454,14 +450,12 @@ class Music(commands.Cog):
         if player.paused:
             await player.set_pause(False)
 
-        if interaction.response.is_done():
-            await interaction.followup.send(
-                embed=await get_music_embed(player), view=MusicView(player, interaction)
-            )
-        else:
-            await interaction.response.send_message(
-                embed=await get_music_embed(player), view=MusicView(player, interaction)
-            )
+        await interaction.response.send_message(
+            embed=await get_music_embed(player), view=MusicView(player, interaction)
+        )
+
+        if response:
+            await interaction.followup.send(response, ephemeral=True)
 
     @app_commands.guild_only()
     @app_commands.command()
