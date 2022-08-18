@@ -170,28 +170,21 @@ graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a4533+g1c7747fe"
+version = "2.0.0"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
 python-versions = ">=3.8.0"
-develop = false
 
 [package.dependencies]
 aiohttp = ">=3.7.4,<4"
 PyNaCl = {version = ">=1.3.0,<1.6", optional = true, markers = "extra == \"voice\""}
 
 [package.extras]
-docs = ["sphinx (==4.4.0)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport", "typing-extensions (>=4.3,<5)"]
-speed = ["orjson (>=3.5.4)", "aiodns (>=1.1)", "brotli", "cchardet"]
-test = ["coverage", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock", "typing-extensions (>=4.3,<5)"]
 voice = ["PyNaCl (>=1.3.0,<1.6)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/Rapptz/discord.py.git"
-reference = "master"
-resolved_reference = "1c7747fe9d7fed9818019608fbcfb73a3ea50b72"
+test = ["typing-extensions (>=4.3,<5)", "pytest-mock", "pytest-cov", "pytest-asyncio", "pytest", "coverage"]
+speed = ["cchardet", "brotli", "aiodns (>=1.1)", "orjson (>=3.5.4)"]
+docs = ["typing-extensions (>=4.3,<5)", "sphinxcontrib-websupport", "sphinxcontrib-trio (==1.1.2)", "sphinx (==4.4.0)"]
 
 [[package]]
 name = "flake8"
@@ -609,7 +602,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "2ee2a5ba4f6df7bc48ea642b85ec0ccb88c8d4a65ce9431f64403eb097bddbd4"
+content-hash = "3de05c5b7bd77b935d5449822289f9fde4035b152da6e1aa0e6f33a59e935b4c"
 
 [metadata.files]
 aiohttp = [
@@ -831,7 +824,10 @@ dill = [
     {file = "dill-0.3.5.1-py2.py3-none-any.whl", hash = "sha256:33501d03270bbe410c72639b350e941882a8b0fd55357580fbc873fba0c59302"},
     {file = "dill-0.3.5.1.tar.gz", hash = "sha256:d75e41f3eff1eee599d738e76ba8f4ad98ea229db8b085318aa2b3333a208c86"},
 ]
-"discord.py" = []
+"discord.py" = [
+    {file = "discord.py-2.0.0-py3-none-any.whl", hash = "sha256:18b06870bdc85d29e0d55f4a4b2abe9d7cdae2b197e23d49f82886ba27ba1aec"},
+    {file = "discord.py-2.0.0.tar.gz", hash = "sha256:c36f26935938194c3465c2abf8ecfbbf5560c50b189f1b746d6f00d1e78c0d3b"},
+]
 flake8 = [
     {file = "flake8-5.0.4-py2.py3-none-any.whl", hash = "sha256:7a1cf6b73744f5806ab95e526f6f0d8c01c66d7bbe349562d22dfca20610b248"},
     {file = "flake8-5.0.4.tar.gz", hash = "sha256:6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db"},
