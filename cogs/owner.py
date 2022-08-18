@@ -65,7 +65,7 @@ class ExtensionSelector(ui.View):
 
     @ui.button(label="Select", style=discord.ButtonStyle.primary, row=1)
     async def validate_selection(
-        self, interaction: discord.Interaction, __: t.Any
+        self, interaction: discord.Interaction, _: ui.Button
     ) -> None:
         """Validate the selection."""
         await interaction.response.defer()
