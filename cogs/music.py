@@ -218,9 +218,6 @@ class MusicInput(ui.Modal, title="Music search"):
 
     music_input = ui.TextInput(
         label="Music to search for",
-        placeholder=choice(
-            ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
-        ),
         required=True,
     )
 
