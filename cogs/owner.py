@@ -202,11 +202,14 @@ class Owner(commands.Cog):
         else:
             view = ExtensionSelector(self.bot)
             await interaction.response.send_message(
-                "Select the extensions to reload", view=view
+                "Select the extensions to reload",
+                view=view,
+                ephemeral=True,
             )
             if await view.wait():
-                await interaction.followup.send("Timed out")
+                await interaction.followup.send("Timed out", ephemeral=True)
                 return  # Modal timed out
+            await interaction.followup.send("Reloading...", ephemeral=True)
             extensions = view.extensions.values
 
         total_reload = len(extensions)
