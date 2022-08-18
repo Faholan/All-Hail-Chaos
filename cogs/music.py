@@ -305,6 +305,8 @@ class MusicView(ui.View):
         """Stop playing altogether."""
         await interaction.response.defer()
         await self.player.stop()
+        if interaction.guild and interaction.guild.voice_client:
+            await interaction.guild.voice_client.disconnect(force=True)
 
     @ui.button(emoji="\U0001f501", style=discord.ButtonStyle.primary, row=1)
     async def repeat(self, interaction: discord.Interaction, _: ui.Button) -> None:

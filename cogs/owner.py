@@ -26,6 +26,7 @@ import textwrap
 import traceback
 import typing as t
 from contextlib import redirect_stdout
+from os import system
 
 import discord
 from discord import app_commands, ui
@@ -47,7 +48,8 @@ class EvalInput(ui.Modal, title="Code input"):
         await interaction.response.defer()
 
 
-class ExtensionSelector(ui.Modal, title="Extensions selector"):
+class ExtensionSelector(ui.View):
+    """Select the extensions to reload."""
 
     extensions = ui.Select()
 
@@ -57,12 +59,12 @@ class ExtensionSelector(ui.Modal, title="Extensions selector"):
         for extension in bot.extensions_list:
             self.extensions.add_option(label=extension)
 
-        self.max_values = len(bot.extensions_list)
+        self.extensions.max_values = len(bot.extensions_list)
 
-    @staticmethod
-    async def on_submit(interaction: discord.Interaction) -> None:
-        """Defer the interaction."""
-        await interaction.response.defer()
+    @ui.button(label="Select", style=discord.ButtonStyle.primary)
+    async def validate_selection(self, _: discord.Interaction, __: t.Any) -> None:
+        """Validate the selection."""
+        self.stop()
 
 
 class Owner(commands.Cog):
@@ -94,13 +96,21 @@ class Owner(commands.Cog):
     ) -> None:
         """Catch the errors."""
         if isinstance(error, OwnerError):
-            await self.bot.httpcat(
-                interaction,
-                400,
-                "Only my owner can use the command "
-                + interaction.command.qualified_name,
-                ephemeral=True,
-            )
+            if interaction.command:
+                await self.bot.httpcat(
+                    interaction,
+                    400,
+                    "Only my owner can use the command "
+                    + interaction.command.qualified_name,
+                    ephemeral=True,
+                )
+            else:
+                await self.bot.httpcat(
+                    interaction,
+                    400,
+                    "Only my owner can use this command",
+                    ephemeral=True,
+                )
             return
         raise error
 
@@ -185,11 +195,13 @@ class Owner(commands.Cog):
             await interaction.response.send_message("Too many extensions for a modal")
             return
         else:
-            modal = ExtensionSelector(self.bot)
-            await interaction.response.send_modal(modal)
-            if await modal.wait():
+            view = ExtensionSelector(self.bot)
+            await interaction.response.send_message(
+                "Select the extensions to reload", view=view
+            )
+            if await view.wait():
                 return  # Modal timed out
-            extensions = modal.extensions.values
+            extensions = view.extensions.values
 
         total_reload = len(extensions)
 
