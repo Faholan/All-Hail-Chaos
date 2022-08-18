@@ -325,12 +325,36 @@ class MusicView(ui.View):
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
+def duration_str(mili_sec: int): -> str:
+    sec = mili_sec // 1000
+    min = sec //60
+    hour = min//60
+    min = min % 60
+    sec = sec % 60
+    if hour:
+        return str(hour) + ":" + str(min) + ":" + str(sec)
+    return str(min) + ":" + str(sec)
 
 async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     """Get the interface for the music player."""
     embed = discord.Embed()  # TODO : FILL ME !!!
-
-    return None
+    n = len(player.history)
+     embed.set_author(
+        name = "Music history",
+        icon_url = "https://cdn.discordapp.com/avatars/636359675943583775/b590ab94e21ce55c2bfc77cf062d16ff.webp",
+    )
+    fin = min(20,n)
+    for i in range(fin):
+        mus = player.history[n-i-1]
+        datas = durations_str(mus.duration)
+        datas += " : " + mus.title
+        datas += " from " + mus.author
+        embed.add_field(
+            name = str(-i),
+            value = datas,
+            inline=False
+        )
+    return embed
 
 
 class MusicError(app_commands.CheckFailure):
