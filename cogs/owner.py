@@ -54,19 +54,14 @@ class ExtensionSelector(ui.View):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize the selector."""
         super().__init__()
-        self.extensions = ui.Select(row=0)
 
         for extension in bot.extensions_list:
             self.extensions.add_option(label=extension)
 
         self.extensions.max_values = len(bot.extensions_list)
 
-        self.add_item(self.extensions)
-
-    @ui.button(label="Select", style=discord.ButtonStyle.primary, row=1)
-    async def validate_selection(
-        self, interaction: discord.Interaction, _: ui.Button
-    ) -> None:
+    @ui.select()
+    async def extensions(self, interaction: discord.Interaction, _: ui.Select) -> None:
         """Validate the selection."""
         await interaction.response.defer()
         self.stop()
