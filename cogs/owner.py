@@ -203,6 +203,8 @@ class Owner(commands.Cog):
             )
             if await view.wait():
                 return  # Modal timed out
+
+            await interaction.delete_original_response()
             extensions = view.extensions.values
 
         total_reload = len(extensions)
