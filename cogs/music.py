@@ -262,9 +262,12 @@ class MusicView(ui.View):
 
     async def on_timeout(self) -> None:
         """Handle timeouts."""
-        await self.interaction.edit_original_response(
-            embed=await get_music_embed(self.player), view=None
-        )
+        try:
+            await self.interaction.edit_original_response(
+                embed=await get_music_embed(self.player), view=None
+            )
+        except discord.NotFound:
+            pass
         try:
             self.player.interactions.remove(self.interaction)
         except ValueError:
