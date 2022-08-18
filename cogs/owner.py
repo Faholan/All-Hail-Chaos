@@ -202,9 +202,7 @@ class Owner(commands.Cog):
                 ephemeral=True,
             )
             if await view.wait():
-                await interaction.followup.send("Timed out", ephemeral=True)
                 return  # Modal timed out
-            await interaction.followup.send("Reloading...", ephemeral=True)
             extensions = view.extensions.values
 
         total_reload = len(extensions)
