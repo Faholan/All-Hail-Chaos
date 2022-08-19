@@ -26,7 +26,7 @@ import re
 import typing as t
 
 from discord import app_commands, ui
-from discord.ext import commands
+from discord.ext import commands, tasks
 import discord
 import lavalink
 
@@ -207,15 +207,13 @@ class LavalinkVoiceClient(discord.VoiceClient):
             self_deaf=self_deaf,
         )
 
-    async def disconnect(self, *, force: bool = False) -> None:
+    async def disconnect(self, *, force: bool = True) -> None:
         """Handle disconnects."""
         player = self.lavalink.player_manager.get(self.channel.guild.id)
 
         if player is None:
             await self.channel.guild.change_voice_state(channel=None)
             self.cleanup()
-
-        if not force and not player.is_connected:
             return
 
         await self.channel.guild.change_voice_state(channel=None)
@@ -435,9 +433,50 @@ class Music(commands.Cog):
         add_lavalink(bot)
         lavalink.add_event_hook(self.track_hook)
 
+        self.empty_channels: t.List[int] = []
+        self.empty_vc_check.start()
+
+    @tasks.loop(minutes=1)
+    async def empty_vc_ckeck(self) -> None:
+        """Stop playing if nobody's listening."""
+        new_channels = []
+        for player in tuple(self.bot.lavalink.player_manager.players.values()):
+            if player and player.is_playing:
+                guild = self.bot.get_guild(int(player.guild_id))
+                if not guild:
+                    player.history.clear()
+                    player.queue.clear()
+                    await player.stop()
+                    await self.force_disconnect(int(player.guild_id))
+                    continue
+
+                vocal = guild.get_channel(int(player.channel_id))
+                if not vocal:
+                    player.history.clear()
+                    player.queue.clear()
+                    await player.stop()
+                    await self.force_disconnect(int(player.guild_id))
+                    continue
+
+                if len(vocal.voice_states) <= 1:
+                    if guild.id in self.empty_channels:
+                        player.history.clear()
+                        player.queue.clear()
+                        await player.stop()
+                        await self.force_disconnect(int(player.guild_id))
+                    else:
+                        new_channels.append(guild.id)
+        self.empty_channels = new_channels
+
+
     async def cog_unload(self) -> None:
         """Cleanup the event hooks."""
         self.bot.lavalink._event_hooks.clear()
+
+    async def force_disconnect(self, guild_id: int) -> None:
+        """Force a websocket disconnection."""
+        websocket = self.bot._connection._get_websocket(guild_id)
+        await websocket.voice_state(guild_id, None)
 
     async def track_hook(self, event: lavalink.Event) -> None:
         """Disconnect the client upon reaching the end of queue."""
@@ -446,6 +485,8 @@ class Music(commands.Cog):
             guild = self.bot.get_guild(guild_id)
             if guild and guild.voice_client:
                 await guild.voice_client.disconnect(force=True)
+            else:
+                await self.force_disconnect(guild_id)
 
     async def cog_app_command_error(
         self, interaction: discord.Interaction, error: Exception
@@ -502,7 +543,7 @@ class Music(commands.Cog):
 
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
         else:
-            if player.channel_id != interaction.user.voice.channel.id:
+            if int(player.channel_id) != interaction.user.voice.channel.id:
                 raise MusicError(421, "I'm already in a different voice channel.")
 
         return True
