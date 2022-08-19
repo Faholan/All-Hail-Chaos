@@ -370,7 +370,7 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
     desc = ""
     if player.current:
         mus = player.current
-        desc = "-Playing now\n-"
+        desc = "Current song :\n"
         desc += duration_str(mus.duration)
         desc += " : " + mus.title
     if player.history:
