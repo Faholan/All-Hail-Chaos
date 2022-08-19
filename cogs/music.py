@@ -327,11 +327,11 @@ class MusicView(ui.View):
 
 def duration_str(mili_sec: int) -> str:
     sec = mili_sec//1000
-    min = sec//60
-    hour = min//60
+    minute = sec//60
+    hour = minute//60
     if hour:
-        return str(hour)+":"+str(min)+":"+str(sec)
-    return str(min)+":"+str(sec)
+        return str(hour)+":"+str(minute)+":"+str(sec)
+    return str(minute)+":"+str(sec)
 
 async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
     """Get the interface for the music player."""
