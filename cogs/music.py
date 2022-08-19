@@ -375,8 +375,8 @@ def duration_str(mili_sec: int) -> str:
     minute = minute % 60
     sec = sec % 60
     if hour:
-        return f"{hour}:{minute:05d}:{sec:05d}"
-    return f"{minute:05d}:{sec:05d}"
+        return f"{hour}:{minute:02d}:{sec:02d}"
+    return f"{minute:02d}:{sec:02d}"
 
 
 async def get_music_embed(
@@ -384,26 +384,25 @@ async def get_music_embed(
 ) -> discord.Embed:
     """Get the interface for the music player."""
     desc = ""
-    if player.current:
-        mus: lavalink.AudioTrack = player.current 
-        desc = "Current song :\n"
-        desc += duration_str(mus.duration)
-        desc += " : " + mus.title
     if player.history:
         desc += "\n\nHistoric :\n"
 
     for i in range(min(len(player.history), 5)):
         mus = player.history[-i]
-        desc += "-" + duration_str(mus.duration)
-        desc += " : " + mus.title
+        desc += "-[" + mus.title
+        desc += f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'+f" ({duration_str(mus.duration)})"
     if player.queue:
         desc += "\n\nNext :\n"
 
     for i in range(min(len(player.queue), 5)):
         mus = player.queue[i]
-        desc += "-" + duration_str(mus.duration)
-        desc += " : " + mus.title
-    embed = discord.Embed(title="Music list", description=desc)
+        desc += "-[" + mus.title
+        desc += f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'+f" ({duration_str(mus.duration)})"
+    if player.current:
+        mus: lavalink.AudioTrack = player.current
+        embed = discord.Embed(title=f"Currently playing: {mus.title}({duration_str(mus.duration)})", description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
+    else:
+        embed = discord.Embed(title="Music list", description=desc)
     if interaction.client.user:
         embed.set_author(
             name=interaction.client.user.name,
