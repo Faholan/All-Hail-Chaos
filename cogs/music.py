@@ -400,7 +400,7 @@ async def get_music_embed(
         desc += f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'+f" ({duration_str(mus.duration)})"
     if player.current:
         mus: lavalink.AudioTrack = player.current
-        embed = discord.Embed(title=f"Currently playing:{duration_str(mus.duration)} : "+ mus.title, description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
+        embed = discord.Embed(title=f"Currently playing: {mus.title}({duration_str(mus.duration)})"+ mus.title, description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
     else:
         embed = discord.Embed(title="Music list", description=desc)
     if interaction.client.user:
