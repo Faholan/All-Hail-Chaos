@@ -66,7 +66,10 @@ class CustomPlayer(lavalink.DefaultPlayer):
                     embed=await get_music_embed(self, interaction),
                     view=MusicView(self, interaction),
                 )
-            except discord.NotFound:  # Interaction message got deleted, purge it
+            except (
+                discord.NotFound,
+                discord.HTTPException,
+            ):  # Interaction message got deleted, purge it
                 self.interactions.pop(i)
             else:
                 i += 1
@@ -269,7 +272,7 @@ class MusicView(ui.View):
 
     def __init__(self, player: CustomPlayer, interaction: discord.Interaction):
         """View for the music cog."""
-        super().__init__(timeout=1800)
+        super().__init__(timeout=870)
 
         self.player = player
         self.interaction = interaction
