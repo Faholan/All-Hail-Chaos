@@ -359,9 +359,11 @@ def duration_str(mili_sec: int) -> str:
     sec = mili_sec//1000
     minute = sec//60
     hour = minute//60
+    minute = minute % 60
+    sec = sec % 60
     if hour:
-        return f"{hour}:{minute}:{sec}"
-    return f"{minute}:{sec}"
+        return f"{hour}:{minute:05d}:{sec:05d}"
+    return f"{minute:05d}:{sec:05d}"
 
 async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
     """Get the interface for the music player."""
@@ -370,8 +372,7 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         mus = player.current
         desc = "-Playing now\n-"
         desc += duration_str(mus.duration)
-        desc += "\n-" + mus.author
-        desc += "\n-" + mus.title
+        desc += " : " + mus.title
     if player.history:
         desc += "\n\nHitoric :\n"
     n = len(player.history)
@@ -380,7 +381,6 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         mus = player.history[-i]
         desc += '-'+duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + '\n'
     if player.queue:
         desc += "\n\nNext :\n"
     n = len(player.queue)
@@ -389,7 +389,6 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         mus = player.queue[i]
         desc += '-'+duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + '\n'
     embed = discord.Embed(
         title = "Music list",
         description = desc
