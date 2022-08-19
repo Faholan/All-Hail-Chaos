@@ -37,6 +37,61 @@ import lavalink
 url_rx = re.compile(r"https?://(?:www\.)?.+")
 
 
+class InteractionHolder:
+    """Mutable placeholder for interactions."""
+
+    def __init__(self, interaction: discord.Interaction, view: "MusicView") -> None:
+        """Initialize the placeholder."""
+        self._interaction = interaction
+        self._view = view
+
+    def __eq__(self, other: t.Any) -> bool:
+        """Check for equality."""
+        if isinstance(other, InteractionHolder):
+            return self.interaction == other.interaction
+        return False
+
+    @property
+    def interaction(self) -> discord.Interaction:
+        """Get the underlying interaction."""
+        return self._interaction
+
+    @property
+    def view(self) -> "MusicView":
+        """Get the view."""
+        return self._view
+
+    @view.setter
+    def view(self, view: "MusicView") -> None:
+        """Set a new view and invalidate the old one."""
+        self._view.stop()
+        self._view = view
+
+    def is_expired(self) -> bool:
+        """Check if the underlying interaction has expired."""
+        return self.interaction.is_expired()
+
+    @property
+    def guild_id(self) -> t.Optional[int]:
+        """Get the guild id."""
+        return self.interaction.guild_id
+
+    @property
+    def channel_id(self) -> t.Optional[int]:
+        """Get the channel id."""
+        return self.interaction.channel_id
+
+    async def set_interaction(self, interaction: discord.Interaction) -> None:
+        """Set a new interaction and delete the old one."""
+        if interaction == self.interaction:  # no need to do anything
+            return
+        try:
+            await self.interaction.delete_original_response()
+        except (discord.NotFound, discord.HTTPException):
+            pass
+        self._interaction = interaction
+
+
 class CustomPlayer(lavalink.DefaultPlayer):
     """Custom player with history."""
 
@@ -48,29 +103,84 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
         self.history: t.List[lavalink.AudioTrack] = []  # Tracks previously played
 
-        self.interactions: t.List[discord.Interaction] = []
+        self._interactions: t.List[InteractionHolder] = []
         # All interactions with views controlling the player
         # Stored in order to update
+
+    async def add_interaction(
+        self, interaction: discord.Interaction, view: "MusicView"
+    ) -> None:
+        """Add an interaction to the player, removing old ones from the player."""
+        i = 0
+        while i < len(self._interactions):
+            holder = self._interactions[i]
+            if holder.is_expired():
+                holder.view.stop()
+                try:
+                    await holder.interaction.delete_original_response()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
+                self._interactions.pop(i)
+            elif (holder.guild_id, holder.channel_id,) == (
+                interaction.guild_id,
+                interaction.channel_id,
+            ):
+                view = MusicView(self, interaction)
+                holder.view = view
+                await holder.set_interaction(interaction)
+                return
+
+            i += 1
+
+        self._interactions.append(InteractionHolder(interaction, view))
+
+    async def remove_interaction(
+        self,
+        interaction: discord.Interaction,
+    ) -> None:
+        """Stop listening to an interaction."""
+        for i, holder in enumerate(self._interactions):
+            if holder.interaction == interaction:
+                holder.view.stop()
+                self._interactions.pop(i)
+                break
+
+        try:
+            await interaction.edit_original_response(
+                embed=await get_music_embed(self, interaction), view=None
+            )
+        except (discord.NotFound, discord.HTTPException):
+            pass
 
     async def update_interactions(self) -> None:
         """Update the interfaces."""
         i = 0
-        while i < len(self.interactions):
+        while i < len(self._interactions):
             # We may need to invalidate some interactions, hence a while loop rather than a for
-            interaction = self.interactions[i]
-            if interaction.is_expired():  # If the interaction is expired, delete it
-                self.interactions.pop(i)
+            holder = self._interactions[i]
+            if holder.is_expired():  # If the interaction is expired, delete it
+                self._interactions.pop(i)
+                holder.view.stop()
+                try:
+                    await holder.interaction.delete_original_response()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
                 continue
+
+            view = MusicView(self, holder.interaction)
+
             try:
-                await interaction.edit_original_response(
-                    embed=await get_music_embed(self, interaction),
-                    view=MusicView(self, interaction),
+                await holder.interaction.edit_original_response(
+                    embed=await get_music_embed(self, holder.interaction),
+                    view=view,
                 )
+                holder.view = view
             except (
                 discord.NotFound,
                 discord.HTTPException,
             ):  # Interaction message got deleted, purge it
-                self.interactions.pop(i)
+                holder.view.stop()
+                self._interactions.pop(i)
             else:
                 i += 1
 
@@ -89,7 +199,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
     async def play(
         self,
-        track: t.Optional[t.Union[lavalink.AudioTrack, dict]] = None,
+        track: t.Optional[t.Union[lavalink.AudioTrack, t.Dict[t.Any, t.Any]]] = None,
         start_time: int = 0,
         end_time: int = 0,
         no_replace: bool = False,
@@ -97,9 +207,10 @@ class CustomPlayer(lavalink.DefaultPlayer):
     ) -> None:
         """Manage the history & repeat states when playing."""
         if not self.current or no_history:
-            # If there is no current track, then there is nothing to ad to history or queue
+            # If there is no current track, then there is nothing to add
             # no_history : Do not add the track to history
             await super().play(track, start_time, end_time, no_replace)  # type: ignore
+            await self.update_interactions()
             return
 
         if self.repeat_once:
@@ -110,6 +221,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
         # Lavalink messed up the types : play can accept a track of None
         # and current is an AudioTrack, not a dict (according to official docs & source)
         await super().play(track, start_time, end_time, no_replace)  # type: ignore
+        await self.update_interactions()
 
     async def previous(self) -> None:
         """Got to the previous track in the history."""
@@ -160,13 +272,14 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
     async def stop(self) -> None:
         """Stop the player."""
-        for interaction in self.interactions:
+        for holder in self._interactions:
+            holder.view.stop()
             try:
-                await interaction.delete_original_response()
+                await holder.interaction.delete_original_response()
                 # Remove all the player managers
-            except discord.NotFound:
+            except (discord.NotFound, discord.HTTPException):
                 continue  # Message was already deleted
-        self.interactions.clear()
+        self._interactions.clear()
         self.queue.clear()
         self.history.clear()
         await super().stop()
@@ -175,10 +288,10 @@ class CustomPlayer(lavalink.DefaultPlayer):
 def add_lavalink(client: discord.Client) -> None:
     """Add a Lavalink client if there isn't one."""
     if not hasattr(client, "lavalink"):
-        client.lavalink = lavalink.Client(client.user.id, CustomPlayer)
+        client.lavalink = lavalink.Client(client.user.id, CustomPlayer)  # type: ignore
 
-        for node in client.lavalink_nodes:
-            client.lavalink.add_node(**node)
+        for node in client.lavalink_nodes:  # type: ignore
+            client.lavalink.add_node(**node)  # type: ignore
 
 
 class LavalinkVoiceClient(discord.VoiceClient):
@@ -194,15 +307,14 @@ class LavalinkVoiceClient(discord.VoiceClient):
 
         add_lavalink(client)
 
-        self.lavalink: lavalink.Client = self.client.lavalink
+        self.lavalink: lavalink.Client = client.lavalink  # type: ignore
 
     async def connect(
         self,
         *,
-        reconnect: bool,
-        timeout: float,
         self_deaf: bool = False,
         self_mute: bool = False,
+        **_: t.Any,
     ) -> None:
         """Connect the voice client and create a player."""
         self.lavalink.player_manager.create(self.channel.guild.id)
@@ -212,7 +324,7 @@ class LavalinkVoiceClient(discord.VoiceClient):
             self_deaf=self_deaf,
         )
 
-    async def disconnect(self, *, force: bool = True) -> None:
+    async def disconnect(self, **_: t.Any) -> None:
         """Handle disconnects."""
         player = self.lavalink.player_manager.get(self.channel.guild.id)
 
@@ -276,7 +388,6 @@ class MusicView(ui.View):
 
         self.player = player
         self.interaction = interaction
-        player.interactions.append(interaction)
 
         if player.paused:
             self.pause_play.style = discord.ButtonStyle.secondary
@@ -297,47 +408,45 @@ class MusicView(ui.View):
     ) -> bool:
         """Check whether to process the interaction."""
         if self.player.is_playing and isinstance(interaction.user, discord.Member):
-            return interaction.user.id == self.player.current.requester or (
+            return interaction.user.id == self.player.current.requester or (  # type: ignore
                 interaction.user.guild_permissions.mute_members
             )
         return True
 
     async def on_timeout(self) -> None:
         """Handle timeouts."""
-        try:
-            await self.interaction.edit_original_response(
-                embed=await get_music_embed(self.player, self.interaction), view=None
-            )
-        except discord.NotFound:
-            pass
-        try:
-            self.player.interactions.remove(self.interaction)
-        except ValueError:
-            pass
+        await self.player.remove_interaction(self.interaction)
+        self.stop()
 
     @ui.button(emoji="\U000023ee\U0000fe0f", style=discord.ButtonStyle.primary, row=0)
-    async def previous(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def previous(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Go to the previous track."""
         await interaction.response.defer()
         await self.player.previous()
-        await self.player.update_interactions()
 
     @ui.button(emoji="\U000023ef\U0000fe0f", style=discord.ButtonStyle.primary, row=0)
-    async def pause_play(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def pause_play(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Play or pause the player."""
         await interaction.response.defer()
         await self.player.set_pause(not self.player.paused)
         await self.player.update_interactions()
 
     @ui.button(emoji="\U000023ed\U0000fe0f", style=discord.ButtonStyle.primary, row=0)
-    async def next(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def next(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Go to the next track."""
         await interaction.response.defer()
         await self.player.skip()
-        await self.player.update_interactions()
 
     @ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.danger, row=1)
-    async def stop_button(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def stop_button(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Stop playing altogether."""
         await interaction.response.defer()
         await self.player.stop()
@@ -345,28 +454,36 @@ class MusicView(ui.View):
             await interaction.guild.voice_client.disconnect(force=True)
 
     @ui.button(emoji="\U0001f501", style=discord.ButtonStyle.primary, row=1)
-    async def repeat(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def repeat(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Toggle repeat."""
         await interaction.response.defer()
         self.player.set_repeat(not self.player.repeat)
         await self.player.update_interactions()
 
     @ui.button(emoji="\U0001f502", style=discord.ButtonStyle.primary, row=1)
-    async def repeat_once(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def repeat_once(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Toggle repeat once."""
         await interaction.response.defer()
         self.player.set_repeat_once(not self.player.repeat_once)
         await self.player.update_interactions()
 
     @ui.button(emoji="\U0001f500", style=discord.ButtonStyle.primary, row=1)
-    async def shuffle(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def shuffle(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Toggle shuffle."""
         await interaction.response.defer()
         self.player.set_shuffle(not self.player.shuffle)
         await self.player.update_interactions()
 
     @ui.button(emoji="\U0001f50e", style=discord.ButtonStyle.primary, row=0)
-    async def search(self, interaction: discord.Interaction, _: ui.Button) -> None:
+    async def search(
+        self, interaction: discord.Interaction, _: ui.Button["MusicView"]
+    ) -> None:
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
@@ -386,7 +503,6 @@ async def get_music_embed(
     player: CustomPlayer, interaction: discord.Interaction
 ) -> discord.Embed:
     """Get the interface for the music player."""
-    
     if player.current:
         mus: lavalink.AudioTrack = player.current  # type: ignore
         embed = discord.Embed(
@@ -451,7 +567,7 @@ class Music(commands.Cog):
         """Load the cog."""
         self.bot = bot
 
-        if not bot.lavalink_nodes:
+        if not bot.lavalink_nodes:  # type: ignore
             raise ValueError("No Lavalink nodes configured !")
 
         add_lavalink(bot)
@@ -464,7 +580,7 @@ class Music(commands.Cog):
     async def empty_vc_check(self) -> None:
         """Stop playing if nobody's listening."""
         new_channels = []
-        for player in tuple(self.bot.lavalink.player_manager.players.values()):
+        for player in tuple(self.bot.lavalink.player_manager.players.values()):  # type: ignore
             if player and player.is_playing:
                 guild = self.bot.get_guild(int(player.guild_id))
                 if not guild:
@@ -478,7 +594,7 @@ class Music(commands.Cog):
                     await self.force_disconnect(int(player.guild_id))
                     continue
 
-                if len(vocal.voice_states) <= 1:
+                if len(vocal.voice_states) <= 1:  # type: ignore
                     if guild.id in self.empty_channels:
                         await player.stop()
                         await self.force_disconnect(int(player.guild_id))
@@ -545,7 +661,10 @@ class Music(commands.Cog):
             if not permissions.connect or not permissions.speak:
                 raise MusicError(
                     424,
-                    "I don't have the permissions to join and speak in your voice channel.",
+                    (
+                        "I don't have the permissions to join and "
+                        "speak in your voice channel."
+                    ),
                 )
 
             if interaction.user.voice.channel.user_limit == len(
@@ -558,7 +677,7 @@ class Music(commands.Cog):
             if interaction.guild.voice_client:  # Cleanup strange state
                 await interaction.guild.voice_client.disconnect(force=True)
 
-            await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
+            await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)  # type: ignore
         else:
             if int(player.channel_id) != interaction.user.voice.channel.id:
                 raise MusicError(421, "I'm already in a different voice channel.")
@@ -571,7 +690,9 @@ class Music(commands.Cog):
         self, interaction: discord.Interaction, query: t.Optional[str]
     ) -> None:
         """Play music."""
-        player = self.bot.lavalink.player_manager.get(interaction.guild_id)
+        player: CustomPlayer = self.bot.lavalink.player_manager.get(
+            interaction.guild_id
+        )
 
         response = None
 
@@ -584,9 +705,13 @@ class Music(commands.Cog):
         if player.paused:
             await player.set_pause(False)
 
+        view = MusicView(player, interaction)
+
+        await player.add_interaction(interaction, view)
+
         await interaction.response.send_message(
             embed=await get_music_embed(player, interaction),
-            view=MusicView(player, interaction),
+            view=view,
         )
 
         if response:
@@ -596,11 +721,17 @@ class Music(commands.Cog):
     @app_commands.command()
     async def now(self, interaction: discord.Interaction) -> None:
         """Check the current status of player."""
-        player = self.bot.lavalink.player_manager.get(interaction.guild_id)
+        player: CustomPlayer = self.bot.lavalink.player_manager.get(
+            interaction.guild_id
+        )
+
+        view = MusicView(player, interaction)
+
+        await player.add_interaction(interaction, view)
 
         await interaction.response.send_message(
             embed=await get_music_embed(player, interaction),
-            view=MusicView(player, interaction),
+            view=view,
         )
 
 
