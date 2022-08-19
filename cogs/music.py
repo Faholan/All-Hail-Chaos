@@ -503,37 +503,43 @@ async def get_music_embed(
     player: CustomPlayer, interaction: discord.Interaction
 ) -> discord.Embed:
     """Get the interface for the music player."""
-    desc = ""
-    if player.history:
-        desc += "\n\nHistory :\n"
-
-    for i in range(min(len(player.history), 5)):
-        mus = player.history[-i]
-        desc += "- [" + mus.title
-        desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
-    if player.queue:
-        desc += "\n\nNext :\n"
-
-    for i in range(min(len(player.queue), 5)):
-        mus = player.queue[i]
-        desc += "- [" + mus.title
-        desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
     if player.current:
         mus: lavalink.AudioTrack = player.current  # type: ignore
         embed = discord.Embed(
             title=f"Currently playing: {mus.title} ({duration_str(mus.duration)})",
-            description=desc,
             url=f"https://www.youtube.com/watch?v={mus.identifier}",
+            color=0x99D9EA
         )
         embed.set_thumbnail(
             url=f"https://img.youtube.com/vi/{mus.identifier}/hqdefault.jpg"
         )
     else:
-        embed = discord.Embed(title="Music list", description=desc)
+        embed = discord.Embed(title="Music list",
+                              description=desc,
+                              color=0x99D9EA)
         if player.queue:
             embed.set_thumbnail(
                 url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
             )
+            
+    if player.history:
+        desc = ""
+
+        for i in range(min(len(player.history), 5)):
+            mus = player.history[-i]
+            desc += "- [" + mus.titleµ
+            desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+        embed.add_field(name="History",value=desc,inline=False)
+        
+    if player.queue:
+        desc = ""
+
+        for i in range(min(len(player.queue), 5)):
+            mus = player.queue[i]
+            desc += "- [" + mus.title
+            desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+        embed.add_field(name="Next",value=desc,inline=False)
+    
 
     if interaction.client.user:
         embed.set_author(
