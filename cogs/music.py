@@ -26,7 +26,7 @@ import re
 import typing as t
 
 from discord import app_commands, ui
-from discord.ext import commands
+from discord.ext import commands, tasks
 import discord
 import lavalink
 
@@ -63,7 +63,8 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 continue
             try:
                 await interaction.edit_original_response(
-                    embed=await get_music_embed(self, interaction), view=MusicView(self, interaction)
+                    embed=await get_music_embed(self, interaction),
+                    view=MusicView(self, interaction),
                 )
             except discord.NotFound:  # Interaction message got deleted, purge it
                 self.interactions.pop(i)
@@ -162,7 +163,9 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 # Remove all the player managers
             except discord.NotFound:
                 continue  # Message was already deleted
-        self.interactions = []
+        self.interactions.clear()
+        self.queue.clear()
+        self.history.clear()
         await super().stop()
 
 
@@ -206,15 +209,13 @@ class LavalinkVoiceClient(discord.VoiceClient):
             self_deaf=self_deaf,
         )
 
-    async def disconnect(self, *, force: bool = False) -> None:
+    async def disconnect(self, *, force: bool = True) -> None:
         """Handle disconnects."""
         player = self.lavalink.player_manager.get(self.channel.guild.id)
 
         if player is None:
             await self.channel.guild.change_voice_state(channel=None)
             self.cleanup()
-
-        if not force and not player.is_connected:
             return
 
         await self.channel.guild.change_voice_state(channel=None)
@@ -268,7 +269,7 @@ class MusicView(ui.View):
 
     def __init__(self, player: CustomPlayer, interaction: discord.Interaction):
         """View for the music cog."""
-        super().__init__()
+        super().__init__(timeout=1800)
 
         self.player = player
         self.interaction = interaction
@@ -287,11 +288,22 @@ class MusicView(ui.View):
         if player.shuffle:
             self.shuffle.style = discord.ButtonStyle.secondary
 
+    async def interaction_check(
+        self,
+        interaction: discord.Interaction,
+    ) -> bool:
+        """Check whether to process the interaction."""
+        if self.player.is_playing and isinstance(interaction.user, discord.Member):
+            return interaction.user.id == self.player.current.requester or (
+                interaction.user.guild_permissions.mute_members
+            )
+        return True
+
     async def on_timeout(self) -> None:
         """Handle timeouts."""
         try:
             await self.interaction.edit_original_response(
-                embed=await get_music_embed(self.player,self.interaction), view=None
+                embed=await get_music_embed(self.player, self.interaction), view=None
             )
         except discord.NotFound:
             pass
@@ -355,6 +367,7 @@ class MusicView(ui.View):
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
+
 def duration_str(mili_sec: int) -> str:
     sec = mili_sec//1000
     minute = sec//60
@@ -365,42 +378,47 @@ def duration_str(mili_sec: int) -> str:
         return f"{hour}:{minute:05d}:{sec:05d}"
     return f"{minute:05d}:{sec:05d}"
 
-async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
+
+async def get_music_embed(
+    player: CustomPlayer, interaction: discord.Interaction
+) -> discord.Embed:
     """Get the interface for the music player."""
     desc = ""
     if player.current:
-        mus = player.current
+        mus: lavalink.AudioTrack = player.current 
         desc = "Current song :\n"
         desc += duration_str(mus.duration)
         desc += " : " + mus.title
     if player.history:
         desc += "\n\nHistoric :\n"
-    n = len(player.history)
-    fin = min(n,5)
-    for i in range(fin):
+
+    for i in range(min(len(player.history), 5)):
         mus = player.history[-i]
-        desc += '-'+duration_str(mus.duration)
+        desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
     if player.queue:
         desc += "\n\nNext :\n"
-    n = len(player.queue)
-    fin = min(n,5)
-    for i in range(fin):
+
+    for i in range(min(len(player.queue), 5)):
         mus = player.queue[i]
-        desc += '-'+duration_str(mus.duration)
+        desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-    embed = discord.Embed(
-        title = "Music list",
-        description = desc
-    )
-    embed.set_author(
-        name = interaction.client.user.name,
-        icon_url = interaction.client.user.avatar_url
-    )
+    embed = discord.Embed(title="Music list", description=desc)
+    if interaction.client.user:
+        embed.set_author(
+            name=interaction.client.user.name,
+            icon_url=interaction.client.user.display_avatar.url,
+        )  # Idk why this would'nt be set, but anyways
+
     if player.current:
-        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
+        embed.set_thumbnail(
+            url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg"
+        )
     elif player.queue:
-        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg")
+        embed.set_thumbnail(
+            url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
+        )
+
     return embed
 
 
@@ -427,9 +445,43 @@ class Music(commands.Cog):
         add_lavalink(bot)
         lavalink.add_event_hook(self.track_hook)
 
+        self.empty_channels: t.List[int] = []
+        self.empty_vc_check.start()
+
+    @tasks.loop(minutes=1)
+    async def empty_vc_check(self) -> None:
+        """Stop playing if nobody's listening."""
+        new_channels = []
+        for player in tuple(self.bot.lavalink.player_manager.players.values()):
+            if player and player.is_playing:
+                guild = self.bot.get_guild(int(player.guild_id))
+                if not guild:
+                    await player.stop()
+                    await self.force_disconnect(int(player.guild_id))
+                    continue
+
+                vocal = guild.get_channel(int(player.channel_id))
+                if not vocal:
+                    await player.stop()
+                    await self.force_disconnect(int(player.guild_id))
+                    continue
+
+                if len(vocal.voice_states) <= 1:
+                    if guild.id in self.empty_channels:
+                        await player.stop()
+                        await self.force_disconnect(int(player.guild_id))
+                    else:
+                        new_channels.append(guild.id)
+        self.empty_channels = new_channels
+
     async def cog_unload(self) -> None:
         """Cleanup the event hooks."""
         self.bot.lavalink._event_hooks.clear()
+
+    async def force_disconnect(self, guild_id: int) -> None:
+        """Force a websocket disconnection."""
+        websocket = self.bot._connection._get_websocket(guild_id)
+        await websocket.voice_state(guild_id, None)
 
     async def track_hook(self, event: lavalink.Event) -> None:
         """Disconnect the client upon reaching the end of queue."""
@@ -438,6 +490,8 @@ class Music(commands.Cog):
             guild = self.bot.get_guild(guild_id)
             if guild and guild.voice_client:
                 await guild.voice_client.disconnect(force=True)
+            else:
+                await self.force_disconnect(guild_id)
 
     async def cog_app_command_error(
         self, interaction: discord.Interaction, error: Exception
@@ -494,7 +548,7 @@ class Music(commands.Cog):
 
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
         else:
-            if player.channel_id != interaction.user.voice.channel.id:
+            if int(player.channel_id) != interaction.user.voice.channel.id:
                 raise MusicError(421, "I'm already in a different voice channel.")
 
         return True
@@ -519,7 +573,8 @@ class Music(commands.Cog):
             await player.set_pause(False)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction),
+            view=MusicView(player, interaction),
         )
 
         if response:
@@ -532,7 +587,8 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction),
+            view=MusicView(player, interaction),
         )
 
 
