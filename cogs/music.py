@@ -365,7 +365,7 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         description = desc
     )
     embed.set_author(
-        name = "Chaotic Bot",
+        name = interaction.client.user.name[:-5],
         icon_url = interaction.client.user.avatar_url
     )
     if player.current:
