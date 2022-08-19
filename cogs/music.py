@@ -448,7 +448,7 @@ class Music(commands.Cog):
         self.empty_vc_check.start()
 
     @tasks.loop(minutes=1)
-    async def empty_vc_ckeck(self) -> None:
+    async def empty_vc_check(self) -> None:
         """Stop playing if nobody's listening."""
         new_channels = []
         for player in tuple(self.bot.lavalink.player_manager.players.values()):
