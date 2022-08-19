@@ -62,8 +62,8 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 self.interactions.pop(i)
                 continue
             try:
-                await interaction.edit_original_response(  # Update the interaction with new data
-                    embed=await get_music_embed(self), view=MusicView(self, interaction)
+                await interaction.edit_original_response(
+                    embed=await get_music_embed(self, interaction), view=MusicView(self, interaction)
                 )
             except discord.NotFound:  # Interaction message got deleted, purge it
                 self.interactions.pop(i)
@@ -291,7 +291,7 @@ class MusicView(ui.View):
         """Handle timeouts."""
         try:
             await self.interaction.edit_original_response(
-                embed=await get_music_embed(self.player), view=None
+                embed=await get_music_embed(self.player,self.interaction), view=None
             )
         except discord.NotFound:
             pass
@@ -355,12 +355,54 @@ class MusicView(ui.View):
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
+def duration_str(mili_sec: int) -> str:
+    sec = mili_sec//1000
+    minute = sec//60
+    hour = minute//60
+    if hour:
+        return f"{hour}:{minute}:{sec}"
+    return f"{minute}:{sec}"
 
-async def get_music_embed(player: CustomPlayer) -> discord.Embed:
+async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
     """Get the interface for the music player."""
-    embed = discord.Embed()  # TODO : FILL ME !!!
-
-    return None
+    desc = ""
+    if player.current:
+        mus = player.current
+        desc = "-Playing now\n-"
+        desc += duration_str(mus.duration)
+        desc += "\n-" + mus.author
+        desc += "\n-" + mus.title
+    if player.history:
+        desc += "\n\nHitoric :\n"
+    n = len(player.history)
+    fin = min(n,5)
+    for i in range(fin):
+        mus = player.history[-i]
+        desc += '-'+duration_str(mus.duration)
+        desc += " : " + mus.title
+        desc += " from " + mus.author + '\n'
+    if player.queue:
+        desc += "\n\nNext :\n"
+    n = len(player.queue)
+    fin = min(n,5)
+    for i in range(fin):
+        mus = player.queue[i]
+        desc += '-'+duration_str(mus.duration)
+        desc += " : " + mus.title
+        desc += " from " + mus.author + '\n'
+    embed = discord.Embed(
+        title = "Music list",
+        description = desc
+    )
+    embed.set_author(
+        name = interaction.client.user.name,
+        icon_url = interaction.client.user.avatar_url
+    )
+    if player.current:
+        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
+    elif player.queue:
+        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg")
+    return embed
 
 
 class MusicError(app_commands.CheckFailure):
@@ -478,7 +520,7 @@ class Music(commands.Cog):
             await player.set_pause(False)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
         )
 
         if response:
@@ -491,7 +533,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
         )
 
 
