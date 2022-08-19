@@ -63,7 +63,8 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 continue
             try:
                 await interaction.edit_original_response(
-                    embed=await get_music_embed(self, interaction), view=MusicView(self, interaction)
+                    embed=await get_music_embed(self, interaction),
+                    view=MusicView(self, interaction),
                 )
             except discord.NotFound:  # Interaction message got deleted, purge it
                 self.interactions.pop(i)
@@ -291,7 +292,7 @@ class MusicView(ui.View):
         """Handle timeouts."""
         try:
             await self.interaction.edit_original_response(
-                embed=await get_music_embed(self.player,self.interaction), view=None
+                embed=await get_music_embed(self.player, self.interaction), view=None
             )
         except discord.NotFound:
             pass
@@ -355,53 +356,59 @@ class MusicView(ui.View):
         """Search for a track."""
         await interaction.response.send_modal(MusicInput(self.player))
 
+
 def duration_str(mili_sec: int) -> str:
-    sec = mili_sec//1000
-    minute = sec//60
-    hour = minute//60
+    sec = mili_sec // 1000
+    minute = sec // 60
+    hour = minute // 60
     if hour:
         return f"{hour}:{minute}:{sec}"
     return f"{minute}:{sec}"
 
-async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
+
+async def get_music_embed(
+    player: CustomPlayer, interaction: discord.Interaction
+) -> discord.Embed:
     """Get the interface for the music player."""
     desc = ""
     if player.current:
-        mus = player.current
+        mus: lavalink.AudioTrack = player.current  # type: ignore
         desc = "-Playing now\n-"
         desc += duration_str(mus.duration)
         desc += "\n-" + mus.author
         desc += "\n-" + mus.title
     if player.history:
         desc += "\n\nHitoric :\n"
-    n = len(player.history)
-    fin = min(n,5)
-    for i in range(fin):
+
+    for i in range(min(len(player.history), 5)):
         mus = player.history[-i]
-        desc += '-'+duration_str(mus.duration)
+        desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + '\n'
+        desc += " from " + mus.author + "\n"
     if player.queue:
         desc += "\n\nNext :\n"
-    n = len(player.queue)
-    fin = min(n,5)
-    for i in range(fin):
+
+    for i in range(min(len(player.queue), 5)):
         mus = player.queue[i]
-        desc += '-'+duration_str(mus.duration)
+        desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + '\n'
-    embed = discord.Embed(
-        title = "Music list",
-        description = desc
-    )
-    embed.set_author(
-        name = interaction.client.user.name,
-        icon_url = interaction.client.user.avatar_url
-    )
+        desc += " from " + mus.author + "\n"
+    embed = discord.Embed(title="Music list", description=desc)
+    if interaction.client.user:
+        embed.set_author(
+            name=interaction.client.user.name,
+            icon_url=interaction.client.user.display_avatar.url,
+        )  # Idk why this would'nt be set, but anyways
+
     if player.current:
-        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
+        embed.set_thumbnail(
+            url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg"
+        )
     elif player.queue:
-        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg")
+        embed.set_thumbnail(
+            url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
+        )
+
     return embed
 
 
@@ -520,7 +527,8 @@ class Music(commands.Cog):
             await player.set_pause(False)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction),
+            view=MusicView(player, interaction),
         )
 
         if response:
@@ -533,7 +541,8 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction),
+            view=MusicView(player, interaction),
         )
 
 
