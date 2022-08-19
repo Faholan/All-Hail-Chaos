@@ -60,7 +60,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 continue
             try:
                 await interaction.edit_original_response(
-                    embed=await get_music_embed(self), view=MusicView(self, interaction)
+                    embed=await get_music_embed(self, interaction), view=MusicView(self, interaction)
                 )
             except discord.NotFound:  # interaction message deleted
                 self.interactions.pop(i)
@@ -263,7 +263,7 @@ class MusicView(ui.View):
     async def on_timeout(self) -> None:
         """Handle timeouts."""
         await self.interaction.edit_original_response(
-            embed=await get_music_embed(self.player), view=None
+            embed=await get_music_embed(self.player, self.interaction), view=None
         )
         try:
             self.player.interactions.remove(self.interaction)
@@ -333,7 +333,7 @@ def duration_str(mili_sec: int) -> str:
         return str(hour)+":"+str(min)+":"+str(sec)
     return str(min)+":"+str(sec)
 
-async def get_music_embed(player: CustomPlayer) -> discord.Embed:
+async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
     """Get the interface for the music player."""
     desc = ""
     if player.current:
@@ -355,7 +355,7 @@ async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     )
     embed.set_author(
         name = "Chaotic Bot",
-        icon_url = client.user.avatar_url
+        icon_url = interaction.client.user.avatar_url
     )
     if player.current:
         embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
@@ -479,7 +479,7 @@ class Music(commands.Cog):
             await player.set_pause(False)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
         )
 
         if response:
@@ -492,7 +492,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild_id)
 
         await interaction.response.send_message(
-            embed=await get_music_embed(player), view=MusicView(player, interaction)
+            embed=await get_music_embed(player, interaction), view=MusicView(player, interaction)
         )
 
 
