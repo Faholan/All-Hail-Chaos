@@ -269,7 +269,7 @@ class MusicView(ui.View):
 
     def __init__(self, player: CustomPlayer, interaction: discord.Interaction):
         """View for the music cog."""
-        super().__init__()
+        super().__init__(timeout=1800)
 
         self.player = player
         self.interaction = interaction
