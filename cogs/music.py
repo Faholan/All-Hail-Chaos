@@ -369,12 +369,14 @@ class MusicView(ui.View):
 
 
 def duration_str(mili_sec: int) -> str:
-    sec = mili_sec // 1000
-    minute = sec // 60
-    hour = minute // 60
+    sec = mili_sec//1000
+    minute = sec//60
+    hour = minute//60
+    minute = minute % 60
+    sec = sec % 60
     if hour:
-        return f"{hour}:{minute}:{sec}"
-    return f"{minute}:{sec}"
+        return f"{hour}:{minute:05d}:{sec:05d}"
+    return f"{minute:05d}:{sec:05d}"
 
 
 async def get_music_embed(
@@ -383,19 +385,17 @@ async def get_music_embed(
     """Get the interface for the music player."""
     desc = ""
     if player.current:
-        mus: lavalink.AudioTrack = player.current  # type: ignore
-        desc = "-Playing now\n-"
+        mus: lavalink.AudioTrack = player.current 
+        desc = "Current song :\n"
         desc += duration_str(mus.duration)
-        desc += "\n-" + mus.author
-        desc += "\n-" + mus.title
+        desc += " : " + mus.title
     if player.history:
-        desc += "\n\nHitoric :\n"
+        desc += "\n\nHistoric :\n"
 
     for i in range(min(len(player.history), 5)):
         mus = player.history[-i]
         desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + "\n"
     if player.queue:
         desc += "\n\nNext :\n"
 
@@ -403,7 +403,6 @@ async def get_music_embed(
         mus = player.queue[i]
         desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-        desc += " from " + mus.author + "\n"
     embed = discord.Embed(title="Music list", description=desc)
     if interaction.client.user:
         embed.set_author(
