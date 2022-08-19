@@ -384,11 +384,6 @@ async def get_music_embed(
 ) -> discord.Embed:
     """Get the interface for the music player."""
     desc = ""
-    if player.current:
-        mus: lavalink.AudioTrack = player.current 
-        desc = "Current song :\n"
-        desc += duration_str(mus.duration)
-        desc += " : " + mus.title
     if player.history:
         desc += "\n\nHistoric :\n"
 
@@ -404,7 +399,8 @@ async def get_music_embed(
         desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
     if player.current:
-        embed = discord.Embed(title="Music list", description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
+        mus: lavalink.AudioTrack = player.current
+        embed = discord.Embed(title=f"Currently playing:{duration_str(mus.duration)} : "+ mus.title, description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
     else:
         embed = discord.Embed(title="Music list", description=desc)
     if interaction.client.user:
