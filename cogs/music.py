@@ -375,8 +375,8 @@ def duration_str(mili_sec: int) -> str:
     minute = minute % 60
     sec = sec % 60
     if hour:
-        return f"{hour}:{minute:05d}:{sec:05d}"
-    return f"{minute:05d}:{sec:05d}"
+        return f"{hour}:{minute:02d}:{sec:02d}"
+    return f"{minute:02d}:{sec:02d}"
 
 
 async def get_music_embed(
@@ -403,7 +403,10 @@ async def get_music_embed(
         mus = player.queue[i]
         desc += "-" + duration_str(mus.duration)
         desc += " : " + mus.title
-    embed = discord.Embed(title="Music list", description=desc)
+    if player.current:
+        embed = discord.Embed(title="Music list", description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
+    else:
+        embed = discord.Embed(title="Music list", description=desc)
     if interaction.client.user:
         embed.set_author(
             name=interaction.client.user.name,
