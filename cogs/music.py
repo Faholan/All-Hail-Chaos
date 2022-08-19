@@ -164,6 +164,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
             except discord.NotFound:
                 continue  # Message was already deleted
         self.interactions.clear()
+        self.queue.clear()
         self.history.clear()
         await super().stop()
 
@@ -456,24 +457,18 @@ class Music(commands.Cog):
             if player and player.is_playing:
                 guild = self.bot.get_guild(int(player.guild_id))
                 if not guild:
-                    player.history.clear()
-                    player.queue.clear()
                     await player.stop()
                     await self.force_disconnect(int(player.guild_id))
                     continue
 
                 vocal = guild.get_channel(int(player.channel_id))
                 if not vocal:
-                    player.history.clear()
-                    player.queue.clear()
                     await player.stop()
                     await self.force_disconnect(int(player.guild_id))
                     continue
 
                 if len(vocal.voice_states) <= 1:
                     if guild.id in self.empty_channels:
-                        player.history.clear()
-                        player.queue.clear()
                         await player.stop()
                         await self.force_disconnect(int(player.guild_id))
                     else:
