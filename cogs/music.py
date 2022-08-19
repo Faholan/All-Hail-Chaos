@@ -286,6 +286,17 @@ class MusicView(ui.View):
         if player.shuffle:
             self.shuffle.style = discord.ButtonStyle.secondary
 
+    async def interaction_check(
+        self,
+        interaction: discord.Interaction,
+    ) -> bool:
+        """Check whether to process the interaction."""
+        if self.player.is_playing and isinstance(interaction.user, discord.Member):
+            return interaction.user.id == self.player.current.requester or (
+                interaction.user.guild_permissions.mute_members
+            )
+        return True
+
     async def on_timeout(self) -> None:
         """Handle timeouts."""
         try:
@@ -467,7 +478,6 @@ class Music(commands.Cog):
                     else:
                         new_channels.append(guild.id)
         self.empty_channels = new_channels
-
 
     async def cog_unload(self) -> None:
         """Cleanup the event hooks."""
