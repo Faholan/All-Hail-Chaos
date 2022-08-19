@@ -374,7 +374,7 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         desc += duration_str(mus.duration)
         desc += " : " + mus.title
     if player.history:
-        desc += "\n\nHitoric :\n"
+        desc += "\n\nHistoric :\n"
     n = len(player.history)
     fin = min(n,5)
     for i in range(fin):
