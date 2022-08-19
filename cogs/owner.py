@@ -26,11 +26,13 @@ import textwrap
 import traceback
 import typing as t
 from contextlib import redirect_stdout
-from os import system
 
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
+
+from utils.paginators import TextPaginator
+from utils.shellreader import ShellReader
 
 
 class OwnerError(app_commands.CheckFailure):
@@ -40,7 +42,9 @@ class OwnerError(app_commands.CheckFailure):
 class EvalInput(ui.Modal, title="Code input"):
     """Modal to input code."""
 
-    code = ui.TextInput(label="Code", style=discord.TextStyle.paragraph)
+    code: ui.TextInput["EvalInput"] = ui.TextInput(
+        label="Code", style=discord.TextStyle.paragraph
+    )
 
     @staticmethod
     async def on_submit(interaction: discord.Interaction) -> None:
@@ -61,7 +65,9 @@ class ExtensionSelector(ui.View):
         self.extensions.max_values = len(bot.extensions_list)
 
     @ui.select()
-    async def extensions(self, interaction: discord.Interaction, _: ui.Select) -> None:
+    async def extensions(
+        self, interaction: discord.Interaction, _: ui.Select["ExtensionSelector"]
+    ) -> None:
         """Validate the selection."""
         await interaction.response.defer()
         self.stop()
@@ -203,8 +209,10 @@ class Owner(commands.Cog):
             )
             if await view.wait():
                 return  # Modal timed out
-
-            await interaction.delete_original_response()
+            try:
+                await interaction.delete_original_response()
+            except discord.NotFound:
+                pass
             extensions = view.extensions.values
 
         total_reload = len(extensions)
@@ -243,6 +251,29 @@ class Owner(commands.Cog):
         )
         await self.bot.log_channel.send(embed=embed)
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command()
+    @app_commands.guilds(694804646086312026)
+    async def sh(self, interaction: discord.Interaction, command: str) -> None:
+        """Execute a shell command."""
+        with ShellReader(command) as reader:
+            prefix = "```" + reader.highlight
+            interface = TextPaginator(prefix=prefix)
+            interface.paginator.add_line(f"{reader.ps1} {command}\n")
+
+            await interface.send_to(interaction)
+
+            async for line in reader:
+                if interface.closed:
+                    return
+                await interface.add_line(line)
+        await interface.add_line(f"\n[status] Return code {reader.close_code}")
+
+    @app_commands.command()
+    @app_commands.guilds(694804646086312026)
+    async def pull(self, interaction: discord.Interaction) -> None:
+        """Execute a git pull."""
+        await self.sh.callback(self, interaction, "git pull")
 
     @commands.command()
     @commands.is_owner()

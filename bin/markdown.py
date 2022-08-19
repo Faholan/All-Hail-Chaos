@@ -22,6 +22,7 @@ SOFTWARE.
 """
 
 # Used in the NASA cog
+# Hopefully some day we can get rid of this horror. Until then, here it comes...
 
 from html.parser import HTMLParser
 

@@ -40,7 +40,7 @@ class NASA(commands.Cog):
         if not self.api_key:
             raise ValueError("No NASA API key found")
         self.apod_update.start()
-        self.apod_pic = {
+        self.apod_pic = {  # Default picture in case of error
             "hdurl": (
                 "https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_"
                 "2018235_eq2400.jpg"
@@ -80,7 +80,9 @@ class NASA(commands.Cog):
             "https://api.nasa.gov/planetary/apod",
             params={"hd": "True", "api_key": self.api_key},
         ) as response:
-            self.apod_pic: t.Dict[str, str] = await response.json()
+            self.apod_pic: t.Dict[
+                str, str
+            ] = await response.json()  # Update the cache !
 
     @app_commands.command()
     async def apod(self, interaction: discord.Interaction) -> None:
@@ -91,6 +93,7 @@ class NASA(commands.Cog):
             colour=discord.Colour.purple(),
         )
         if self.apod_pic.get("media_type") == "video":
+            # Extract information from the data, & do things with it
             if "embed" in self.apod_pic.get("url", "nope"):
                 preview = self.apod_pic.get("url", "").split("/")[-1].split("?")[0]
             else:

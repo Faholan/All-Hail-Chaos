@@ -34,11 +34,11 @@ HitReturn = t.Tuple[str, str, str, str]
 
 # All the data files necessary for the commands
 with open(f"data{path.sep}deaths.txt", "r", encoding="utf-8") as file:
-    death = file.readlines()
+    death = file.readlines()  # -> kill command
 with open(f"data{path.sep}Excuses.txt", "r", encoding="utf-8") as file:
-    excuses = file.readlines()
+    excuses = file.readlines()  # -> excuse command
 with open(f"data{path.sep}weapons.txt", "r", encoding="utf-8") as file:
-    weapons = file.readlines()
+    weapons = file.readlines()  # -> fight command
 
 
 class Fighter:  # Class for the fight command
@@ -75,6 +75,7 @@ class Fighter:  # Class for the fight command
 
 
 # Special effects for the fight command
+# There may be a better way of doing this. If you know of it, please tell me !
 def pink(
     attacking: Fighter, victim: Fighter, weapon_list: t.List[str]
 ) -> t.Tuple[HitReturn, HitReturn]:
@@ -342,7 +343,7 @@ class Funny(commands.Cog):
                 await interaction.response.send_message(joke["value"])
             return
 
-        # TODO : Fix for threads & shit
+        # TODO : Fix for threads & all that
         if interaction.guild_id and not interaction.channel.is_nsfw():
             url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
             async with self.bot.aio_session.get(url) as response:
@@ -383,6 +384,13 @@ class Funny(commands.Cog):
     async def excuse(self, interaction: discord.Interaction) -> None:
         """We all do mishaps, and we all need a good excuse once in a while."""
         newline = "\n"  # One cannot use backslash in a f-string
+        # The file is spread into 6 lines, to form a phrase like :
+        #
+        # I'm sorry master... it's because {person} {action} in {place} because of
+        # {qualificative} {object} which {qualificative 2} so it's not my fault!
+        #
+        # Each parameter is on one line, with the options separated with |
+
         await interaction.response.send_message(
             "I'm sorry master... it's because "
             f"{choice(excuses[0].split('|')).strip(newline)} "
