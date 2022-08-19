@@ -163,7 +163,8 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 # Remove all the player managers
             except discord.NotFound:
                 continue  # Message was already deleted
-        self.interactions = []
+        self.interactions.clear()
+        self.history.clear()
         await super().stop()
 
 
