@@ -355,12 +355,12 @@ async def get_music_embed(player: CustomPlayer) -> discord.Embed:
     )
     embed.set_author(
         name = "Chaotic Bot",
-        icon_url = commands.Bot.user.avatar_url
+        icon_url = client.user.avatar_url
     )
     if player.current:
-        embed.set_thumbnail(url="https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
+        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg")
     elif player.queue:
-        embed.set_thumbnail(url="https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg")
+        embed.set_thumbnail(url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg")
     return embed
 
 
