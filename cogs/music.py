@@ -330,8 +330,8 @@ def duration_str(mili_sec: int) -> str:
     minute = sec//60
     hour = minute//60
     if hour:
-        return str(hour)+":"+str(minute)+":"+str(sec)
-    return str(minute)+":"+str(sec)
+        return f"{hour}:{minute}:{sec}"
+    return f"{minute}:{sec}"
 
 async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction) -> discord.Embed:
     """Get the interface for the music player."""
@@ -341,7 +341,18 @@ async def get_music_embed(player: CustomPlayer, interaction: discord.Interaction
         desc = "-Playing now\n-"
         desc += duration_str(mus.duration)
         desc += "\n-" + mus.author
-        desc += "\n-" + mus.title + "\n\n"
+        desc += "\n-" + mus.title
+    if player.history:
+        desc += "\n\nHitoric :\n"
+    n = len(player.history)
+    fin = min(n,5)
+    for i in range(fin):
+        mus = player.history[-i]
+        desc += '-'+duration_str(mus.duration)
+        desc += " : " + mus.title
+        desc += " from " + mus.author + '\n'
+    if player.queue:
+        desc += "\n\nNext :\n"
     n = len(player.queue)
     fin = min(n,5)
     for i in range(fin):
