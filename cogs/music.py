@@ -369,9 +369,9 @@ class MusicView(ui.View):
 
 
 def duration_str(mili_sec: int) -> str:
-    sec = mili_sec//1000
-    minute = sec//60
-    hour = minute//60
+    sec = mili_sec // 1000
+    minute = sec // 60
+    hour = minute // 60
     minute = minute % 60
     sec = sec % 60
     if hour:
@@ -390,33 +390,42 @@ async def get_music_embed(
     for i in range(min(len(player.history), 5)):
         mus = player.history[-i]
         desc += "-[" + mus.title
-        desc += f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'+f" ({duration_str(mus.duration)})"
+        desc += (
+            f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'
+            + f" ({duration_str(mus.duration)})"
+        )
     if player.queue:
         desc += "\n\nNext :\n"
 
     for i in range(min(len(player.queue), 5)):
         mus = player.queue[i]
         desc += "-[" + mus.title
-        desc += f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'+f" ({duration_str(mus.duration)})"
+        desc += (
+            f'](https://www.youtube.com/watch?v={mus.identifier}) "{mus.title}\n"'
+            + f" ({duration_str(mus.duration)})"
+        )
     if player.current:
-        mus: lavalink.AudioTrack = player.current
-        embed = discord.Embed(title=f"Currently playing: {mus.title}({duration_str(mus.duration)})", description=desc,url="https://www.youtube.com/watch?v="+player.current.identifier)
+        mus: lavalink.AudioTrack = player.current  # type: ignore
+        embed = discord.Embed(
+            title=f"Currently playing: {mus.title} ({duration_str(mus.duration)})",
+            description=desc,
+            url=f"https://www.youtube.com/watch?v={mus.identifier}",
+        )
+        embed.set_thumbnail(
+            url=f"https://img.youtube.com/vi/{mus.identifier}/hqdefault.jpg"
+        )
     else:
         embed = discord.Embed(title="Music list", description=desc)
+        if player.queue:
+            embed.set_thumbnail(
+                url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
+            )
+
     if interaction.client.user:
         embed.set_author(
             name=interaction.client.user.name,
             icon_url=interaction.client.user.display_avatar.url,
         )  # Idk why this would'nt be set, but anyways
-
-    if player.current:
-        embed.set_thumbnail(
-            url=f"https://img.youtube.com/vi/{player.current.identifier}/hqdefault.jpg"
-        )
-    elif player.queue:
-        embed.set_thumbnail(
-            url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
-        )
 
     return embed
 
