@@ -1,129 +1,247 @@
 # All Hail Chaos
 A bot I developed during quarantine
 
-## How to self host Chaotic Bot
+# How to self host Chaotic Bot
 
-### Docker
+Start with cloning the repository in the folder of your choice.
 
-**Docker coming soon!**
+The bot uses [poetry](https://python-poetry.org/) to manage dependencies.
 
-## Manual configuration and hosting
-
-You're going to need a Discord bot account to run it. Here's how to do it.
-
-### Creating a bot app on discord
-
-- Create bot on Discord's bot portal
-- Make a New Application
-- Go to Bot settings and click on Add Bot
-- Give Administrator permission to bot
-- You will find your bot TOKEN there, it is important that you save it
-- Go to OAuth2 and click bot, than add Administrator permissions
-- You can follow the link that will appear to add the bot to your discord server
-
-### Configuration info
-This bot has only one configuration file, `data/data.py`, that we are going to fill from top to bottom in this guide.
-To use it rename it from `data_sample.py` to `data.py`
-
-### API Keys
-
-This bot uses various APIs, for which you'll need tokens.
-
-- [DiscordRep](https://discordrep.com/)
-- [Ksoft](https://api.ksoft.si/)
-- [NASA](https://www.nasa.gov/)
-
-
-## Additional compulsary dependencies
-
-### PostgreSQL
-
-Install PostgreSQL, then create a user and a database dedicated to the bot.
-
-Copy the credentials in the `postgre_connection` dictionary.
-
-Then, execute the statements in the `database.sql` file.
-This file assumes that the bot's role is named **chaotic**. If you named it something else, replace with the name used at every occurrence.
-
-### Lavalink
-
-Lavalink is a Java music server. It requires Java 13 (other versions pose various issues and aren't fully supported), so make sure that you run it with the right version.
-
-Lavalink's configuration file is `application.yml`. If you intent to run it on the same server as the bot, then you won't have to edit anything for it to work.
-
-If that's not the case, make sure to select a secure password (I personally recommend using sha-256 on a random string to generate strong passwords), and to fill appropriately the `lavalink_credentials` dictionary.
-
-To run Lavalink itself, you'll need to do :
+You can install the dependencies with the following commands:
 
 ```bash
-$ cd All-Hail-Chaos/lavalink
-$ java -jar Lavalink.jar
+
+$ git clone https://github.com/Faholan/All-Hail-Chaos.git bot  # Clone the repository in a folder named `bot`
+$ pipx install poetry  # Install poetry
+$ cd bot  # Enter the bot folder
+$ poetry install --no-dev  # Install the dependencies
 ```
 
-I highly recommend you to setup Ipv6 rotation (see Optional Configuration)
+This takes care of the Python dependencies. However, the bot still requires two other dependencies:
 
-## Optional configuration
+## Installing PostgreSQL
 
-You can change the default bot prefix (it can be changed on a per-guild basis through a command).
+The bot uses [PostgreSQL](https://www.postgresql.org/) to store data. Install it with
 
-I highly recommend you to create a support server for your bot. The default invite redirects to my server, which you're of course free to join.
+```bash
 
-You can also setup a channel for suggestions, and another for contact.
-
-### Using systemd to run the bot
-
-If you wish to use systemd as a process manager to run the bot, you can use the config files under the `systemd` folder.
-This will allow it to start automatically on boot, and restart in case you run the `logout` command.
-
-### Discord Bot lists
-
-There is support for four major bot lists :
-
-- [Top.gg](https://top.gg/)
-- [Discord Bots](https://discord.bots.gg/)
-- [Bots on discord](https://bots.ondiscord.xyz/)
-- [Discord Bot List](https://discordbotlist.com/)
-
-### GitHub
-
-You can link your fork of this bot, allowing users to setup a hook to get the latest commit informations through the `github` command.
-
-### Logging
-
-You can get detailed statistics of command usage and servers by creating the tables in the `stats.sql` file and enabling the `bin/stats.py` file (un-comment line 49 of data/data.py).
-
-For visualizing this data, I recommend [Grafana](https://grafana.com/), which creates amazing graphs and awesome visualizations.
-
-### Database manipulation
-
-To manipulate the database, like creating tables, etc.. I recommend you to use `OmniDB`, a web-based solution.
-
-### IPv6 Rotation
-
-Let's end this guide with what I deem the most important point : Ipv6 rotation.
-
-Let me explain : Lavalink plays music from various sources, mainly Youtube. However, Youtube doesn't like people listening to its content through separate application. It therefore ratelimits people.
-
-What this means is that, with your current configuration, sooner or later (and rather sooner than later), you won't be able to play music anymore, getting 429 errors.
-
-The solution is to change your IP address, and that's where Ipv6 rotation comes into play :
-The idea is simple : having so many different IPs that Youtube can't ban them all.
-
-You will need at least a /64 IP block.
-
-If you don't have one, check [This guide](https://ramblings.fred.moe/2020/3/tunnelbroker-with-lavalink)
-
-If you have one, assuming it's /64, head to `application.yml` locate those lines and uncomment them :
-
-```
-#ratelimit:
-  #ipBlocks: ["1.0.0.0/8", "..."] # list of ip blocks
-  #strategy: "RotateOnBan" # RotateOnBan | LoadBalance | NanoSwitch | RotatingNanoSwitch
+$ sudo apt install postgresql
 ```
 
-Put your ip Block under ipBlocks, and, for /64, select the strategy "NanoSwitch".
+Create a new user and database for the bot, and execute the SQL commands in the file `database.sql` to create the various tables used.
 
-With that, you'll be able to fully enjoy your music
+## Running Lavalink
+
+The bot also uses [Lavalink](https://github.com/freyacodes/Lavalink) to stream music. If you don't want to play music, you can skip this step,
+but you will need to disable the music extension in the configuration.
+
+The Lavalink executable is available in the `lavalink` folder.
+
+You will need to install Java. Java 13 is the recommended version.
+
+I recommend running Lavalink in the background with the use of systemd. This will allow Lavalink to start upon
+booting your server so that you don't have to start it manually.
+
+The sample configuration file is available under systemd/lavalink.service.
+
+You just need to change the path to the lavalink folder in `WorkingDirectory`, allong with the `User` and `Group` fields.
+
+```bash
+
+$ sudo -e /etc/systemd/system/lavalink.service  # Complete the config file based on the sample file
+$ sudo systemctl enable lavalink  # Enable the service
+$ sudo systemctl start lavalink  # Start the service
+```
+
+### Circumventing Youtube IP banning
+
+Lavalink is great for streaming music, but unfortunately Youtube doesn't like this pretty much.
+Thus, if you continue streaming, you may find that the bot's IP has been blacklisted by Youtube.
+Do not worry, this will only affect the bot, and not your personal use of Youtube. You may
+end up having to fill a few Captchas, but that is about it.
+
+However, your bot will be unable to play music anymore. If you want to be able to continue streaming,
+you will need to change the IP adress the bot uses.
+
+You will need to obtain what is called an IPv6 block. It is a list of IP adresses that Lavalink will cycle
+through to connect to Youtube. The idea is that there are so many IPs in this block that Youtube cannot
+possibly ban them all.
+
+Unfortunately, I don't have a magic method of getting an IP block. This will depend on who exactly is your
+hosting provider. If you plan on hosting the bot on a VPS, check right away if they have IPv6 blocks.
+
+You can also try [this article](https://blog.arbjerg.dev/2020/3/tunnelbroker-with-lavalink), but I don't know whether or not it works.
+Please get in touch if you ever try it so that I can update this guide.
+
+Let's for now assume that you have an IPv6 block, noted `fe80:beef::/64` (this is not the only size of IPV6 blocks.
+Do not worry if you have another number after the slash.)
+
+First of all, you need to allow Lavalink to use those IP adresses :
+
+```bash
+# Allow binding to the IPv6 block
+$ sysctl -w net.ipv6.ip_nonlocal_bind=1
+# Persist for next boot
+$ sudo echo 'net.ipv6.ip_nonlocal_bind = 1' >> /etc/sysctl.conf
+```
+
+Next, you need to add this particular IP block to the list of allowed IP
+adresses.
+
+To make it easier, you can use the systemd service file provide in systemd/ipblock.service. Once again, write it down in `/etc/systemd/system/ipblock.service`, and don't forget to replace <block/number> with your actual ip block, i.e fe80:beef::/64 for example.
+
+```bash
+$ sudo -e /etc/systemd/system/ipblock.service  # Complete the config file based on the sample file
+$ sudo systemctl enable ipblock  # Enable the service
+$ sudo systemctl start ipblock  # Start the service
+```
+
+You will also need to edit a bit the `/etc/systemd/system/lavalink.service` file that we just created. Replace `After=network.target` with `After=network.target ipblock.service`. That way we will be sure that the Lavalink service will only start after it can bind to those IP adresses.
+
+You will finally need to edit the lavalink/application.yml file so that this section :
+
+```yaml
+    #ratelimit:
+      #ipBlocks: ["1.0.0.0/8", "..."] # list of ip blocks
+      #strategy: "NanoSwitch" # RotateOnBan | LoadBalance | NanoSwitch | RotatingNanoSwitch
+      #searchTriggersFail: true # Whether a search 429 should trigger marking the ip as failing
+      #retryLimit: -1 # -1 = use default lavaplayer value | 0 = infinity | >0 = retry will happen this numbers times
+      #excludedIps: ["...", "..."] # ips which should be explicit excluded from usage by lavalink
+```
+
+now looks like this :
+
+```yaml
+    ratelimit:
+      ipBlocks: ["fe80:beef::/64"] # list of ip blocks
+      strategy: "NanoSwitch" # RotateOnBan | LoadBalance | NanoSwitch | RotatingNanoSwitch
+      #searchTriggersFail: true # Whether a search 429 should trigger marking the ip as failing
+      #retryLimit: -1 # -1 = use default lavaplayer value | 0 = infinity | >0 = retry will happen this numbers times
+      #excludedIps: ["...", "..."] # ips which should be explicit excluded from usage by lavalink
+```
+
+If your IP block ends in /64 or a smaller number, then you can select strategy: "NanoSwitch".
+
+__Wait, that's it ?__
+
+Yes. You will now be able to use Lavalink without worrying about being IP banned.
+
+Now that all the dependencies are installed and running, let's take a closer look at actually running the bot.
+
+## Configuring the bot
+
+All the configuration of the bot is in the data/config.toml file. Let's go over it line by line
+
+### Bot section
+
+#### token
+
+This is the token of the bot, the way in which it authenticates to Discord.
+
+Head over to [Discord](discord.com/developers/applications) to generate one.
+
+Be aware that it must be kept secret ! If somebody learns your bot's token, they will
+be able to do whatever they want with it. If it ever gets leaked, you can head over to
+[Discord](discord.com/developers/applications) to generate a new one and invalidate the
+old one.
+
+### log_channel_id
+This is the channel in which the bot will log various messages.
+
+This is also required. You'll need to activate Developer Settings in your Discord
+client in order to get it. The bot will need permissions to send messages in this
+channel.
+
+### suggestion_channel_id
+If you want to allow users to give you suggestions about the bot, you'll need to
+fill in this ID.
+
+### extensions
+This is the list of extensions that the bot will load upon startup.
+
+### invite_permissions
+The permissions that the bot will require when invited to a new server.
+This number can be calculated via the permissions calculator available in the
+application page on Discord's website.
+
+### support
+An invitation to join the bot's support server. It is currently filled with
+the Chaotic Bot's invite link. Feel free to join too if you have any questions or
+suggestions !
+
+### privacy
+This is the privacy policy of the bot, i.e. how you will handle the data stored
+in the database.
+
+### bot.command_tree section
+This is an advanced configuration option. If you want to use a custom class for
+the command tree instead of the default one, this is where you tell the bot
+where to find it. Or you can change nothing and use the custom one developed by
+yours truly.
+
+### intents section
+The intents required by the bot. This is a list of what events your bot
+will be aware of. You don't need to change this list unless you want to change
+the bot's code. In that case, check out [this page](https://discordpy.readthedocs.io/en/latest/api.html#intents) to know what events each intent is for.
+
+### database section
+You cannot currently select type = "none", because I haven't implemented
+having no database at all yet.
+
+Fill in the various keys with the appropriate values for the bot to connect to
+its postgresql database.
+
+### github section
+This holds a link to the bot's public GitHub repository to check out the
+source code.
+
+### lavalink_nodes section
+This is the list of nodes that the bot will use to connect to Lavalink.
+If you are running multiple lavalink instances (aka nodes), you can add
+various ones for different regions.
+
+### apis section
+This is where you will need to put the API keys used to provide the bot
+with data from the Internet :
+
+- [NASA](https://www.nasa.gov/)
+
+### bot_lists section
+If you have posted your bot in one of the bot lists listed there, you
+can put your token and a link to your bot's page there so that your
+server count will be updated automaticaly by the bot.
+
+## Finally running the bot
+You have two options to run this bot
+
+1) You can simply use `poetry run python -m bot` to start the bot.
+2) You can, guess what... Use yet another systemd service !
+
+I love systemd. It works so nicely. Anyways, this config file is located is `systemd/chaotic.service`. You will need to change the file paths in `WorkingDirectory` and `ExecStart` to match where exactly you put the bot.
+
+However, don't do so just yet. As you may have seen, we start the bot using a mysterious `startup.sh` script.
+
+This script allows the bot to start *after* Lavalink is up and running, otherwise it may run into issues.
+
+This means that **if you don't run Lavalink**, you will need to comment out the first 3 lines of the script, so that only the last line is uncommented.
+
+**For everyone**, this last line will need to be edited. In the path, you will need to replace `user` with the actual username of the user running this bot.
+
+Now, you can edit the `/etc/systemd/system/chaotic.service` systemd file.
+
+Just make sure, if you don't run Lavalink, to remove `lavalink.service` from Wants= and After= in the file.
+
+```bash
+$ sudo -e /etc/systemd/system/chaotic.service
+$ sudo systemctl enable chaotic.service
+$ sudo systemctl start chaotic.service
+```
+
+## Syncing the commands
+You will have one final step to do before you can use the bot. Well, two in fact.
+
+1) Make sure that you have enabled the `cogs.owner` extension in your config file.
+2) In Discord, in a channel the bot can see, say `@Bot sync` to synchronize the commands and have them available everywhere. You will only need to do this once.
 
 ### Contact
 

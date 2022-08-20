@@ -121,7 +121,7 @@ class Owner(commands.Cog):
         raise error
 
     @app_commands.command(name="eval")
-    @app_commands.guilds(694804646086312026)
+    @app_commands.guilds(694804646086312026)  # Change this to your server's ID
     async def _eval(self, interaction: discord.Interaction) -> None:
         """Evaluate a Python code."""
         modal = EvalInput()
@@ -178,7 +178,7 @@ class Owner(commands.Cog):
                 await interaction.followup.send(f"```py\n{value}{ret}\n```")
 
     @app_commands.command()
-    @app_commands.guilds(694804646086312026)
+    @app_commands.guilds(694804646086312026)  # Change this to your server's ID
     async def logout(self, interaction: discord.Interaction) -> None:
         """Kill the bot."""
         await interaction.response.send_message("Logging out...", ephemeral=True)
@@ -186,7 +186,7 @@ class Owner(commands.Cog):
 
     @app_commands.command()
     @app_commands.rename(reload_all="all")
-    @app_commands.guilds(694804646086312026)
+    @app_commands.guilds(694804646086312026)  # Change this to your server's ID
     async def reload(
         self, interaction: discord.Interaction, reload_all: bool = False
     ) -> None:
@@ -253,7 +253,7 @@ class Owner(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     @app_commands.command()
-    @app_commands.guilds(694804646086312026)
+    @app_commands.guilds(694804646086312026)  # Change this to your server's ID
     async def sh(self, interaction: discord.Interaction, command: str) -> None:
         """Execute a shell command."""
         with ShellReader(command) as reader:
@@ -270,7 +270,7 @@ class Owner(commands.Cog):
         await interface.add_line(f"\n[status] Return code {reader.close_code}")
 
     @app_commands.command()
-    @app_commands.guilds(694804646086312026)
+    @app_commands.guilds(694804646086312026)  # Change this to your server's ID
     async def pull(self, interaction: discord.Interaction) -> None:
         """Execute a git pull."""
         await self.sh.callback(self, interaction, "git pull")
