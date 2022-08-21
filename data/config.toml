@@ -4,16 +4,13 @@ log_channel_id = 0
 suggestion_channel_id = 0  # Optional, but recommended
 extensions = [
     "cogs.animals",
-    # "cogs.business",
+    "cog.business",
     "cogs.funny",
-    # "cogs.games",
     "cogs.image",
     "cogs.music",
     "cogs.nasa",
     "cogs.owner",
     "cogs.utility",
-    # "bin.error",
-    # "bin.help",
     "bin.markdown",
 ]
 invite_permissions = 808527942

@@ -62,7 +62,7 @@ class Businessguy:
             self.steal_streak = 0
         self.id = user.id
         self.name = str(user)
-        self.avatar_url = str(user.avatar_url)
+        self.avatar_url = user.display_avatar.url
 
     def __eq__(self, other: object) -> bool:
         """Are we equal."""
@@ -158,23 +158,25 @@ class Business(commands.Cog):
     async def daily(self, interaction: discord.Interaction) -> None:
         """Get your daily GP (100 * streak, max : 500)."""
         async with self.bot.pool.connection() as connection:
-            business = Businessguy(
-                await self._fetcher(interaction.user.id, connection),
-                interaction.user,
-                connection,
-            )
-            await interaction.response.send_message(await business.daily())
+            async with connection.cursor() as cursor:
+                business = Businessguy(
+                    await self._fetcher(interaction.user.id, cursor),
+                    interaction.user,
+                    cursor,
+                )
+                await interaction.response.send_message(await business.daily())
 
     @app_commands.command()
     async def deposit(self, interaction: discord.Interaction, money: int) -> None:
         """Deposit your money in a safe at the bank."""
         async with self.bot.pool.connection() as connection:
-            business = Businessguy(
-                await self._fetcher(interaction.user.id, connection),
-                interaction.user,
-                connection,
-            )
-            await interaction.response.send_message(await business.deposit(money))
+            async with connection.cursor() as cursor:
+                business = Businessguy(
+                    await self._fetcher(interaction.user.id, cursor),
+                    interaction.user,
+                    cursor,
+                )
+                await interaction.response.send_message(await business.deposit(money))
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -184,26 +186,28 @@ class Business(commands.Cog):
     async def gift(self, interaction: discord.Interaction) -> None:
         """Get the guild's 500 GP of daily gift."""
         async with self.bot.pool.connection() as connection:
-            business = Businessguy(
-                await self._fetcher(interaction.user.id, connection),
-                interaction.user,
-                connection,
-            )
-            await interaction.response.send_message(
-                await business.gift(interaction.guild.name)  # type: ignore
-                # guild only check guaratees that guild is not None
-            )
+            async with connection.cursor() as cursor:
+                business = Businessguy(
+                    await self._fetcher(interaction.user.id, cursor),
+                    interaction.user,
+                    cursor,
+                )
+                await interaction.response.send_message(
+                    await business.gift(interaction.guild.name)  # type: ignore
+                    # guild only check guaratees that guild is not None
+                )
 
     @app_commands.command()
     async def money(self, interaction: discord.Interaction) -> None:
         """Check how much money you have."""
         async with self.bot.pool.connection(timeout=5) as connection:
-            business = Businessguy(
-                await self._fetcher(interaction.user.id, connection),
-                interaction.user,
-                connection,
-            )
-            embed = business.money_out()
+            async with connection.cursor() as cursor:
+                business = Businessguy(
+                    await self._fetcher(interaction.user.id, cursor),
+                    interaction.user,
+                    cursor,
+                )
+                embed = business.money_out()
             embed.set_thumbnail(url=self.bot.user.display_avatar.url)  # type: ignore
             # Bot is logged in
             await interaction.response.send_message(embed=embed)
@@ -220,46 +224,47 @@ class Business(commands.Cog):
     ) -> None:
         """Stealing is much more gainful than killing."""
         async with self.bot.pool.connection() as connection:
-            pickpocket = Businessguy(
-                await self._fetcher(interaction.user.id, connection),
-                interaction.user,
-                connection,
-            )
-            stolen = Businessguy(
-                await self._fetcher(victim.id, connection),
-                victim,
-                connection,
-            )
-            if pickpocket == stolen:
-                await interaction.response.send_message(
-                    "Are you seriously tring to steal yourself ?"
+            async with connection.cursor() as cursor:
+                pickpocket = Businessguy(
+                    await self._fetcher(interaction.user.id, cursor),
+                    interaction.user,
+                    cursor,
                 )
-                return
-            if stolen.money == 0:
-                await interaction.response.send_message(
-                    f"`{victim.display_name}` doesn't have money on him. "
-                    "What a shame."
+                stolen = Businessguy(
+                    await self._fetcher(victim.id, cursor),
+                    victim,
+                    cursor,
                 )
-                return
+                if pickpocket == stolen:
+                    await interaction.response.send_message(
+                        "Are you seriously tring to steal yourself ?"
+                    )
+                    return
+                if stolen.money == 0:
+                    await interaction.response.send_message(
+                        f"`{victim.display_name}` doesn't have money on him. "
+                        "What a shame."
+                    )
+                    return
 
-            threshold = p_vol(pickpocket.steal_streak)
-            if victim.status == discord.Status.offline:
-                threshold -= 10
-            if randint(1, 100) < threshold:
-                pickpocket.steal_streak = 0
-                await pickpocket.save()
-                await interaction.response.send_message(
-                    "You failed in your attempt to steal "
-                    f"{victim.display_name}."
-                    " He hit you, so you must now wait 10 minutes to regain "
-                    "your usual sneakiness"
-                )
-            else:
-                pickpocket.steal_streak += 1
-                await interaction.response.send_message(
-                    f"You robbed `{await pickpocket.steal(stolen)}` GP from "
-                    f"{victim.display_name}"
-                )
+                threshold = p_vol(pickpocket.steal_streak)
+                if victim.status == discord.Status.offline:
+                    threshold -= 10
+                if randint(1, 100) < threshold:
+                    pickpocket.steal_streak = 0
+                    await pickpocket.save()
+                    await interaction.response.send_message(
+                        "You failed in your attempt to steal "
+                        f"{victim.display_name}."
+                        " He hit you, so you must now wait 10 minutes to regain "
+                        "your usual sneakiness"
+                    )
+                else:
+                    pickpocket.steal_streak += 1
+                    await interaction.response.send_message(
+                        f"You robbed `{await pickpocket.steal(stolen)}` GP from "
+                        f"{victim.display_name}"
+                    )
 
 
 async def setup(bot: commands.Bot):
