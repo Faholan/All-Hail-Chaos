@@ -81,6 +81,7 @@ class Businessguy:
                 self.bank_max,
                 self.streak,
                 self.last_daily,
+                self.steal_streak,
                 self.money,
                 self.bank,
                 self.bank_max,
