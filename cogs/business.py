@@ -71,11 +71,16 @@ class Businessguy:
     async def save(self) -> None:
         """Commit the changes."""
         await self.database.execute(
-            "INSERT INTO public.business VALUES ($1, $2, $3, $4, $5, $6, $7)"
-            " ON CONFLICT (id) DO UPDATE SET money=$2, bank=$3, bank_max=$4, "
-            "streak=$5, last_daily=$6, steal_streak=$7",
+            "INSERT INTO public.business VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            " ON CONFLICT (id) DO UPDATE SET money=%s, bank=%s, bank_max=%s, "
+            "streak=%s, last_daily=%s, steal_streak=%s",
             (
                 self.id,
+                self.money,
+                self.bank,
+                self.bank_max,
+                self.streak,
+                self.last_daily,
                 self.money,
                 self.bank,
                 self.bank_max,
@@ -150,7 +155,7 @@ class Business(commands.Cog):
         """Fetch the guy's data."""
         return await (
             await connection.execute(
-                "SELECT * FROM public.business WHERE id=$1",
+                "SELECT * FROM public.business WHERE id=%s",
                 (identifier,),
             )
         ).fetchone()
