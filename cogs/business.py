@@ -74,13 +74,15 @@ class Businessguy:
             "INSERT INTO public.business VALUES ($1, $2, $3, $4, $5, $6, $7)"
             " ON CONFLICT (id) DO UPDATE SET money=$2, bank=$3, bank_max=$4, "
             "streak=$5, last_daily=$6, steal_streak=$7",
-            self.id,
-            self.money,
-            self.bank,
-            self.bank_max,
-            self.streak,
-            self.last_daily,
-            self.steal_streak,
+            (
+                self.id,
+                self.money,
+                self.bank,
+                self.bank_max,
+                self.streak,
+                self.last_daily,
+                self.steal_streak,
+            ),
         )
 
     async def daily(self) -> str:
@@ -149,7 +151,7 @@ class Business(commands.Cog):
         return await (
             await connection.execute(
                 "SELECT * FROM public.business WHERE id=$1",
-                identifier,
+                (identifier,),
             )
         ).fetchone()
 
