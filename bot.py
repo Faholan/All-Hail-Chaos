@@ -37,6 +37,11 @@ from discord import app_commands
 from discord.ext import commands
 
 
+async def configure_connection(connection: t.Any) -> None:
+    """Configure a connection to use dict_row."""
+    connection.row_factory = dict_row
+
+
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
@@ -65,7 +70,7 @@ class ChaoticBot(commands.Bot):
         self.pool = psycopg_pool.AsyncConnectionPool(
             make_conninfo(**parameters),
             open=False,
-            # row_factory=dict_row,
+            configure=configure_connection,
         )
 
         intents = discord.Intents(**config.get("intents", {}))
