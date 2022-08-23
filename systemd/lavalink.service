@@ -3,7 +3,7 @@ Description=Lavalink background task
 After=network.target
 
 [Service]
-WorkingDirectory=/home/user/github/All-Hail-Chaos/lavalink
+WorkingDirectory=/home/user/bot/lavalink
 User=user
 Group=user
 ExecStart=/usr/bin/java -jar Lavalink.jar

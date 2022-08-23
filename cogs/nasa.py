@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ import typing as t
 from random import choice
 
 import discord
+from discord import app_commands
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown
 
@@ -35,9 +36,11 @@ class NASA(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Hack the NASA."""
         self.bot = bot
-        self.api_key = bot.nasa
+        self.api_key = bot.raw_config.get("apis", {}).get("nasa")
+        if not self.api_key:
+            raise ValueError("No NASA API key found")
         self.apod_update.start()
-        self.apod_pic = {
+        self.apod_pic = {  # Default picture in case of error
             "hdurl": (
                 "https://apod.nasa.gov/apod/image/2004/atmosphere_geo5_"
                 "2018235_eq2400.jpg"
@@ -77,24 +80,27 @@ class NASA(commands.Cog):
             "https://api.nasa.gov/planetary/apod",
             params={"hd": "True", "api_key": self.api_key},
         ) as response:
-            self.apod_pic: t.Dict[str, str] = await response.json()
+            self.apod_pic: t.Dict[
+                str, str
+            ] = await response.json()  # Update the cache !
 
-    @commands.command(ignore_extra=True)
-    async def apod(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def apod(self, interaction: discord.Interaction) -> None:
         """Get the Astronomy Picture Of The Day."""
         embed = discord.Embed(
             title=self.apod_pic.get("title", "Astronomy Picture Of the Day"),
-            description=self.apod_pic.get("explanation", discord.Embed.Empty),
+            description=self.apod_pic.get("explanation", None),
             colour=discord.Colour.purple(),
         )
         if self.apod_pic.get("media_type") == "video":
+            # Extract information from the data, & do things with it
             if "embed" in self.apod_pic.get("url", "nope"):
-                preview = self.apod_pic.get(
-                    "url", "").split("/")[-1].split("?")[0]
+                preview = self.apod_pic.get("url", "").split("/")[-1].split("?")[0]
             else:
                 preview = self.apod_pic.get("url", "").split("=")[-1]
-            embed.set_image(
-                url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
+            embed.set_image(url=f"https://img.youtube.com/vi/{preview}/hqdefault.jpg")
+            if embed.description is None:
+                embed.description = ""
             embed.description += (
                 "\nWatch the video using [This link]("
                 f'{self.apod_pic.get("url")} "{self.apod_pic.get("title")}")'
@@ -104,10 +110,14 @@ class NASA(commands.Cog):
                 url=self.apod_pic.get("hdurl", self.apod_pic.get("url")),
             )
         embed.set_author(name=self.apod_pic.get("copyright", "NASA's APOD"))
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command()
-    async def epic(self, ctx: commands.Context, max_n: int = 1) -> None:
+    @app_commands.command()
+    async def epic(
+        self,
+        interaction: discord.Interaction,
+        max_n: app_commands.Range[int, 1, 10] = 1,
+    ) -> None:
         """Retrieve images from DSCOVR's Earth Polychromatic Imaging Camera.
 
         You can specify a maximum number of images to retrieve (default : 1)
@@ -116,6 +126,8 @@ class NASA(commands.Cog):
             "https://epic.gsfc.nasa.gov/api/images.php"
         ) as response:
             json: t.List[t.Dict[str, str]] = await response.json()
+            embeds = []
+
             for i in range(min(max_n, len(json))):
                 embed = discord.Embed(
                     title="EPIC image",
@@ -128,15 +140,19 @@ class NASA(commands.Cog):
                         f"{json[i]['image']}.jpg"
                     )
                 )
-                await ctx.send(embed=embed)
+                embeds.append(embed)
+            if embeds:
+                await interaction.response.send_message(embeds=embeds)
+            else:
+                await interaction.response.send_message("No images found")
 
-    @commands.command()
+    @app_commands.command()
     async def mars(
         self,
-        ctx: commands.Context,
+        interaction: discord.Interaction,
         date: str,
         rover: t.Optional[str] = None,
-        number: int = 1,
+        number: app_commands.Range[int, 1, 10] = 1,
     ) -> None:
         """Get images from Mars.
 
@@ -148,7 +164,9 @@ class NASA(commands.Cog):
             rover = choice(("curiosity", "opportunity", "spirit"))
 
         if rover.lower() not in {"curiosity", "opportunity", "spirit"}:
-            await ctx.send("Sorry but this rover doesn't exist")
+            await interaction.response.send_message(
+                "Sorry but this rover doesn't exist"
+            )
             return
         async with self.bot.aio_session.get(
             "https://api.nasa.gov/mars-photos/api/v1/rovers/"
@@ -159,13 +177,14 @@ class NASA(commands.Cog):
             images = await response.json()
             if not images.get("photos"):
                 await self.bot.httpcat(
-                    ctx,
+                    interaction,
                     404,
                     "I didn't find anything for your query. It's probably "
                     f"because the rover {rover.capitalize()} wasn't in "
                     "activity at this time",
                 )
                 return
+            embeds = []
             for i in range(min(number, len(images["photos"]))):
                 embed = discord.Embed(
                     title=f"Picture from {rover.capitalize()}",
@@ -179,10 +198,11 @@ class NASA(commands.Cog):
                 embed.set_footer(
                     text="Picture taken on" + images["photos"][i]["earth_date"]
                 )
-                await ctx.send(embed=embed)
+                embeds.append(embed)
+            await interaction.response.send_message(embeds=embeds)
 
-    @commands.command()
-    async def nasasearch(self, ctx: commands.Context, *, query: str) -> None:
+    @app_commands.command()
+    async def nasasearch(self, interaction: discord.Interaction, *, query: str) -> None:
         """Search for an image in the NASA database."""
         async with self.bot.aio_session.get(
             "https://images-api.nasa.gov/search",
@@ -192,7 +212,7 @@ class NASA(commands.Cog):
         try:
             data = jresult["collection"]["items"][0]["data"][0]
         except (KeyError, IndexError):
-            await ctx.send(
+            await interaction.response.send_message(
                 f"I didn't find anything for your query `{escape_markdown(query)}`"
             )
             return
@@ -211,9 +231,9 @@ class NASA(commands.Cog):
         ) as imageq:
             imagej = await imageq.json()
         embed.set_image(url=imagej["collection"]["items"][0]["href"])
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
-def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     """Load the NASA cog."""
-    bot.add_cog(NASA(bot))
+    await bot.add_cog(NASA(bot))

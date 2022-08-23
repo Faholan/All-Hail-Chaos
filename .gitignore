@@ -140,3 +140,6 @@ data/database.db*
 #codespaces
 pythonenv3.8/
 .vscode/
+
+# Custom
+data/config.toml

@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,11 @@ SOFTWARE.
 """
 
 import typing as t
-from datetime import datetime
 from random import choice
 
 import discord
+from discord import app_commands
 from discord.ext import commands, tasks
-
-
-class Pic:
-    """Picture placeholder."""
-
-    def __init__(self, url: str, tag: str = discord.Embed.Empty) -> None:
-        """Create the Pic."""
-        self.url = url
-        self.title = tag
 
 
 class Animals(commands.Cog):
@@ -44,7 +35,7 @@ class Animals(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Animals."""
         self.bot = bot
-        self.all_facts: t.List[t.Dict[str, str]] = []
+        self.all_facts: t.List[t.Dict[str, str]] = []  # Cache of cat facts
         self.catfact_update.start()
 
     @tasks.loop(hours=12)
@@ -54,27 +45,27 @@ class Animals(commands.Cog):
         async with self.bot.aio_session.get(url) as response:
             self.all_facts = await response.json()
 
-    @commands.command()
-    async def catfact(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def catfact(self, interaction: discord.Interaction) -> None:
         """Send a random cat fact."""
         fact = choice(self.all_facts)
-        await ctx.send(fact["text"])
+        await interaction.response.send_message(fact["text"])
 
-    @commands.command()
-    async def fox(self, ctx: commands.Context) -> None:
+    @app_commands.command()
+    async def fox(self, interaction: discord.Interaction) -> None:
         """Send a random fox picture."""
         url = "https://randomfox.ca/floof/"
         async with self.bot.aio_session.get(url) as response:
             picture = await response.json()
 
             embed = discord.Embed(
-                timestamp=datetime.utcnow(),
+                timestamp=discord.utils.utcnow(),
                 colour=discord.Colour.blue(),
             )
             embed.set_image(url=picture["image"])
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
 
-def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     """Load the Animals cog."""
-    bot.add_cog(Animals(bot))
+    await bot.add_cog(Animals(bot))

@@ -6,7 +6,7 @@ After=network.target lavalink.service
 
 [Service]
 WorkingDirectory=/home/user/github/All-Hail-Chaos
-ExecStart=/bin/sh /home/user/github/All-Hail-Chaos/startup.sh
+ExecStart=/bin/bash /home/user/github/All-Hail-Chaos/startup.sh
 User=user
 Group=user
 Type=simple
