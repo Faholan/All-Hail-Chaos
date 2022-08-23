@@ -62,7 +62,7 @@ link = "https://github.com/Faholan/All-Hail-Chaos"
 
 [[lavalink_nodes]]
 host = "localhost"
-port = 2233
+port = 2333
 password = "*****"
 region = "eu"
 resume_key = "default_node"
