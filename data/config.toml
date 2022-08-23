@@ -1,7 +1,7 @@
 [bot]
 token = ""
 log_channel_id = 0
-suggestion_channel_id = 0  # Optional, but recommended
+suggestion_channel_id = 3145728  # Optional, but recommended
 extensions = [
     "cogs.animals",
     "cog.business",
