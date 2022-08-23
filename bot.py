@@ -47,7 +47,7 @@ class ChaoticBot(commands.Bot):
 
     def __init__(self, configpath: str = "data/config.toml") -> None:
         """Initialize the bot."""
-        with open(configpath, "r", encoding="utf-8") as file:
+        with open(configpath, "r", encoding="utf-8") as file:  # skipcq: PTC-W6004
             config = toml.load(file)
 
         if "bot" not in config:

@@ -46,7 +46,7 @@ class EvalInput(ui.Modal, title="Code input"):
         label="Code", style=discord.TextStyle.paragraph
     )
 
-    @staticmethod
+    @staticmethod  # skipcq: PYL-W0221
     async def on_submit(interaction: discord.Interaction) -> None:
         """Defer the interaction."""
         await interaction.response.defer()

@@ -22,12 +22,10 @@ SOFTWARE.
 """
 
 import codecs
-import inspect
 import os
 import pathlib
 from os import path
 from sys import version
-from textwrap import dedent
 import typing as t
 
 import discord
