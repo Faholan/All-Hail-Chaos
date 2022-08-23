@@ -1,6 +1,6 @@
 """MIT License.
 
-Copyright (c) 2020-2021 Faholan
+Copyright (c) 2020-2022 Faholan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -94,7 +94,8 @@ class ChaoticBot(commands.Bot):
                 or not (isinstance(package, str) or package is None)
             ):
                 raise ValueError(
-                    "Invalid tree location (module_name, class_name and package must be strings)"
+                    "Invalid tree location "
+                    "(module_name, class_name and package must be strings)"
                 )
 
             name = importlib.util.resolve_name(

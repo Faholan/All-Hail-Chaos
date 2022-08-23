@@ -96,11 +96,10 @@ class CommandTree(app_commands.CommandTree):
 
         if isinstance(error, app_commands.MissingRole):
             role = error.missing_role
-            if isinstance(role, int):
-                if interaction.guild:
-                    guild_role = interaction.guild.get_role(role)
-                    if guild_role is not None:
-                        role = guild_role.name
+            if isinstance(role, int) and interaction.guild:
+                guild_role = interaction.guild.get_role(role)
+                if guild_role is not None:
+                    role = guild_role.name
 
             await self.client.httpcat(
                 interaction,
@@ -112,11 +111,10 @@ class CommandTree(app_commands.CommandTree):
         if isinstance(error, app_commands.MissingAnyRole):
             roles: t.List[str] = []  # List of names of needed roles
             for role in error.missing_roles:
-                if isinstance(role, int):
-                    if interaction.guild is not None:
-                        guild_role = interaction.guild.get_role(role)
-                        if guild_role is not None:
-                            role = guild_role.name
+                if isinstance(role, int) and interaction.guild is not None:
+                    guild_role = interaction.guild.get_role(role)
+                    if guild_role is not None:
+                        role = guild_role.name
 
                 if isinstance(role, str):
                     roles.append(role)

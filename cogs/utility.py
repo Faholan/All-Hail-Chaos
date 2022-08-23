@@ -37,26 +37,7 @@ import ujson
 
 from discord import app_commands
 
-# from discord.ext import commands, menus, tasks
 from discord.ext import commands, tasks
-
-ZWS = "\u200b"
-POLL_EMOJIS = [chr(0x1F1E6 + i) for i in range(0x1A)]
-# :regional_indicator_a: up to :regional_indicator_z
-
-
-# class SauceSource(menus.ListPageSource):
-class SauceSource:
-    """Source for the sauce command."""
-
-    # async def format_page(self, menu: menus.Menu, page: str):
-    async def format_page():
-        """Format the page of code."""
-        max_pages = self.get_max_pages()
-        embed = discord.Embed(description=page, colour=discord.Colour.purple())
-        if max_pages > 1:
-            embed.set_footer(text=f"Page {menu.current_page + 1}/{max_pages}")
-        return embed
 
 
 def secondes(number: int) -> str:
@@ -279,50 +260,6 @@ class Utility(commands.Cog):
                 inline=False,
             )
         await interaction.response.send_message(embed=embed)
-
-    # TODO : create a v2 paginator
-    # @app_commands.command()
-    async def source(
-        self,
-        interaction: discord.Interaction,
-        *,
-        command_name: str,
-    ) -> None:
-        """Get the source code of a command."""
-        command = self.bot.tree.get_command(command_name)
-        if not command or isinstance(command, app_commands.Group):
-            await interaction.response.send_message(
-                f"No command named `{command_name}` found."
-            )
-            return
-        try:
-            source_lines, _ = inspect.getsourcelines(command.callback)
-        except (TypeError, OSError):
-            await interaction.response.send_message(
-                "I was unable to retrieve the source for "
-                f"`{command_name}` for some reason."
-            )
-            return
-
-        # Get rid of extra \n
-        source_lines = dedent(
-            "".join(source_lines).replace("```", f"`{ZWS}`{ZWS}`")
-        ).split("\n")
-        paginator = commands.Paginator(
-            prefix="```py",
-            suffix="```",
-            max_size=2048,
-        )
-        for line in source_lines:
-            paginator.add_line(line)
-        pages = menus.MenuPages(
-            source=SauceSource(
-                paginator.pages,
-                per_page=1,
-            ),
-            clear_reactions_after=True,
-        )
-        await pages.start(ctx)
 
     @app_commands.command()
     @app_commands.checks.cooldown(2, 600)

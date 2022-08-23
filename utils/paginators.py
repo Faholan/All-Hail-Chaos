@@ -75,8 +75,10 @@ class WrappedPaginator(commands.Paginator):  # type: ignore
                     super().add_line(line[: true_max_size - 1])
                 else:
                     raise ValueError(
-                        f"Line of length {original_length} had sequence of {len(line)} characters"
-                        f" (max is {true_max_size}) that WrappedPaginator could not wrap with"
+                        f"Line of length {original_length} "
+                        f"had sequence of {len(line)} characters"
+                        f" (max is {true_max_size}) that "
+                        "WrappedPaginator could not wrap with"
                         f" delimiters: {self.wrap_on}"
                     )
 
@@ -117,7 +119,6 @@ class TextPaginator:
     @property
     def pages(self) -> t.List[str]:
         """Get the paginator's pages without prematurely closing the active page."""
-
         # pylint: disable=protected-access
         paginator_pages = list(self.paginator._pages)
         if len(self.paginator._current_page) > 1:

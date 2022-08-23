@@ -68,6 +68,10 @@ class Businessguy:
         """Are we equal."""
         return isinstance(other, Businessguy) and self.id == other.id
 
+    def __hash__(self) -> int:
+        """Implement hash(self)."""
+        return hash(self.id)
+
     async def save(self) -> None:
         """Commit the changes."""
         await self.database.execute(
@@ -152,7 +156,8 @@ class Business(commands.Cog):
         """Initialize Business."""
         self.bot = bot
 
-    async def _fetcher(self, identifier: int, connection: t.Any) -> t.Dict[str, t.Any]:
+    @staticmethod
+    async def _fetcher(identifier: int, connection: t.Any) -> t.Dict[str, t.Any]:
         """Fetch the guy's data."""
         return await (
             await connection.execute(

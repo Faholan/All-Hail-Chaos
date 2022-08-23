@@ -51,6 +51,10 @@ class InteractionHolder:
             return self.interaction == other.interaction
         return False
 
+    def __hash__(self) -> int:
+        """Implement hash(self)."""
+        return hash(self.interaction)
+
     @property
     def interaction(self) -> discord.Interaction:
         """Get the underlying interaction."""
@@ -87,7 +91,7 @@ class InteractionHolder:
             return
         try:
             await self.interaction.delete_original_response()
-        except (discord.NotFound, discord.HTTPException):
+        except discord.HTTPException:
             pass
         self._interaction = interaction
 
@@ -118,7 +122,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
                 holder.view.stop()
                 try:
                     await holder.interaction.delete_original_response()
-                except (discord.NotFound, discord.HTTPException):
+                except discord.HTTPException:
                     pass
                 self._interactions.pop(i)
             elif (holder.guild_id, holder.channel_id,) == (
@@ -149,21 +153,22 @@ class CustomPlayer(lavalink.DefaultPlayer):
             await interaction.edit_original_response(
                 embed=await get_music_embed(self, interaction), view=None
             )
-        except (discord.NotFound, discord.HTTPException):
+        except discord.HTTPException:
             pass
 
     async def update_interactions(self) -> None:
         """Update the interfaces."""
         i = 0
         while i < len(self._interactions):
-            # We may need to invalidate some interactions, hence a while loop rather than a for
+            # We may need to invalidate some interactions,
+            # hence a while loop rather than a for
             holder = self._interactions[i]
             if holder.is_expired():  # If the interaction is expired, delete it
                 self._interactions.pop(i)
                 holder.view.stop()
                 try:
                     await holder.interaction.delete_original_response()
-                except (discord.NotFound, discord.HTTPException):
+                except discord.HTTPException:
                     pass
                 continue
 
@@ -175,10 +180,8 @@ class CustomPlayer(lavalink.DefaultPlayer):
                     view=view,
                 )
                 holder.view = view
-            except (
-                discord.NotFound,
-                discord.HTTPException,
-            ):  # Interaction message got deleted, purge it
+            except discord.HTTPException:
+                # Interaction message got deleted, purge it
                 holder.view.stop()
                 self._interactions.pop(i)
             else:
@@ -244,7 +247,6 @@ class CustomPlayer(lavalink.DefaultPlayer):
 
         Returns the message to send as followup.
         """
-
         if not url_rx.match(query):
             # If this is not an URL, search for it on YouTube
             query = f"ytsearch:{query}"
@@ -261,7 +263,10 @@ class CustomPlayer(lavalink.DefaultPlayer):
             for track in tracks:
                 self.add(requester=interaction.user.id, track=track)
 
-            return f"Enqueued playlist {results['playlistInfo']['name']} - {len(tracks)} tracks"
+            return (
+                f"Enqueued playlist {results['playlistInfo']['name']}"
+                f" - {len(tracks)} tracks"
+            )
 
         # Found a single track, add it to the queue
         track = results["tracks"][0]
@@ -277,7 +282,7 @@ class CustomPlayer(lavalink.DefaultPlayer):
             try:
                 await holder.interaction.delete_original_response()
                 # Remove all the player managers
-            except (discord.NotFound, discord.HTTPException):
+            except discord.HTTPException:
                 continue  # Message was already deleted
         self._interactions.clear()
         self.queue.clear()
@@ -489,6 +494,7 @@ class MusicView(ui.View):
 
 
 def duration_str(mili_sec: int) -> str:
+    """Convert a duration into a human-readable string."""
     sec = mili_sec // 1000
     minute = sec // 60
     hour = minute // 60
@@ -514,10 +520,13 @@ async def get_music_embed(
             url=f"https://img.youtube.com/vi/{mus.identifier}/hqdefault.jpg"
         )
     else:
-        embed = discord.Embed(title="Music list", description=desc, color=0x99D9EA)
+        embed = discord.Embed(title="Music list", color=0x99D9EA)
         if player.queue:
             embed.set_thumbnail(
-                url=f"https://img.youtube.com/vi/{player.queue[0].identifier}/hqdefault.jpg"
+                url=(
+                    "https://img.youtube.com/vi/"
+                    f"{player.queue[0].identifier}/hqdefault.jpg"
+                )
             )
 
     if player.history:
@@ -526,7 +535,10 @@ async def get_music_embed(
         for i in range(min(len(player.history), 5)):
             mus = player.history[-i]
             desc += "- [" + mus.title
-            desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+            desc += (
+                "](https://www.youtube.com/watch?v="
+                f'{mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+            )
         embed.add_field(name="History", value=desc, inline=False)
 
     if player.queue:
@@ -535,7 +547,10 @@ async def get_music_embed(
         for i in range(min(len(player.queue), 5)):
             mus = player.queue[i]
             desc += "- [" + mus.title
-            desc += f'](https://www.youtube.com/watch?v={mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+            desc += (
+                "](https://www.youtube.com/watch?v="
+                f'{mus.identifier} "{mus.title}") ({duration_str(mus.duration)})\n'
+            )
         embed.add_field(name="Next", value=desc, inline=False)
 
     if interaction.client.user:
@@ -577,7 +592,9 @@ class Music(commands.Cog):
     async def empty_vc_check(self) -> None:
         """Stop playing if nobody's listening."""
         new_channels = []
-        for player in tuple(self.bot.lavalink.player_manager.players.values()):  # type: ignore
+        for player in tuple(
+            self.bot.lavalink.player_manager.players.values()  # type: ignore
+        ):
             if player and player.is_playing:
                 guild = self.bot.get_guild(int(player.guild_id))
                 if not guild:
@@ -674,7 +691,9 @@ class Music(commands.Cog):
             if interaction.guild.voice_client:  # Cleanup strange state
                 await interaction.guild.voice_client.disconnect(force=True)
 
-            await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)  # type: ignore
+            await interaction.user.voice.channel.connect(
+                cls=LavalinkVoiceClient  # type: ignore
+            )
         else:
             if int(player.channel_id) != interaction.user.voice.channel.id:
                 raise MusicError(421, "I'm already in a different voice channel.")
