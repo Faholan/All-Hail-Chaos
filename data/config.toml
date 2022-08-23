@@ -1,7 +1,7 @@
 [bot]
 token = ""
 log_channel_id = 0
-suggestion_channel_id = 3145728  # Optional, but recommended
+suggestion_channel_id = 0  # Optional, but recommended
 extensions = [
     "cogs.animals",
     "cog.business",
@@ -13,7 +13,7 @@ extensions = [
     "cogs.utility",
     "bin.markdown",
 ]
-invite_permissions = 808527942
+invite_permissions = 3145728
 support = "https://discord.gg/eFfjdyZ"  # Optional, but recommended
 privacy = "https://github.com/Faholan/All-Hail-Chaos/blob/master/PRIVACY.md"  # Optional
 
