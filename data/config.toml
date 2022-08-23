@@ -4,7 +4,7 @@ log_channel_id = 0
 suggestion_channel_id = 0  # Optional, but recommended
 extensions = [
     "cogs.animals",
-    "cog.business",
+    "cogs.business",
     "cogs.funny",
     "cogs.image",
     "cogs.music",
