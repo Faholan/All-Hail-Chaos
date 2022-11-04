@@ -202,7 +202,11 @@ class CommandTree(app_commands.CommandTree):
         embed.set_author(
             name=str(interaction.user), icon_url=interaction.user.display_avatar.url
         )
-        embed.title = f"{interaction.user.id} caused an error in {interaction.command}"
+
+        command = interaction.command
+        command_name = command.name if command else "None"
+
+        embed.title = f"{interaction.user.id} caused an error in {command_name}"
         embed.description = f"{type(error).__name__} : {error}"
 
         if (

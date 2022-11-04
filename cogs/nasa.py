@@ -80,6 +80,9 @@ class NASA(commands.Cog):
             "https://api.nasa.gov/planetary/apod",
             params={"hd": "True", "api_key": self.api_key},
         ) as response:
+            if response.status != 200:
+                await self.bot.log_channel.send(f"Got a {response.status} from NASA APOD")
+                return
             self.apod_pic: t.Dict[
                 str, str
             ] = await response.json()  # Update the cache !
@@ -125,6 +128,13 @@ class NASA(commands.Cog):
         async with self.bot.aio_session.get(
             "https://epic.gsfc.nasa.gov/api/images.php"
         ) as response:
+            if response.status != 200:
+                await interaction.response.send_message(
+                    "Houston, we have a problem. NASA is not responding.",
+                    ephemeral=True,
+                )
+                await self.bot.log_channel.send(f"Got a {response.status} from NASA EPIC")
+                return
             json: t.List[t.Dict[str, str]] = await response.json()
             embeds = []
 
@@ -174,6 +184,17 @@ class NASA(commands.Cog):
             + "/photos",
             params={"earth_date": date, "api_key": self.api_key},
         ) as response:
+            if response.status != 200:
+                await interaction.response.send_message(
+                    "Houston, we have a problem. NASA is not responding.",
+                    ephemeral=True,
+                )
+                await self.bot.log_channel.send(
+                    f"Got a {response.status} from NASA MARS\n"
+                    f"Date: {date}\nRover: {rover}\nNumber: {number}"
+                )
+                return
+
             images = await response.json()
             if not images.get("photos"):
                 await self.bot.httpcat(
@@ -207,8 +228,18 @@ class NASA(commands.Cog):
         async with self.bot.aio_session.get(
             "https://images-api.nasa.gov/search",
             params={"q": query, "media_type": "image"},
-        ) as result:
-            jresult = await result.json()
+        ) as response:
+            if response.status != 200:
+                await interaction.response.send_message(
+                    "Houston, we have a problem. NASA is not responding.",
+                    ephemeral=True,
+                )
+                await self.bot.log_channel.send(
+                    f"Got a {response.status} from NASA Search\nQuery: {query}"
+                )
+                return
+
+            jresult = await response.json()
         try:
             data = jresult["collection"]["items"][0]["data"][0]
         except (KeyError, IndexError):

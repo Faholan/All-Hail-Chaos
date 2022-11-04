@@ -14,6 +14,7 @@ humanize = "^4.3.0"
 psutil = "^5.9.1"
 "discord.py" = {extras = ["voice", "speed"], version = "^2.0.0"}
 ujson = "^5.4.0"
+
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
 isort = "^5.10.1"

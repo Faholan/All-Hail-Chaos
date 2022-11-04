@@ -60,16 +60,30 @@ class Funny(commands.Cog):
         if interaction.guild_id and not interaction.channel.is_nsfw():
             url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
             async with self.bot.aio_session.get(url) as response:
-                joke = await response.json()
-                await interaction.response.send_message(joke["value"]["joke"])
+                if response.status == 200:
+                    joke = await response.json()
+                    await interaction.response.send_message(joke["value"]["joke"])
+                    return
+
+                await interaction.response.send_message(
+                    "Chuck Norris is currently busy fighting a bear.",
+                    ephemeral=True,
+                )
             return
         async with self.bot.aio_session.get(
             "http://api.icndb.com/jokes/random"
         ) as response:
-            joke = await response.json()
-            await interaction.response.send_message(
-                joke["value"]["joke"].replace("&quote", '"')
-            )
+            if response.status == 200:
+                joke = await response.json()
+                await interaction.response.send_message(
+                    joke["value"]["joke"].replace("&quote", '"')
+                )
+                return
+
+        await interaction.response.send_message(
+            "Chuck Norris is currently busy fighting a bear.",
+            ephemeral=True,
+        )
 
     @app_commands.command()
     async def dad(self, interaction: discord.Interaction) -> None:
