@@ -6,7 +6,6 @@ extensions = [
     "cogs.animals",
     "cogs.business",
     "cogs.funny",
-    "cogs.image",
     "cogs.music",
     "cogs.nasa",
     "cogs.owner",
