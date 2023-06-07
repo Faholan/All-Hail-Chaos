@@ -21,9 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from io import StringIO
 import traceback
 import typing as t
+from io import StringIO
 
 import discord
 from discord import app_commands
@@ -32,21 +32,20 @@ from discord import app_commands
 def display_time(num_seconds: int) -> str:
     """Convert a number of seconds in human-readable format."""
     human_readable: t.List[str] = []
-    if num_seconds >= 86400:
-        human_readable.append(f"{num_seconds//86400} days")
-        num_seconds %= 86400
-    if num_seconds >= 3600:
-        human_readable.append(f"{num_seconds//3600} hours")
-        num_seconds %= 3600
-    if num_seconds >= 60:
-        human_readable.append(f"{num_seconds//60} minutes")
-        num_seconds %= 60
-    if num_seconds > 0:
-        human_readable.append(f"{num_seconds} seconds")
+
+    for num, name in (
+        (86400, "days"),
+        (3600, "hours"),
+        (60, "minutes"),
+        (1, "seconds"),
+    ):
+        if num_seconds >= num:
+            human_readable.append(f"{num_seconds // num} {name}")
+            num_seconds %= num
     return ", ".join(human_readable)
 
 
-OPTION_TYPES = {  # Convert the options into human readable format
+OPTION_TYPES = {  # Convert the options into human-readable format
     discord.AppCommandOptionType.subcommand: "a subcommand",
     discord.AppCommandOptionType.subcommand_group: "a subcommand group",
     discord.AppCommandOptionType.string: "a string",  # Wait, what ?

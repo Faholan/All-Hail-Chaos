@@ -48,9 +48,9 @@ class Animals(commands.Cog):
     @app_commands.command()
     async def catfact(self, interaction: discord.Interaction) -> None:
         """Send a random cat fact."""
-        if self.all_facts == []:
+        if not self.all_facts:
             await self.catfact_update()
-            if self.all_facts == []:
+            if not self.all_facts:
                 await interaction.response.send_message(
                     "No cat fact available!", ephemeral=True
                 )

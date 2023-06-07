@@ -1,4 +1,4 @@
-"""MIT License..
+"""MIT License.
 
 Copyright (c) 2020-2022 Faholan
 
@@ -26,8 +26,8 @@ from os import path
 from random import choice, randint
 
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 HitReturn = t.Tuple[str, str, str, str]
 
@@ -50,7 +50,7 @@ class Funny(commands.Cog):
         """Get a random Chuck Norris joke."""
         if randint(0, 1):
             async with self.bot.aio_session.get(
-                "https://api.chucknorris.io/jokes/random"
+                    "https://api.chucknorris.io/jokes/random"
             ) as response:
                 joke = await response.json()
                 await interaction.response.send_message(joke["value"])
@@ -71,7 +71,7 @@ class Funny(commands.Cog):
                 )
             return
         async with self.bot.aio_session.get(
-            "http://api.icndb.com/jokes/random"
+                "http://api.icndb.com/jokes/random"
         ) as response:
             if response.status == 200:
                 joke = await response.json()
@@ -89,16 +89,16 @@ class Funny(commands.Cog):
     async def dad(self, interaction: discord.Interaction) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
-            "https://icanhazdadjoke.com/slack"
+                "https://icanhazdadjoke.com/slack"
         ) as response:
             joke = await response.json()
             await interaction.response.send_message(joke["attachments"][0]["text"])
 
     @app_commands.command()
     async def dong(
-        self,
-        interaction: discord.Interaction,
-        dick: t.Optional[discord.Member] = None,
+            self,
+            interaction: discord.Interaction,
+            dick: t.Optional[discord.Member] = None,
     ) -> None:
         """How long is this person's dong."""
         dickfinal = dick or interaction.user
@@ -133,7 +133,7 @@ class Funny(commands.Cog):
     async def joke(self, interaction: discord.Interaction) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
-            "https://mrwinson.me/api/jokes/random"
+                "https://mrwinson.me/api/jokes/random"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
@@ -147,9 +147,9 @@ class Funny(commands.Cog):
 
     @app_commands.command()
     async def kill(
-        self,
-        interaction: discord.Interaction,
-        target: str,
+            self,
+            interaction: discord.Interaction,
+            target: str,
     ) -> None:
         """Just in case you wanna kill your neighbour."""
         await interaction.response.send_message(

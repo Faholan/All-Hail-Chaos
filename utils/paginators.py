@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2022 Faholan
@@ -33,12 +34,12 @@ class WrappedPaginator(commands.Paginator):  # type: ignore
     """A paginator with automatic wrapping of lines."""
 
     def __init__(
-        self,
-        *args: t.Any,
-        wrap_on=("\n", " "),
-        include_wrapped: bool = True,
-        force_wrap: bool = False,
-        **kwargs: t.Any,
+            self,
+            *args: t.Any,
+            wrap_on=("\n", " "),
+            include_wrapped: bool = True,
+            force_wrap: bool = False,
+            **kwargs: t.Any,
     ) -> None:
         """Initialize the paginator."""
         super().__init__(*args, **kwargs)
@@ -66,7 +67,7 @@ class WrappedPaginator(commands.Paginator):  # type: ignore
                     if self.include_wrapped:
                         line = line[position:]
                     else:
-                        line = line[position + len(delimiter) :]
+                        line = line[position + len(delimiter):]
 
                     break
 
@@ -91,10 +92,10 @@ class TextPaginator:
     max_page_size = 2000
 
     def __init__(
-        self,
-        *args: t.Any,
-        max_size: int = 1975,
-        **kwargs: t.Any,
+            self,
+            *args: t.Any,
+            max_size: int = 1975,
+            **kwargs: t.Any,
     ) -> None:
         """Initialize the interface."""
         self._display_page = 0
@@ -240,8 +241,8 @@ class TextPaginatorView(ui.View):
     """View to navigate the paginator."""
 
     def __init__(
-        self,
-        paginator: TextPaginator,
+            self,
+            paginator: TextPaginator,
     ) -> None:
         """Initialize the view."""
         self.paginator = paginator
