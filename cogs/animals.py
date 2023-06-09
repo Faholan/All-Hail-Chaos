@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -30,7 +31,7 @@ from discord.ext import commands, tasks
 
 
 class Animals(commands.Cog):
-    """Get cute pics of animals."""
+    """Get cute pictures of animals."""
 
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Animals."""

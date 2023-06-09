@@ -1,4 +1,5 @@
-"""MIT License.
+# coding=utf-8
+"""MIT Licence.
 
 Copyright (c) 2020-2021 Faholan
 
@@ -22,7 +23,7 @@ SOFTWARE.
 """
 
 # Used in the NASA cog
-# Hopefully some day we can get rid of this horror. Until then, here it comes...
+# Hopefully some day this horror can be deleted. Until then, here it comes...
 
 from html.parser import HTMLParser
 
@@ -30,7 +31,7 @@ from discord.utils import find
 
 
 class MarkdownParser(HTMLParser):
-    """Converts html to markdown."""
+    """Converts HTML to markdown."""
 
     def feed(self, data: str) -> str:
         """Feed text to the process."""
@@ -85,7 +86,7 @@ class MarkdownParser(HTMLParser):
             self.output += "\n"
 
     def handle_data(self, data: str) -> None:
-        """Just a stupid ass copy-paste."""
+        """Append the data to the output."""
         self.output += data
 
 

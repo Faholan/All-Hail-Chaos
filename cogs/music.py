@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License
 
 Copyright (c) 2022 Faholan
@@ -21,15 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from random import choice
 import re
 import typing as t
+from random import choice
 
-from discord import app_commands, ui
-from discord.ext import commands, tasks
 import discord
 import lavalink
-
+from discord import app_commands, ui
+from discord.ext import commands, tasks
 
 # TODO : better error messages & handling
 
@@ -364,17 +364,14 @@ class LavalinkVoiceClient(discord.VoiceClient):
 class MusicInput(ui.Modal, title="Music search"):
     """Music modal input."""
 
-    music_input = ui.TextInput(
-        label="Music to search for",
-        required=True,
-    )
+    music_input = ui.TextInput(label="Music to search for")
 
     def __init__(self, player: CustomPlayer):
         """Initialize the input."""
         super().__init__()
         self.music_input.placeholder = choice(
             ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Hotel California")
-        )  # Provide variaions in the placeholder
+        )  # Provide variations in the placeholder
         self.player = player
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
@@ -498,8 +495,8 @@ def duration_str(mili_sec: int) -> str:
     sec = mili_sec // 1000
     minute = sec // 60
     hour = minute // 60
-    minute = minute % 60
-    sec = sec % 60
+    minute %= 60
+    sec %= 60
     if hour:
         return f"{hour}:{minute:02d}:{sec:02d}"
     return f"{minute:02d}:{sec:02d}"
@@ -557,7 +554,7 @@ async def get_music_embed(
         embed.set_author(
             name=interaction.client.user.name,
             icon_url=interaction.client.user.display_avatar.url,
-        )  # Idk why this would'nt be set, but anyways
+        )  # IDK why this wouldn't be set, but anyway
 
     return embed
 
@@ -580,7 +577,7 @@ class Music(commands.Cog):
         self.bot = bot
 
         if not bot.lavalink_nodes:  # type: ignore
-            raise ValueError("No Lavalink nodes configured !")
+            raise ValueError("No Lavalink node configured !")
 
         add_lavalink(bot)
         lavalink.add_event_hook(self.track_hook)

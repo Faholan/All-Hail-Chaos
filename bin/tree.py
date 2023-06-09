@@ -1,4 +1,5 @@
-"""MIT License
+# coding=utf-8
+"""MIT Licence
 
 Copyright (c) 2022 Faholan
 
@@ -30,7 +31,7 @@ from discord import app_commands
 
 
 def display_time(num_seconds: int) -> str:
-    """Convert a number of seconds in human-readable format."""
+    """Convert some seconds in human-readable format."""
     human_readable: t.List[str] = []
 
     for num, name in (
@@ -48,7 +49,7 @@ def display_time(num_seconds: int) -> str:
 OPTION_TYPES = {  # Convert the options into human-readable format
     discord.AppCommandOptionType.subcommand: "a subcommand",
     discord.AppCommandOptionType.subcommand_group: "a subcommand group",
-    discord.AppCommandOptionType.string: "a string",  # Wait, what ?
+    discord.AppCommandOptionType.string: "a string",  # Wait, what?
     discord.AppCommandOptionType.integer: "an integer",
     discord.AppCommandOptionType.boolean: "a boolean",
     discord.AppCommandOptionType.number: "a number",
@@ -108,7 +109,7 @@ class CommandTree(app_commands.CommandTree):
             return
 
         if isinstance(error, app_commands.MissingAnyRole):
-            roles: t.List[str] = []  # List of names of needed roles
+            roles: t.List[str] = []  # Names of needed roles
             for role in error.missing_roles:
                 if isinstance(role, int) and interaction.guild is not None:
                     guild_role = interaction.guild.get_role(role)
@@ -191,7 +192,7 @@ class CommandTree(app_commands.CommandTree):
             500,
             "Internal error",
             (
-                "An error ocurred while calling the command. "
+                "An error occurred while calling the command. "
                 "Reporting the error to the developers..."
             ),
         )
@@ -212,7 +213,7 @@ class CommandTree(app_commands.CommandTree):
             interaction.guild
             and interaction.channel
             and not isinstance(interaction.channel, discord.PartialMessageable)
-        ):  # Correct typehints - in a guild
+        ):  # Correct typehints—in a guild
             embed.description += (
                 f"\nin {interaction.guild} ({interaction.guild_id})"
                 f"\n   in {interaction.channel.name} ({interaction.channel_id})"
@@ -237,4 +238,4 @@ class CommandTree(app_commands.CommandTree):
                     filename="error.md",
                 )
             )
-            # Send errors in files if they are too big
+            # Send errors in files if they're too big

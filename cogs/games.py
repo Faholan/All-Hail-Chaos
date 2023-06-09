@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2021 Faholan
@@ -30,6 +31,7 @@ from random import randint, shuffle
 
 import discord
 from discord.ext import commands, menus, tasks
+
 
 # TODO : rework with views. Now I'm too lazy to do that
 
@@ -790,13 +792,13 @@ class Games(commands.Cog):
     }
 
     mine_emoji = [
-        "||" + str(i) + "\N{variation selector-16}\N{combining enclosing keycap}||"
-        for i in range(9)
-    ] + [
-        "0\N{variation selector-16}\N{combining enclosing keycap}",
-        # revealed zero
-        "||\U0001f4a3||",  # bomb
-    ]
+                     "||" + str(i) + "\N{variation selector-16}\N{combining enclosing keycap}||"
+                     for i in range(9)
+                 ] + [
+                     "0\N{variation selector-16}\N{combining enclosing keycap}",
+                     # revealed zero
+                     "||\U0001f4a3||",  # bomb
+                 ]
 
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize Games."""
@@ -972,7 +974,7 @@ class Games(commands.Cog):
                     "\n".join(
                         [
                             " ".join([self.mine_emoji[num] for num in row])
-                            for row in grid[max_len * i : max_len * (i + 1)]
+                            for row in grid[max_len * i: max_len * (i + 1)]
                         ]
                     )
                 )

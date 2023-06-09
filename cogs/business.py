@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -31,8 +32,8 @@ from discord.ext import commands
 
 
 def p_vol(streak: int) -> float:
-    """Return the probability of stealing based off the strek."""
-    return 75 - (25 * 0.8**streak)
+    """Return the probability of stealing based off the streak."""
+    return 75 - (25 * 0.8 ** streak)
 
 
 class Businessguy:
@@ -65,7 +66,7 @@ class Businessguy:
         self.avatar_url = user.display_avatar.url
 
     def __eq__(self, other: object) -> bool:
-        """Are we equal."""
+        """Check for equality."""
         return isinstance(other, Businessguy) and self.id == other.id
 
     def __hash__(self) -> int:
@@ -113,7 +114,7 @@ class Businessguy:
         return f"You took {guild}'s 500 daily GP."
 
     def money_out(self) -> discord.Embed:
-        """How much money do I have."""
+        """Check the available money."""
         embed = discord.Embed(title=f"{self.name}'s bank :", colour=0x00008B)
         embed.set_author(name=self.name, icon_url=self.avatar_url)
         embed.add_field(name="Banked :", value=f"{self.bank}/{self.bank_max}")
@@ -140,7 +141,7 @@ class Businessguy:
         )
 
     async def steal(self, other: "Businessguy") -> int:
-        """Gimme your money."""
+        """Steal somebody."""
         stolen = randint(round(0.05 * other.money), round(0.1 * other.money))
         self.money += stolen
         other.money -= stolen
@@ -181,7 +182,7 @@ class Business(commands.Cog):
 
     @app_commands.command()
     async def deposit(self, interaction: discord.Interaction, money: int) -> None:
-        """Deposit your money in a safe at the bank."""
+        """Deposit money in a safe at the bank."""
         async with self.bot.pool.connection() as connection:
             async with connection.cursor() as cursor:
                 business = Businessguy(
@@ -207,7 +208,7 @@ class Business(commands.Cog):
                 )
                 await interaction.response.send_message(
                     await business.gift(interaction.guild.name)  # type: ignore
-                    # guild only check guaratees that guild is not None
+                    # guild only check guarantees that guild is not None
                 )
 
     @app_commands.command()
@@ -250,7 +251,7 @@ class Business(commands.Cog):
                 )
                 if pickpocket == stolen:
                     await interaction.response.send_message(
-                        "Are you seriously tring to steal yourself ?"
+                        "Are you seriously trying to steal yourself ?"
                     )
                     return
                 if stolen.money == 0:

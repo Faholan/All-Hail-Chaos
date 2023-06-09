@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan

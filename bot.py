@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -21,20 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import typing as t
 import importlib.util
 import sys
+import typing as t
 
-
-import toml
 import aiohttp
-import psycopg_pool
-from psycopg.conninfo import make_conninfo
-from psycopg.rows import dict_row
-
 import discord
+import psycopg_pool
+import toml
 from discord import app_commands
 from discord.ext import commands
+from psycopg.conninfo import make_conninfo
+from psycopg.rows import dict_row
 
 
 async def configure_connection(connection: t.Any) -> None:
@@ -45,9 +44,9 @@ async def configure_connection(connection: t.Any) -> None:
 class ChaoticBot(commands.Bot):
     """The subclassed bot class."""
 
-    def __init__(self, configpath: str = "data/config.toml") -> None:
+    def __init__(self, config_path: str = "data/config.toml") -> None:
         """Initialize the bot."""
-        with open(configpath, "r", encoding="utf-8") as file:  # skipcq: PTC-W6004
+        with open(config_path, "r", encoding="utf-8") as file:  # skipcq: PTC-W6004
             config = toml.load(file)
 
         if "bot" not in config:
@@ -138,9 +137,9 @@ class ChaoticBot(commands.Bot):
                 help_command=None,
             )
 
-        self.log_channel: discord.abc.Messageable
+        self.log_channel: discord.abc.Messageable = None  # type: ignore
         self.suggestion_channel: t.Optional[discord.abc.Messageable] = None
-        self.aio_session: aiohttp.ClientSession
+        self.aio_session: aiohttp.ClientSession = None  # type: ignore
 
         self.raw_config = config
 
@@ -225,8 +224,8 @@ class ChaoticBot(commands.Bot):
         """Log message on guild remove."""
         await self.log_channel.send(f"{guild.name} left")
 
+    @staticmethod
     async def httpcat(
-        self,
         interaction: discord.Interaction,
         code: int,
         title: t.Optional[str] = None,

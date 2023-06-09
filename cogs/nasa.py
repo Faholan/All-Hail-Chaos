@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -50,26 +51,8 @@ class NASA(commands.Cog):
                 "while updating the APOD"
             ),
             "explanation": (
-                "It was just another day on aerosol Earth. For August 23, "
-                "2018, the identification and distribution of aerosols in "
-                "the Earth's atmosphere is shown in this dramatic, "
-                "planet-wide digital visualization. Produced in real time,"
-                " the Goddard Earth Observing System Forward Processing "
-                "(GEOS FP) model relies on a combination of "
-                "Earth-observing satellite and ground-based data to "
-                "calculate the presence of types of aerosols, tiny solid "
-                "particles and liquid droplets, as they circulate above "
-                "the entire planet. This August 23rd model shows black "
-                "carbon particles in red from combustion processes, like "
-                "smoke from the fires in the United States and Canada, "
-                "spreading across large stretches of North America and "
-                "Africa. Sea salt aerosols are in blue, swirling above "
-                "threatening typhoons near South Korea and Japan, and the "
-                "hurricane looming near Hawaii. Dust shown in purple hues "
-                "is blowing over African and Asian deserts. The location "
-                "of cities and towns can be found from the concentrations "
-                "of lights based on satellite image data of the Earth at "
-                "night. Celebrate: Earth Day at Home"
+                "It looks like NASA's API broke down. You can still get the latest APOD "
+                "[here](https://apod.nasa.gov/apod/astropix.html)"
             ),
         }
 

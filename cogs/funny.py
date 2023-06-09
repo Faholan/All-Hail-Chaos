@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -48,57 +49,26 @@ class Funny(commands.Cog):
     @app_commands.command()
     async def chuck(self, interaction: discord.Interaction) -> None:
         """Get a random Chuck Norris joke."""
-        if randint(0, 1):
-            async with self.bot.aio_session.get(
-                    "https://api.chucknorris.io/jokes/random"
-            ) as response:
-                joke = await response.json()
-                await interaction.response.send_message(joke["value"])
-            return
-
-        # TODO : Fix for threads & all that
-        if interaction.guild_id and not interaction.channel.is_nsfw():
-            url = "http://api.icndb.com/jokes/random?exclude=[explicit]"
-            async with self.bot.aio_session.get(url) as response:
-                if response.status == 200:
-                    joke = await response.json()
-                    await interaction.response.send_message(joke["value"]["joke"])
-                    return
-
-                await interaction.response.send_message(
-                    "Chuck Norris is currently busy fighting a bear.",
-                    ephemeral=True,
-                )
-            return
         async with self.bot.aio_session.get(
-                "http://api.icndb.com/jokes/random"
+            "https://api.chucknorris.io/jokes/random"
         ) as response:
-            if response.status == 200:
-                joke = await response.json()
-                await interaction.response.send_message(
-                    joke["value"]["joke"].replace("&quote", '"')
-                )
-                return
-
-        await interaction.response.send_message(
-            "Chuck Norris is currently busy fighting a bear.",
-            ephemeral=True,
-        )
+            joke = await response.json()
+            await interaction.response.send_message(joke["value"])
 
     @app_commands.command()
     async def dad(self, interaction: discord.Interaction) -> None:
         """Get a random dad joke."""
         async with self.bot.aio_session.get(
-                "https://icanhazdadjoke.com/slack"
+            "https://icanhazdadjoke.com/slack"
         ) as response:
             joke = await response.json()
             await interaction.response.send_message(joke["attachments"][0]["text"])
 
     @app_commands.command()
     async def dong(
-            self,
-            interaction: discord.Interaction,
-            dick: t.Optional[discord.Member] = None,
+        self,
+        interaction: discord.Interaction,
+        dick: t.Optional[discord.Member] = None,
     ) -> None:
         """How long is this person's dong."""
         dickfinal = dick or interaction.user
@@ -110,8 +80,8 @@ class Funny(commands.Cog):
     @app_commands.command()
     async def excuse(self, interaction: discord.Interaction) -> None:
         """We all do mishaps, and we all need a good excuse once in a while."""
-        newline = "\n"  # One cannot use backslash in a f-string
-        # The file is spread into 6 lines, to form a phrase like :
+        newline = "\n"  # One cannot use backslash in an f-string
+        # The file is spread into 6 lines, to form a phrase like:
         #
         # I'm sorry master... it's because {person} {action} in {place} because of
         # {qualificative} {object} which {qualificative 2} so it's not my fault!
@@ -133,7 +103,7 @@ class Funny(commands.Cog):
     async def joke(self, interaction: discord.Interaction) -> None:
         """Send a random joke."""
         async with self.bot.aio_session.get(
-                "https://mrwinson.me/api/jokes/random"
+            "https://mrwinson.me/api/jokes/random"
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
@@ -147,11 +117,11 @@ class Funny(commands.Cog):
 
     @app_commands.command()
     async def kill(
-            self,
-            interaction: discord.Interaction,
-            target: str,
+        self,
+        interaction: discord.Interaction,
+        target: str,
     ) -> None:
-        """Just in case you wanna kill your neighbour."""
+        """Just in case you want to kill your neighbour."""
         await interaction.response.send_message(
             choice(death).format(
                 author=interaction.user.display_name,

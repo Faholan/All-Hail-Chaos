@@ -1,3 +1,4 @@
+# coding=utf-8
 """MIT License.
 
 Copyright (c) 2020-2022 Faholan
@@ -24,17 +25,15 @@ SOFTWARE.
 import codecs
 import os
 import pathlib
+import typing as t
 from os import path
 from sys import version
-import typing as t
 
 import discord
 import humanize
 import psutil
 import ujson
-
 from discord import app_commands
-
 from discord.ext import commands, tasks
 
 
@@ -56,7 +55,7 @@ def secondes(number: int) -> str:
 
 
 class Utility(commands.Cog):
-    """Manage the bot and get informations about it."""
+    """Manage the bot and get information about it."""
 
     def __init__(self, bot: commands.Bot) -> None:
         """Initialize the utility."""
@@ -199,7 +198,7 @@ class Utility(commands.Cog):
         )
         embed.add_field(
             name="GitHub repository",
-            value=(f"[It's open source !]({self.bot.github_link})"),
+            value=f"[It's open source !]({self.bot.github_link})",
         )
 
         descr_pages = []
