@@ -100,22 +100,6 @@ class Funny(commands.Cog):
         )
 
     @app_commands.command()
-    async def joke(self, interaction: discord.Interaction) -> None:
-        """Send a random joke."""
-        async with self.bot.aio_session.get(
-            "https://mrwinson.me/api/jokes/random"
-        ) as resp:
-            if resp.status == 200:
-                data = await resp.json()
-                embed = discord.Embed(
-                    description=data["joke"], colour=discord.Colour.gold()
-                )
-                await interaction.response.send_message(embed=embed)
-            else:
-                await interaction.response.send_message("Something went wrong.")
-                await self.bot.log_channel.send(f"Code {resp.status} in joke")
-
-    @app_commands.command()
     async def kill(
         self,
         interaction: discord.Interaction,
